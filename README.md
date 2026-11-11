@@ -5,7 +5,7 @@ Torte Living Pvt Limited. React + Vite + TypeScript, hosted on GitHub Pages, run
 Torte Living Supabase back end (the same database as the
 [operations app](https://github.com/aryamanvepa/Inventory-front-end)).
 
-**Live:** https://aryamanvepa.github.io/mia-torte-store/
+**Live:** https://aryamanvepa.github.io/frontend_mia_torte/
 
 ## How it fits together
 
