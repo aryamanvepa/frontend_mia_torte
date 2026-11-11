@@ -1,92 +1,92 @@
-import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Link, NavLink, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
-import { Reveal } from '../components/ui';
-import { contentFor } from '../content/products';
-import { brands, type BrandCode } from '../content/site';
+import { Icon, Img, Reveal } from '../components/ui';
+import type { Brand, Collection } from '../content/brands';
+import { inCollection, itemContent, paths } from '../lib/brand';
 import { useCatalogue } from '../state/store';
 
 const SORTS = { featured: 'Featured', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name' } as const;
 type Sort = keyof typeof SORTS;
 
-export default function Shop() {
+/** A brand's shop ("/mia-torte/shop") or one of its collections ("/mia-torte/gifting"). */
+export default function BrandShop({ brand, collection }: { brand: Brand; collection?: Collection }) {
   const { items, status } = useCatalogue();
   const [params, setParams] = useSearchParams();
-  const brand = (params.get('brand') ?? '') as BrandCode | '';
-  const category = params.get('category') ?? '';
   const sort = ((params.get('sort') ?? 'featured') in SORTS ? params.get('sort') ?? 'featured' : 'featured') as Sort;
-
-  const set = (k: string, v: string) => {
+  const setSort = (v: string) => {
     const next = new URLSearchParams(params);
-    if (v) next.set(k, v); else next.delete(k);
-    if (k === 'brand') next.delete('category');
+    if (v && v !== 'featured') next.set('sort', v); else next.delete('sort');
     setParams(next, { replace: true });
   };
 
-  const brandItems = useMemo(() => items.filter((i) => !brand || i.brand_code === brand), [items, brand]);
-  const cats = useMemo(() => [...new Set(brandItems.map((i) => i.category).filter(Boolean) as string[])], [brandItems]);
+  const title = collection?.title ?? brand.shop.title;
+  useEffect(() => { document.title = `${title} · ${brand.name}`; }, [title, brand.name]);
+
+  const brandItems = useMemo(() => items.filter((i) => i.brand_code === brand.code), [items, brand.code]);
   const shown = useMemo(() => {
-    const list = brandItems.filter((i) => !category || i.category === category);
-    const rank = (code: string, cat: string | null) => (contentFor(code, cat).featured ? 0 : 1);
+    const list = collection ? brandItems.filter((i) => inCollection(i, collection)) : brandItems;
+    const rank = (i: (typeof list)[number]) => (itemContent(i).featured ? 0 : 1);
     const avail = (a: string) => (a === 'sold_out' ? 1 : 0);
     return [...list].sort((a, b) => avail(a.availability) - avail(b.availability) || (
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price
       : sort === 'name' ? a.name.localeCompare(b.name)
-      : rank(a.code, a.category) - rank(b.code, b.category) || a.brand_code.localeCompare(b.brand_code) || a.pack_grams - b.pack_grams));
-  }, [brandItems, category, sort]);
-
-  const b = brand && brands[brand];
-  const title = category || (b ? b.name : 'The shop');
-  const intro = b ? b.blurb : 'Patisserie from Mia Torte and wholesome staples from Nutri Sampoorna, all from one kitchen.';
+      : rank(a) - rank(b) || a.product.localeCompare(b.product) || a.pack_grams - b.pack_grams));
+  }, [brandItems, collection, sort]);
+  const ready = brand.collections.filter((c) => brandItems.some((i) => inCollection(i, c)));
 
   return (
-    <div className={`shop ${brand === 'NS' ? 'shop--ns' : ''}`}>
-      <header className="page-head wrap">
-        <p className="eyebrow">{b ? b.short : 'Shop'}</p>
-        <h1 className="display display--lg">{title}</h1>
-        <p className="lede page-head__lede">{intro}</p>
+    <div className="shop">
+      <header className={`coll-head wrap ${collection ? 'coll-head--media' : ''}`}>
+        <div className="coll-head__text">
+          <nav className="crumbs crumbs--inline" aria-label="Breadcrumb">
+            <Link to={paths.home(brand)}>{brand.name}</Link>
+            {collection && <><span aria-hidden="true">/</span><Link to={paths.shop(brand)}>{brand.shop.title}</Link></>}
+          </nav>
+          <h1 className="display display--lg">{title}</h1>
+          <p className="lede">{collection?.intro ?? brand.shop.intro}</p>
+        </div>
+        {collection && <div className="coll-head__media"><Img id={collection.image} eager sizes="(min-width: 900px) 40vw, 100vw" /></div>}
       </header>
 
-      <div className="filters wrap" role="region" aria-label="Filter products">
-        <div className="seg" role="group" aria-label="Brand">
-          {[['', 'All'], ['MT', brands.MT.name], ['NS', brands.NS.name]].map(([v, l]) => (
-            <button key={v} aria-pressed={brand === v} className={`seg__btn ${brand === v ? 'is-on' : ''}`} onClick={() => set('brand', v)}>{l}</button>
-          ))}
-        </div>
-        <div className="chips" role="group" aria-label="Category">
-          <button className={`chip ${!category ? 'is-on' : ''}`} aria-pressed={!category} onClick={() => set('category', '')}>All</button>
-          {cats.map((c) => (
-            <button key={c} className={`chip ${category === c ? 'is-on' : ''}`} aria-pressed={category === c} onClick={() => set('category', category === c ? '' : c)}>{c}</button>
-          ))}
-        </div>
-        <label className="sort">
-          <span className="sr-only">Sort by</span>
-          <select value={sort} onChange={(e) => set('sort', e.target.value === 'featured' ? '' : e.target.value)}>
-            {Object.entries(SORTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          </select>
-        </label>
+      <div className="filters wrap" role="region" aria-label="Collections and sorting">
+        <nav className="chips" aria-label={`${brand.name} collections`}>
+          <NavLink to={paths.shop(brand)} end className="chip">All</NavLink>
+          {brand.collections.map((c) => <NavLink key={c.slug} to={paths.collection(brand, c)} className="chip">{c.title}</NavLink>)}
+        </nav>
+        {shown.length > 1 && (
+          <label className="sort">
+            <span className="sr-only">Sort by</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value)}>
+              {Object.entries(SORTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          </label>
+        )}
       </div>
 
-      <section className="wrap shop__results" aria-live="polite">
-        {status === 'loading' && <GridSkeleton n={6} />}
+      <section className="wrap shop__results" aria-live="polite" aria-label={title}>
+        {status === 'loading' && <GridSkeleton n={4} />}
         {status === 'error' && <CatalogueStatus />}
-        {status === 'ready' && (
+        {status === 'ready' && (shown.length ? (
           <>
             <p className="shop__count">{shown.length} {shown.length === 1 ? 'product' : 'products'}</p>
-            {shown.length ? (
-              <div className="grid">
-                {shown.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={n < 2} /></Reveal>)}
-              </div>
-            ) : (
-              <div className="empty">
-                <p className="display display--sm">Nothing here just yet.</p>
-                <p>New bakes and pantry staples are on their way.</p>
-                <button className="btn btn--line" onClick={() => setParams({}, { replace: true })}>Show everything</button>
-              </div>
-            )}
+            <div className="grid">
+              {shown.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={n < 2} /></Reveal>)}
+            </div>
           </>
-        )}
+        ) : (
+          <div className="soon">
+            <p className="eyebrow">{brand.theme === 'mt' ? 'In the kitchen' : 'In development'}</p>
+            <p className="soon__text">{collection?.comingSoon ?? 'New products are on their way.'}</p>
+            <div className="soon__cta">
+              {ready.filter((c) => c.slug !== collection?.slug).slice(0, 2).map((c) => (
+                <Link key={c.slug} to={paths.collection(brand, c)} className="btn btn--line">See {c.title}</Link>
+              ))}
+              <Link to={paths.contact(brand)} className="arrow-link">Write to us <Icon name="arrow" size={18} /></Link>
+            </div>
+          </div>
+        ))}
       </section>
     </div>
   );

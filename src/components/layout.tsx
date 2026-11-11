@@ -1,26 +1,49 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { brands, site } from '../content/site';
-import { contentFor } from '../content/products';
+import { brandList, type Brand } from '../content/brands';
+import { site } from '../content/site';
+import { collectionOf, itemContent, lineImage, paths, useBrand } from '../lib/brand';
 import { rupees, packLabel, titleOf } from '../lib/format';
 import { useBag, useCart, useCatalogue } from '../state/store';
 import { Icon, Img, Stepper, Text } from './ui';
 
+function navFor(brand: Brand | null) {
+  if (!brand) {
+    return [
+      ...brandList.map((b) => ({ to: paths.home(b), label: b.name, end: false })),
+      { to: '/track', label: 'Track an order', end: true },
+    ];
+  }
+  return [
+    { to: paths.shop(brand), label: 'Shop', end: true },
+    ...brand.collections.map((c) => ({ to: paths.collection(brand, c), label: c.title, end: true })),
+    { to: paths.story(brand), label: brand.story.label, end: true },
+    { to: paths.contact(brand), label: 'Contact', end: true },
+  ];
+}
+
+export function Wordmark({ brand, as: Tag = 'span' }: { brand: Brand | null; as?: 'span' | 'p' }) {
+  if (!brand) {
+    return <Tag className="wordmark wordmark--house"><span className="wordmark__name">Torte Living</span><span className="wordmark__sub">Mia Torte · Nutri Sampoorna</span></Tag>;
+  }
+  return (
+    <Tag className={`wordmark wordmark--${brand.theme}`}>
+      <span className="wordmark__name">{brand.name}</span>
+      <span className="wordmark__sub">{brand.descriptor}</span>
+    </Tag>
+  );
+}
+
 // ---------------------------------------------------------------- header
 export function Header() {
+  const brand = useBrand();
   const { count, openDrawer, bump } = useCart();
   const { pathname } = useLocation();
-  const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
   const [pulse, setPulse] = useState(false);
-  const overHero = pathname === '/';
+  const links = navFor(brand);
+  const other = brand ? brandList.find((b) => b.code !== brand.code)! : null;
 
-  useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 24);
-    on();
-    window.addEventListener('scroll', on, { passive: true });
-    return () => window.removeEventListener('scroll', on);
-  }, []);
   useEffect(() => setMenu(false), [pathname]);
   useEffect(() => {
     if (!bump) return;
@@ -36,91 +59,124 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menu]);
 
-  const links = [
-    { to: '/shop', label: 'Shop all' },
-    { to: '/shop?brand=MT', label: 'Patisserie' },
-    { to: '/shop?brand=NS', label: 'The Pantry' },
-    { to: '/about', label: 'Our story' },
-  ];
-
   return (
-    <header className={`header ${scrolled || !overHero || menu ? 'header--solid' : ''}`}>
-      <div className="header__inner wrap">
-        <button className="header__menu-btn icon-btn" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-controls="mobile-menu"
-          aria-label={menu ? 'Close menu' : 'Open menu'}>
-          <Icon name={menu ? 'close' : 'menu'} size={24} />
-        </button>
-        <nav className="header__nav" aria-label="Main">
-          {links.slice(0, 3).map((l) => <NavLink key={l.to} to={l.to} className="navlink" end>{l.label}</NavLink>)}
-        </nav>
-        <Link to="/" className="wordmark" aria-label={`${site.name}, home`}>
-          <span className="wordmark__name">Mia Torte</span>
-          <span className="wordmark__sub">by Torte Living</span>
-        </Link>
-        <div className="header__right">
-          <NavLink to="/about" className="navlink header__desk">Our story</NavLink>
-          <NavLink to="/track" className="navlink header__desk">Track order</NavLink>
-          <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
-            <Icon name="bag" size={24} />
-            <span className={`bag-btn__count ${count ? '' : 'is-empty'}`} aria-hidden="true">{count}</span>
-          </button>
+    <>
+      <div className="topbar">
+        <div className="wrap topbar__inner">
+          <nav className="topbar__brands" aria-label="Torte Living brands">
+            <NavLink to="/" end className="topbar__link">Torte Living</NavLink>
+            {brandList.map((b) => <NavLink key={b.code} to={paths.home(b)} className="topbar__link">{b.name}</NavLink>)}
+          </nav>
+          <div className="topbar__right">
+            <span className="topbar__note"><Icon name="hand" size={15} /> Pay on delivery</span>
+            <NavLink to="/track" className="topbar__link">Track an order</NavLink>
+          </div>
         </div>
       </div>
-      <div id="mobile-menu" className={`mobile-menu ${menu ? 'is-open' : ''}`} hidden={!menu}>
-        <nav aria-label="Mobile">
-          <ul>
-            {[...links, { to: '/track', label: 'Track your order' }].map((l, i) => (
-              <li key={l.to} style={{ transitionDelay: `${60 + i * 40}ms` }}><Link to={l.to}>{l.label}</Link></li>
-            ))}
+      <header className="header">
+        <div className="header__bar wrap">
+          <div className="header__left">
+            <button className="header__menu-btn icon-btn" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-controls="mobile-menu"
+              aria-label={menu ? 'Close menu' : 'Open menu'}>
+              <Icon name={menu ? 'close' : 'menu'} size={24} />
+            </button>
+          </div>
+          <Link to={brand ? paths.home(brand) : '/'} className="header__mark" aria-label={`${brand?.name ?? site.name}, home`}>
+            <Wordmark brand={brand} />
+          </Link>
+          <div className="header__right">
+            <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
+              <Icon name="bag" size={24} />
+              <span className={`bag-btn__count ${count ? '' : 'is-empty'}`} aria-hidden="true">{count}</span>
+            </button>
+          </div>
+        </div>
+        <nav className="header__nav" aria-label={brand ? `${brand.name}` : 'Main'}>
+          <ul className="wrap">
+            {links.map((l) => <li key={l.to}><NavLink to={l.to} end={l.end} className="navlink">{l.label}</NavLink></li>)}
           </ul>
-          <p className="mobile-menu__note">{brands.MT.name} &amp; {brands.NS.name} · {site.legalEntity}</p>
         </nav>
-      </div>
-    </header>
+        <div id="mobile-menu" className={`mobile-menu ${menu ? 'is-open' : ''}`} hidden={!menu}>
+          <nav aria-label="Mobile">
+            <ul>
+              {links.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}
+            </ul>
+            <ul className="mobile-menu__minor">
+              {other && <li><Link to={paths.home(other)}>Visit {other.name} <Icon name="arrow" size={16} /></Link></li>}
+              {brand && <li><Link to="/track">Track an order</Link></li>}
+              <li><Link to="/">Torte Living</Link></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+    </>
   );
 }
 
 // ---------------------------------------------------------------- footer
 export function Footer() {
+  const brand = useBrand();
+  const other = brand ? brandList.find((b) => b.code !== brand.code)! : null;
+  const year = new Date().getFullYear();
+
   return (
     <footer className="footer">
       <div className="wrap footer__grid">
         <div className="footer__brand">
-          <p className="footer__mark">Mia Torte</p>
-          <p className="footer__line">Patisserie &amp; pantry from {site.legalEntity}.</p>
-          <p className="footer__cod"><Icon name="hand" size={18} /> Pay on delivery across our delivery areas.</p>
-        </div>
-        <nav aria-label="Shop" className="footer__col">
-          <h2 className="footer__h">Shop</h2>
-          <ul>
-            <li><Link to="/shop?brand=MT">{brands.MT.name}</Link></li>
-            <li><Link to="/shop?brand=NS">{brands.NS.name}</Link></li>
-            <li><Link to="/shop">All products</Link></li>
-            <li><Link to="/track">Track an order</Link></li>
-          </ul>
-        </nav>
-        <nav aria-label="Information" className="footer__col">
-          <h2 className="footer__h">Information</h2>
-          <ul>
-            <li><Link to="/about">Our story</Link></li>
-            <li><Link to="/shipping">Shipping &amp; delivery</Link></li>
-            <li><Link to="/refunds">Returns &amp; refunds</Link></li>
-            <li><Link to="/privacy">Privacy policy</Link></li>
-            <li><Link to="/terms">Terms of sale</Link></li>
-          </ul>
-        </nav>
-        <div className="footer__col">
-          <h2 className="footer__h">Contact</h2>
+          <Wordmark brand={brand} as="p" />
+          <p className="footer__line">{brand ? brand.tagline : 'Food deserves thought and attention.'}</p>
           <ul className="footer__contact">
             <li><Text copy={site.email} /></li>
             <li><Text copy={site.phone} /></li>
             <li><Text copy={site.hours} /></li>
           </ul>
         </div>
+        {brand ? (
+          <>
+            <nav aria-label={`Shop ${brand.name}`} className="footer__col">
+              <h2 className="footer__h">Shop</h2>
+              <ul>
+                <li><Link to={paths.shop(brand)}>{brand.shop.title}</Link></li>
+                {brand.collections.map((c) => <li key={c.slug}><Link to={paths.collection(brand, c)}>{c.title}</Link></li>)}
+              </ul>
+            </nav>
+            <nav aria-label={`About ${brand.name}`} className="footer__col">
+              <h2 className="footer__h">{brand.name}</h2>
+              <ul>
+                <li><Link to={paths.story(brand)}>{brand.story.label}</Link></li>
+                <li><Link to={paths.contact(brand)}>Contact</Link></li>
+                {other && <li><Link to={paths.home(other)}>Visit {other.name}</Link></li>}
+                <li><Link to="/">Torte Living</Link></li>
+              </ul>
+            </nav>
+          </>
+        ) : (
+          brandList.map((b) => (
+            <nav key={b.code} aria-label={b.name} className="footer__col">
+              <h2 className="footer__h">{b.name}</h2>
+              <ul>
+                <li><Link to={paths.home(b)}>Home</Link></li>
+                <li><Link to={paths.shop(b)}>Shop</Link></li>
+                <li><Link to={paths.story(b)}>{b.story.label}</Link></li>
+                <li><Link to={paths.contact(b)}>Contact</Link></li>
+              </ul>
+            </nav>
+          ))
+        )}
+        <nav aria-label="Help" className="footer__col">
+          <h2 className="footer__h">Help</h2>
+          <ul>
+            <li><Link to="/track">Track an order</Link></li>
+            <li><Link to="/shipping">Shipping &amp; delivery</Link></li>
+            <li><Link to="/refunds">Returns &amp; refunds</Link></li>
+            <li><Link to="/privacy">Privacy policy</Link></li>
+            <li><Link to="/terms">Terms of sale</Link></li>
+          </ul>
+        </nav>
       </div>
       <div className="wrap footer__legal">
-        <p><Text copy={site.fssaiLicence} /></p>
-        <p>© {new Date().getFullYear()} {site.legalEntity}. All prices include GST.</p>
+        <p>{brand ? `${brand.name} is a brand of ` : ''}{site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
+        <p>© {year} {site.legalEntity}. All prices include GST.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>
     </footer>
@@ -129,6 +185,7 @@ export function Footer() {
 
 // ---------------------------------------------------------------- cart drawer
 export function CartDrawer() {
+  const brand = useBrand();
   const { drawerOpen, closeDrawer, setQty, remove, count } = useCart();
   const { rows, subtotal, hasProblems } = useBag();
   const { status } = useCatalogue();
@@ -177,20 +234,22 @@ export function CartDrawer() {
         {rows.length === 0 ? (
           <div className="drawer__empty">
             <p className="drawer__empty-title">Your bag is empty.</p>
-            <p>Something sweet, perhaps?</p>
-            <Link to="/shop" className="btn btn--dark">Browse the shop</Link>
+            <p>{brand ? brand.emptyBag : 'Something to savour, or something for the pantry?'}</p>
+            <div className="drawer__empty-cta">
+              {(brand ? [brand] : brandList).map((b) => <Link key={b.code} to={paths.shop(b)} className={`btn ${brand ? 'btn--dark' : 'btn--line'}`}>Browse {b.name}</Link>)}
+            </div>
           </div>
         ) : (
           <>
             <ul className="drawer__lines">
               {rows.map((r) => {
-                const c = contentFor(r.code, r.item?.category ?? null);
+                const href = r.item ? paths.product(r.item) : '/';
                 return (
                   <li key={r.code} className={`line ${r.short ? 'line--problem' : ''}`}>
-                    <Link to={`/product/${r.code}`} className="line__img"><Img id={c.images[0]} sizes="96px" alt="" /></Link>
+                    <Link to={href} className="line__img"><Img id={lineImage(r.code, r.item)} sizes="96px" alt="" /></Link>
                     <div className="line__body">
                       <p className="line__brand">{r.item?.brand ?? ' '}</p>
-                      <p className="line__name"><Link to={`/product/${r.code}`}>{r.item ? titleOf(r.item) : r.code}</Link></p>
+                      <p className="line__name"><Link to={href}>{r.item ? titleOf(r.item) : r.code}</Link></p>
                       {r.item && <p className="line__meta">{packLabel(r.item)} · {rupees(r.item.price)}</p>}
                       {r.short && (
                         <p className="line__warn" role="status">
@@ -212,7 +271,7 @@ export function CartDrawer() {
             </ul>
             <div className="drawer__foot">
               <div className="drawer__sum"><span>Subtotal</span><span>{status === 'ready' ? rupees(subtotal) : '—'}</span></div>
-              <p className="drawer__note">Prices include GST. Delivery and final total are confirmed at checkout.</p>
+              <p className="drawer__note">Prices include GST. Delivery and the final total are confirmed at checkout.</p>
               <button className="btn btn--dark btn--block" disabled={hasProblems} onClick={() => navigate('/checkout')}>
                 Checkout <Icon name="arrow" size={18} />
               </button>
@@ -238,21 +297,22 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
     return () => clearTimeout(t);
   }, [added]);
   if (!item) return null;
-  const c = contentFor(code, item.category);
+  const c = itemContent(item);
   const soldOut = item.availability === 'sold_out';
-  const brandKey = item.brand_code === 'NS' ? 'ns' : 'mt';
+  const href = paths.product(item);
 
   return (
-    <article className={`card card--${brandKey}`}>
-      <Link to={`/product/${code}`} className="card__media" tabIndex={-1} aria-hidden="true">
+    <article className="card">
+      <Link to={href} className="card__media" tabIndex={-1} aria-hidden="true">
         <Img id={c.images[0]} sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" eager={priority} />
         {c.images[1] && <Img id={c.images[1]} className="card__alt" sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" />}
         {soldOut && <span className="card__badge">Sold out</span>}
         {!soldOut && item.only_left && <span className="card__badge card__badge--low">Only {item.only_left} left</span>}
       </Link>
       <div className="card__body">
-        <p className="card__brand">{item.brand}</p>
-        <h3 className="card__title"><Link to={`/product/${code}`}>{titleOf(item)}</Link></h3>
+        <p className="card__brand">{collectionOf(item)?.title ?? item.brand}</p>
+        <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
+        {c.tagline && <p className="card__tagline">{typeof c.tagline === 'string' ? c.tagline : c.tagline.text}</p>}
         <p className="card__pack">{packLabel(item)}</p>
         <div className="card__foot">
           <span className="card__price">{rupees(item.price)}{item.mrp && item.mrp > item.price && <s className="card__mrp">{rupees(item.mrp)}</s>}</span>

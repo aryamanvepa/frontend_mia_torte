@@ -59,7 +59,7 @@ export function OrderConfirmed() {
 
         <div className="confirm__cta">
           <Link to={`/track?code=${encodeURIComponent(code)}`} className="btn btn--dark">Track this order</Link>
-          <Link to="/shop" className="btn btn--line">Continue shopping</Link>
+          <Link to="/" className="btn btn--line">Continue shopping</Link>
         </div>
         <p className="confirm__note">Keep your order number handy. You can track it any time with the phone number you used.</p>
       </div>

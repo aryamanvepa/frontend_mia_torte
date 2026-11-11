@@ -1,15 +1,46 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, PlaceholderTag, Price, Reveal, StockNote, Stepper, Text } from '../components/ui';
-import { contentFor } from '../content/products';
-import { SHOW_PLACEHOLDER_FLAGS, brands, site, type BrandCode } from '../content/site';
-import { packLabel, titleOf } from '../lib/format';
+import type { Brand } from '../content/brands';
+import { NUTRITION_ROWS, type Dietary } from '../content/products';
+import { SHOW_PLACEHOLDER_FLAGS, site, type Copy } from '../content/site';
+import { brandOf, collectionOf, itemContent, paths } from '../lib/brand';
+import { packLabel, rupees, titleOf } from '../lib/format';
 import { useCart, useCatalogue } from '../state/store';
 import { CatalogueStatus } from './Shop';
 import { NotFound } from './Info';
 
-export default function Product() {
+function Needed({ what }: { what: string }) {
+  return <span className="is-ph">{what} to be added. <PlaceholderTag label="Content needed" /></span>;
+}
+
+function Fact({ label, copy, children, need }: { label: string; copy?: Copy; children?: React.ReactNode; need?: string }) {
+  return (
+    <div className="facts__row">
+      <dt>{label}</dt>
+      <dd>{children ?? (copy !== undefined ? <Text copy={copy} /> : <Needed what={need ?? label} />)}</dd>
+    </div>
+  );
+}
+
+function DietMark({ d }: { d?: Dietary }) {
+  if (d === 'veg' || d === 'non-veg') {
+    const veg = d === 'veg';
+    return (
+      <span className="diet">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+          <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke={veg ? '#1f7a3a' : '#7a3b1f'} strokeWidth="1.6" />
+          {veg ? <circle cx="9" cy="9" r="4.2" fill="#1f7a3a" /> : <path d="M9 4.6 13.6 12.8H4.4Z" fill="#7a3b1f" />}
+        </svg>
+        {veg ? 'Vegetarian' : 'Non-vegetarian'}
+      </span>
+    );
+  }
+  return <span className="is-ph">Vegetarian / non-vegetarian mark to be confirmed. <PlaceholderTag /></span>;
+}
+
+export default function Product({ brand }: { brand: Brand }) {
   const { code = '' } = useParams();
   const { items, byCode, status } = useCatalogue();
   const { add, openDrawer, lines } = useCart();
@@ -25,16 +56,17 @@ export default function Product() {
   if (status === 'loading') return <div className="pdp wrap"><div className="pdp__grid"><div className="sk sk--pdp" /><div><div className="sk sk--line" /><div className="sk sk--line sk--short" /></div></div></div>;
   if (status === 'error' && !item) return <div className="wrap section"><CatalogueStatus /></div>;
   if (!item) return <NotFound what="product" />;
+  // A product opened under the other brand's address: send it home.
+  if (item.brand_code !== brand.code && brandOf(item.brand_code)) return <Navigate to={paths.product(item)} replace />;
 
-  const c = contentFor(item.code, item.category);
+  const c = itemContent(item);
+  const collection = collectionOf(item);
   const siblings = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
-  const related = items.filter((i) => i.code !== item.code && i.product !== item.product && i.availability !== 'sold_out')
-    .sort((a, b) => Number(b.brand_code === item.brand_code) - Number(a.brand_code === item.brand_code)).slice(0, 4);
+  const related = items.filter((i) => i.brand_code === item.brand_code && i.product !== item.product && i.availability !== 'sold_out').slice(0, 4);
   const inBag = lines.find((l) => l.code === item.code)?.qty ?? 0;
   const max = Math.max(0, item.max_qty - inBag);
   const soldOut = item.availability === 'sold_out';
-  const isMT = item.brand_code === 'MT';
-  const brandInfo = brands[item.brand_code as BrandCode];
+  const isMT = brand.theme === 'mt';
 
   const onAdd = () => {
     setAdding(true);
@@ -52,10 +84,13 @@ export default function Product() {
   };
 
   return (
-    <div className={`pdp ${isMT ? '' : 'pdp--ns'}`}>
+    <div className="pdp">
       <nav className="crumbs wrap" aria-label="Breadcrumb">
-        <Link to="/shop">Shop</Link><span aria-hidden="true">/</span>
-        <Link to={`/shop?brand=${item.brand_code}`}>{item.brand}</Link><span aria-hidden="true">/</span>
+        <Link to={paths.home(brand)}>{brand.name}</Link><span aria-hidden="true">/</span>
+        {collection
+          ? <Link to={paths.collection(brand, collection)}>{collection.title}</Link>
+          : <Link to={paths.shop(brand)}>{brand.shop.title}</Link>}
+        <span aria-hidden="true">/</span>
         <span aria-current="page">{titleOf(item)}</span>
       </nav>
 
@@ -77,22 +112,23 @@ export default function Product() {
               ))}
             </div>
           )}
-          {SHOW_PLACEHOLDER_FLAGS && <p className="gallery__note">Stock photography, to be replaced <PlaceholderTag label="Placeholder" /></p>}
+          {SHOW_PLACEHOLDER_FLAGS && <p className="gallery__note">Stock photography, to be replaced with photographs of our own products <PlaceholderTag /></p>}
         </div>
 
         <div className="pdp__info">
-          <p className="eyebrow">{item.brand} · {item.category}</p>
+          <p className="eyebrow">{collection?.title ?? brand.name}</p>
           <h1 className="display display--lg pdp__title">{titleOf(item)}</h1>
           {c.tagline && <Text as="p" className="pdp__tagline" copy={c.tagline} />}
+          <div className="pdp__intro">{c.intro ? <Text as="p" copy={c.intro} /> : <p><Needed what="Product introduction" /></p>}</div>
           <div className="pdp__price"><Price item={item} size="lg" /></div>
-          <p className="pdp__tax">Inclusive of all taxes · {packLabel(item)}</p>
+          <p className="pdp__tax">Inclusive of all taxes · Net quantity {packLabel(item)}</p>
 
           {siblings.length > 1 && (
             <fieldset className="sizes">
               <legend>Pack size</legend>
               <div className="sizes__row">
                 {siblings.map((s) => (
-                  <Link key={s.code} to={`/product/${s.code}`} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' ? 'is-out' : ''}`}
+                  <Link key={s.code} to={paths.product(s)} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' ? 'is-out' : ''}`}
                     aria-current={s.code === item.code ? 'true' : undefined} replace>
                     {packLabel(s)}
                   </Link>
@@ -109,43 +145,73 @@ export default function Product() {
               {soldOut ? 'Sold out' : max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
             </button>
           </div>
-          {soldOut && <p className="pdp__hint">This one is sold out for now. Fresh batches are on their way.</p>}
+          {soldOut && <p className="pdp__hint">{isMT ? 'Sold out for now. The next batch is on its way.' : 'Out of stock for now. We are restocking the shelf.'}</p>}
 
-          <ul className="pdp__assure">
+          <ul className="pdp__assure" aria-label="Ordering">
             <li><Icon name="hand" size={18} /> {site.codNote}</li>
-            <li><Icon name="truck" size={18} /> <Text copy={site.deliveryNote} /></li>
+            <li><Icon name="truck" size={18} /> <span><Text copy={site.dispatchNote} /> <Text copy={site.deliveryNote} /></span></li>
           </ul>
-
-          <div className="accordion">
-            <details open>
-              <summary>Description</summary>
-              {c.description ? <Text as="p" copy={c.description} /> : <p className="is-ph">Details coming soon. <PlaceholderTag label="Content needed" /></p>}
-            </details>
-            {c.notes?.length ? (
-              <details>
-                <summary>{isMT ? 'Tasting notes' : 'Highlights'}</summary>
-                <ul className="notes">{c.notes.map((n) => <li key={n}>{n}</li>)}</ul>
-              </details>
-            ) : null}
-            <details>
-              <summary>Ingredients &amp; allergens</summary>
-              {c.ingredients ? <Text as="p" copy={c.ingredients} /> : <p className="is-ph">Ingredients to be added. <PlaceholderTag label="Content needed" /></p>}
-              {c.allergens ? <Text as="p" className="allergens" copy={c.allergens} /> : <p className="is-ph">Allergen information to be added. <PlaceholderTag label="Content needed" /></p>}
-            </details>
-            <details>
-              <summary>Storage</summary>
-              {c.storage ? <Text as="p" copy={c.storage} /> : <p className="is-ph">Storage advice to be added. <PlaceholderTag label="Content needed" /></p>}
-            </details>
-          </div>
-          <p className="pdp__brandline">{brandInfo?.blurb}</p>
         </div>
       </div>
+
+      <section className="wrap pdp-details" aria-label="Product details">
+        <div className="pdp-details__story">
+          <Reveal as="section" className="pdp-block">
+            <h2 className="pdp-block__h">The ingredients</h2>
+            {c.ingredientStory ? <Text as="p" copy={c.ingredientStory} /> : <p><Needed what="A description of the ingredients" /></p>}
+          </Reveal>
+          <Reveal as="section" className="pdp-block">
+            <h2 className="pdp-block__h">{c.experienceLabel ?? (isMT ? 'Flavour & texture' : 'In the kitchen')}</h2>
+            {c.experience ? <Text as="p" copy={c.experience} /> : <p><Needed what={isMT ? 'Flavour and texture notes' : 'Preparation notes'} /></p>}
+            {c.notes?.length ? (
+              <>
+                <h3 className="pdp-block__sub">{c.notesLabel ?? (isMT ? 'Tasting notes' : 'Good for')}</h3>
+                <ul className="notes">{c.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+              </>
+            ) : null}
+          </Reveal>
+          {c.serving && (
+            <Reveal as="section" className="pdp-block">
+              <h2 className="pdp-block__h">{isMT ? 'To enjoy' : 'Try it'}</h2>
+              <Text as="p" copy={c.serving} />
+            </Reveal>
+          )}
+        </div>
+
+        <Reveal as="section" className="facts">
+          <h2 className="facts__h">Product information</h2>
+          <dl className="facts__list">
+            <Fact label="Food type"><DietMark d={c.dietary} /></Fact>
+            <Fact label="Net quantity">{packLabel(item)}</Fact>
+            <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>
+            <Fact label="Ingredients" copy={c.ingredientsList} need="Ingredients list" />
+            <Fact label="Allergens" copy={c.allergens} need="Allergen information" />
+            <Fact label="Storage" copy={c.storage} need="Storage instructions" />
+            <Fact label="Best before" copy={c.shelfLife} need="Shelf life" />
+            <Fact label="Manufactured & marketed by">{site.legalEntity}, <Text copy={site.registeredAddress} /></Fact>
+            <Fact label="FSSAI licence" copy={site.fssaiLicence} />
+            <Fact label="Country of origin">{site.countryOfOrigin}</Fact>
+            <Fact label="Customer care"><Text copy={site.email} /> · <Text copy={site.phone} /></Fact>
+          </dl>
+
+          <table className="nutrition">
+            <caption>Nutritional information <span>{c.nutrition?.basis ?? 'per 100 g (approx.)'}</span></caption>
+            <tbody>
+              {(c.nutrition?.rows ?? NUTRITION_ROWS.map((r) => [r, '—'] as [string, string])).map(([label, value]) => (
+                <tr key={label} className={label.startsWith('of which') ? 'is-sub' : ''}><th scope="row">{label}</th><td>{value}</td></tr>
+              ))}
+            </tbody>
+          </table>
+          {!c.nutrition && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
+          <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
+        </Reveal>
+      </section>
 
       {related.length > 0 && (
         <section className="section wrap" aria-labelledby="related-h">
           <Reveal className="section__head">
-            <p className="eyebrow">You may also like</p>
-            <h2 id="related-h" className="display display--md">From the same kitchen</h2>
+            <p className="eyebrow">{isMT ? 'Also on the counter' : 'Also on the shelf'}</p>
+            <h2 id="related-h" className="display display--md">{isMT ? 'You may also enjoy' : 'Keep exploring'}</h2>
           </Reveal>
           <div className="grid grid--feature">
             {related.map((i, n) => <Reveal key={i.code} delay={n * 80}><ProductCard code={i.code} /></Reveal>)}

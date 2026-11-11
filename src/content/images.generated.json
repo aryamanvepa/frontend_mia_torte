@@ -138,5 +138,55 @@
       1920
     ],
     "lqip": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABwAwCdASoYABAAPu1iqU2tJaOiMAgBoB2JQBdgBZ6K/QMEjcAA/tzujyrVdcXNkRR1ZafcA5Ho7c4wiX35V8AAAAA="
+  },
+  "mt-gifting-box": {
+    "w": 2400,
+    "h": 3600,
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "lqip": "data:image/webp;base64,UklGRrIAAABXRUJQVlA4IKYAAABwBgCdASoYACQAPuVkpk2pJiOiNVgIASAciWIAnTOFB8gkAnI24IXFE4/CHdpIz6V5BJ4bRX7vlINxjgAA/p1TH+V5neMTm42Nab/Cbps2sfahTpgkENx4M8UijCAJuiEwoD1t/clFpQXS0p+2Mn46TfJtpylB0EkSKaXqNN18V9itDtyzi0OTK/ca4nGQWlnCswB1z7eSC47ZMJhx+LbMXA39AAAA"
+  },
+  "mt-seasonal-tarts": {
+    "w": 2400,
+    "h": 3000,
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "lqip": "data:image/webp;base64,UklGRqwAAABXRUJQVlA4IKAAAABwBQCdASoYAB4APu1qrE+ppiQiMBgIATAdiWQAuwAxUQIG1fEVUUavV7W66nalHoxdhCc0AP72k704bY1LIcsepwRS0e5IA6wqIsoIeIups50hIbBnaVjl4OP48GbI8MXymJjI8Epv95WFv8wcv7kFWDRDltkOMkOrTusfVORF2oVoDfrgjmNizycQ1n+y6I0vG7tUnRdCnKRYBT8H4AAA"
+  },
+  "ns-grain-texture": {
+    "w": 2400,
+    "h": 1600,
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "lqip": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAgCdASoYABAAPu1iqU2zpaQiMAgCcB2JQBWABckgAP7HfIFdCm96WWZIWokqbHGVZgF6Ls7PDrdKuQAAAA=="
+  },
+  "ns-muesli-bowl": {
+    "w": 2400,
+    "h": 3600,
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "lqip": "data:image/webp;base64,UklGRsgAAABXRUJQVlA4ILwAAABwBgCdASoYACQAPu1mrE4ppaSiKqwBMB2JQBXJ8UAvXHKgbVvty2N6rpzm41lZYVZz5SUeiy0QuT5BXgAA996EsSkaI1npu7Jl/mco9cDy+B1ZhUPCCA83LJhQQUoK3rlFl3KJceQadYGUeb7iUtyIpp2x/00Etg8iwfaN03LCE9C28myBJY47GqWM5IUocxW9LgeMwaNG/ytGoCdFlYFkARJcaIyOHULzqIGSAoiKK33FqBGKxLcxJYAAAA=="
+  },
+  "ns-seeds-spoons": {
+    "w": 2400,
+    "h": 3000,
+    "widths": [
+      640,
+      1280,
+      1920
+    ],
+    "lqip": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAABwBQCdASoYAB4APu1usFCppqSiqAqpMB2JQBbZDS4biSoJihdoJ/T18i4K/A6J3BwNpUgAAP7nWo+PLZRu+ssNXdSYTnXIe/KV8Nfswe/Ctvc50FX8jkbvY3z02JEgfz7eePONDOGh7N3kzqKKWgtKSIILYHfVE+cs0KSklcOwKbwc8IAAAA=="
   }
 }

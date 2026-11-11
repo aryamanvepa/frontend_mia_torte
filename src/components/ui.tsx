@@ -55,18 +55,20 @@ export function Reveal({ children, as: Tag = 'div', className = '', delay = 0 }:
 }
 
 // ---------------------------------------------------------------- placeholder-aware text
-export function PlaceholderTag({ label = 'Placeholder' }: { label?: string }) {
+export function PlaceholderTag({ label = 'Placeholder', kind = 'missing' }: { label?: string; kind?: 'missing' | 'draft' }) {
   if (!SHOW_PLACEHOLDER_FLAGS) return null;
-  return <span className="ph-tag" title="To be supplied by Torte Living before launch">{label}</span>;
+  return kind === 'draft'
+    ? <span className="ph-tag ph-tag--draft" title="Copy written to the brand brief. Torte Living to confirm the facts before launch">Draft · confirm</span>
+    : <span className="ph-tag" title="To be supplied by Torte Living before launch">{label}</span>;
 }
 
-export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | undefined; as?: 'span' | 'p' | 'div'; className?: string }) {
+export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | undefined; as?: 'span' | 'p' | 'div' | 'dd'; className?: string }) {
   if (copy === undefined) return null;
   const ph = isPlaceholder(copy) && SHOW_PLACEHOLDER_FLAGS;
   return (
     <Tag className={`${className ?? ''} ${ph ? 'is-ph' : ''}`}>
       {copyText(copy)}
-      {ph && <> <PlaceholderTag /></>}
+      {ph && <> <PlaceholderTag kind={(copy as { kind: 'missing' | 'draft' }).kind} /></>}
     </Tag>
   );
 }
@@ -122,6 +124,9 @@ const paths: Record<string, ReactNode> = {
   hand: <><path d="M7 11V6.5a1.5 1.5 0 0 1 3 0V11" /><path d="M10 10V5a1.5 1.5 0 0 1 3 0v5" /><path d="M13 10V6a1.5 1.5 0 0 1 3 0v6" /><path d="M16 9.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.5A6.5 6.5 0 0 1 5 14.5V12a1.5 1.5 0 0 1 2-1.4" /></>,
   copy: <><rect x="8" y="8" width="11" height="11" rx="2" /><path d="M5 15V6a1 1 0 0 1 1-1h9" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><path d="M12 8h.01" /></>,
+  mail: <><rect x="3.5" y="5.5" width="17" height="13" rx="1.5" /><path d="M4 7l8 6 8-6" /></>,
+  phone: <path d="M6.5 3.5h3l1.5 4-2 1.3a10 10 0 0 0 6.2 6.2l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" />,
+  clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
 };
 export function Icon({ name, size = 20, className }: { name: keyof typeof paths | string; size?: number; className?: string }) {
   return (

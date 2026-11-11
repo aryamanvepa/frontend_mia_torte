@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon, Img, Spinner, Stepper } from '../components/ui';
-import { contentFor } from '../content/products';
+import { lineImage } from '../lib/brand';
 import { site } from '../content/site';
 import { getQuote, placeOrder, type Problem, type Quote } from '../lib/api';
 import { packLabel, rupees, titleOf, uuid } from '../lib/format';
@@ -178,7 +178,7 @@ export default function Checkout() {
       <div className="wrap section checkout-empty">
         <h1 className="display display--md">Your bag is empty</h1>
         <p>Add something lovely and come back.</p>
-        <Link to="/shop" className="btn btn--dark">Browse the shop</Link>
+        <Link to="/" className="btn btn--dark">Browse the shops</Link>
       </div>
     );
   }
@@ -199,10 +199,9 @@ export default function Checkout() {
         {rows.map((r) => {
           const p = problemFor(r.code);
           const ql = quote?.lines.find((l) => l.sku_code === r.code);
-          const c = contentFor(r.code, r.item?.category ?? null);
           return (
             <li key={r.code} className={`sline ${p ? 'sline--problem' : ''}`}>
-              <div className="sline__img"><Img id={c.images[0]} sizes="64px" alt="" /><span className="sline__qty" aria-hidden="true">{r.qty}</span></div>
+              <div className="sline__img"><Img id={lineImage(r.code, r.item)} sizes="64px" alt="" /><span className="sline__qty" aria-hidden="true">{r.qty}</span></div>
               <div className="sline__body">
                 <p className="sline__name">{r.item ? titleOf(r.item) : ql?.name ?? r.code}</p>
                 <p className="sline__meta">{r.item ? packLabel(r.item) : ''} · Qty {r.qty}</p>
@@ -237,7 +236,7 @@ export default function Checkout() {
   return (
     <div className="checkout wrap">
       <header className="checkout__head">
-        <Link to="/shop" className="back-link"><Icon name="back" size={18} /> Continue shopping</Link>
+        <Link to="/" className="back-link"><Icon name="back" size={18} /> Continue shopping</Link>
         <h1 className="display display--md">Checkout</h1>
       </header>
 

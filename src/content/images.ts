@@ -35,6 +35,11 @@ export const images: Record<string, ImageInfo> = {
   'category-dosa': { alt: 'A golden dosa served on a banana leaf with chutneys', credit: unsplash('Pavan Reddy', 'pavan_09', 'JJhZ34RRyfk') },
   'pantry-grains': { alt: 'Close-up of whole wheat grains', credit: unsplash('Maria Camila Tobón', 'mcamitobon', '7Fxkt2gfUqg') },
   'category-snacks': { alt: 'Glass display cases of savoury Indian snacks in warm light', credit: unsplash('atelierbyvineeth', 'atelierbyvineeth', 'OlElzH1Hn94') },
+  'mt-gifting-box': { alt: 'An open dark gift box of assorted cookies lined with paper', credit: unsplash('César Cabrera', 'gaiostudio', 'xEH_fJlVs2Y') },
+  'mt-seasonal-tarts': { alt: 'Small fruit tarts with berries, kiwi and glazed fruit on a dark surface', credit: unsplash('Caramel', 'caramel_works', 'K8z5FJUay74') },
+  'ns-muesli-bowl': { alt: 'A white bowl of toasted granola with a spoon on a linen cloth', credit: unsplash('Elena Leya', 'foodistika', 'pqpW5wHweQo') },
+  'ns-seeds-spoons': { alt: 'Spoons of seeds and ground grains laid on a sage-green surface', credit: unsplash('lucia tognacci', 'luciatognacci99', 'y3w8WZ6uJWI') },
+  'ns-grain-texture': { alt: 'A close view of mixed whole grains, seeds and husks', credit: unsplash('Tahamie Farooqui', 'tami171091', 'GN3rHKNSMmc') },
 };
 
 export interface Sized { w: number; h: number; widths: number[]; lqip: string }
