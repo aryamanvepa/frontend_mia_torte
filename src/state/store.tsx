@@ -8,6 +8,12 @@ interface CatalogueState {
   status: 'loading' | 'ready' | 'error';
   error: string | null;
   reload: () => Promise<void>;
+  /**
+   * Pre-launch: while a brand has nothing in stock at all, its out-of-stock
+   * products read "Coming soon" instead of "Sold out". As soon as any of its
+   * products has stock, normal "Sold out" labels return.
+   */
+  comingSoon: (item: Pick<CatalogueItem, 'brand_code' | 'availability'>) => boolean;
 }
 const CatalogueCtx = createContext<CatalogueState | null>(null);
 
@@ -43,7 +49,11 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [reload]);
 
-  const value = useMemo(() => ({ items, byCode: new Map(items.map((i) => [i.code, i])), status, error, reload }), [items, status, error, reload]);
+  const value = useMemo(() => {
+    const stocked = new Set(items.filter((i) => i.availability !== 'sold_out').map((i) => i.brand_code));
+    const comingSoon = (i: Pick<CatalogueItem, 'brand_code' | 'availability'>) => i.availability === 'sold_out' && !stocked.has(i.brand_code);
+    return { items, byCode: new Map(items.map((i) => [i.code, i])), status, error, reload, comingSoon };
+  }, [items, status, error, reload]);
   return <CatalogueCtx.Provider value={value}>{children}</CatalogueCtx.Provider>;
 }
 export const useCatalogue = () => useContext(CatalogueCtx)!;

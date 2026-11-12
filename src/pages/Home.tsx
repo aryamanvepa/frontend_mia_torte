@@ -4,7 +4,7 @@ import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal, Text } from '../components/ui';
 import { miaTorte, mtHome, nsHome, nutriSampoorna, type Brand } from '../content/brands';
 import { house, site } from '../content/site';
-import { inCollection, itemContent, paths } from '../lib/brand';
+import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
 import { rupees, titleOf } from '../lib/format';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
@@ -14,12 +14,9 @@ import { CatalogueStatus, GridSkeleton } from './Shop';
 function useFeatured(brand: Brand, n = 4) {
   const { items } = useCatalogue();
   return useMemo(() => {
-    const seen = new Set<string>();
-    return items
-      .filter((i) => i.brand_code === brand.code)
+    return oneCardPerProduct(items.filter((i) => i.brand_code === brand.code))
       .sort((a, b) => Number(a.availability === 'sold_out') - Number(b.availability === 'sold_out')
-        || Number(Boolean(itemContent(b).featured)) - Number(Boolean(itemContent(a).featured)) || a.pack_grams - b.pack_grams)
-      .filter((i) => !seen.has(i.product) && seen.add(i.product))
+        || Number(Boolean(itemContent(b).featured)) - Number(Boolean(itemContent(a).featured)))
       .slice(0, n);
   }, [items, brand.code, n]);
 }
@@ -45,8 +42,9 @@ function Featured({ brand, eyebrow, title }: { brand: Brand; eyebrow: string; ti
   );
 }
 
+/** Number of products (not pack sizes) in a collection. */
 const countIn = (items: CatalogueItem[], brand: Brand) => (slug: string) =>
-  items.filter((i) => i.brand_code === brand.code && inCollection(i, brand.collections.find((c) => c.slug === slug)!)).length;
+  new Set(items.filter((i) => i.brand_code === brand.code && inCollection(i, brand.collections.find((c) => c.slug === slug)!)).map((i) => i.product)).size;
 
 // ================================================================ Torte Living landing
 export function Landing() {
@@ -56,7 +54,7 @@ export function Landing() {
       <h1 className="sr-only">Torte Living: Mia Torte and Nutri Sampoorna</h1>
       <section className="doors" aria-label="Our brands">
         <Link to={paths.home(miaTorte)} className="door door--mt theme-mt">
-          <Img id="hero-cookies-bowl" eager className="door__img" sizes="(min-width: 900px) 56vw, 100vw" alt="" />
+          <Img id="craft-flour-hands" eager className="door__img" sizes="(min-width: 900px) 56vw, 100vw" alt="" />
           <span className="door__body">
             <span className="door__kicker">{house.doors.MT.kicker}</span>
             <span className="door__name">Mia Torte</span>
@@ -109,9 +107,10 @@ export function Landing() {
 // ================================================================ Mia Torte
 export function MtHome() {
   const brand = miaTorte;
-  const { items } = useCatalogue();
+  const { items, comingSoon } = useCatalogue();
   const count = countIn(items, brand);
   const hero = useFeatured(brand, 1)[0];
+  const productCount = new Set(items.filter((i) => i.brand_code === brand.code).map((i) => i.product)).size;
   useEffect(() => { document.title = `${brand.name} · ${brand.tagline}`; }, [brand]);
 
   return (
@@ -129,14 +128,20 @@ export function MtHome() {
           </div>
         </div>
         <div className="hero__media">
-          <Img id="hero-cookies-bowl" eager sizes="(min-width: 900px) 52vw, 100vw" className="hero__img" />
-          {hero && (
+          <Img id="craft-flour-hands" eager sizes="(min-width: 900px) 52vw, 100vw" className="hero__img" />
+          {hero && (comingSoon(hero) ? (
+            <Link to={paths.shop(brand)} className="hero__chip">
+              <span className="hero__chip-label">Opening soon</span>
+              <span className="hero__chip-name">{productCount} creations, coming to the counter</span>
+              <span className="hero__chip-price">See the repertoire <Icon name="arrow" size={16} /></span>
+            </Link>
+          ) : (
             <Link to={paths.product(hero)} className="hero__chip">
               <span className="hero__chip-label">On the counter</span>
               <span className="hero__chip-name">{titleOf(hero)}</span>
               <span className="hero__chip-price">{rupees(hero.price)} <Icon name="arrow" size={16} /></span>
             </Link>
-          )}
+          ))}
         </div>
       </section>
 
@@ -149,7 +154,7 @@ export function MtHome() {
       <Featured brand={brand} eyebrow={mtHome.featuredEyebrow} title={mtHome.featuredTitle} />
 
       <section className="story" aria-labelledby="story-h">
-        <Reveal className="story__media"><Img id="craft-flour-hands" sizes="(min-width: 900px) 45vw, 100vw" /></Reveal>
+        <Reveal className="story__media"><Img id="craft-kneading" sizes="(min-width: 900px) 45vw, 100vw" /></Reveal>
         <Reveal className="story__text" delay={120}>
           <p className="eyebrow eyebrow--light">{mtHome.storyEyebrow}</p>
           <h2 id="story-h" className="display display--md">{mtHome.storyTitle}</h2>
@@ -163,7 +168,7 @@ export function MtHome() {
           <p className="eyebrow">{mtHome.repertoireEyebrow}</p>
           <h2 id="cat-h" className="display display--md">{mtHome.repertoireTitle}</h2>
         </Reveal>
-        <ul className="cats cats--4">
+        <ul className={`cats ${brand.collections.length === 4 ? 'cats--4' : ''}`}>
           {brand.collections.map((c, n) => {
             const k = count(c.slug);
             return (
@@ -171,7 +176,7 @@ export function MtHome() {
                 <Link to={paths.collection(brand, c)} className="cat__link" aria-label={`${c.title}${k ? '' : ', coming soon'}`}>
                   <Img id={c.image} sizes="(min-width: 900px) 24vw, 50vw" className="cat__img" />
                   <span className="cat__body">
-                    <span className="cat__brand">{k ? `${k} ${k === 1 ? 'creation' : 'creations'}` : 'Coming soon'}</span>
+                    <span className="cat__brand">{k ? `${k} ${k === 1 ? 'creation' : 'creations'}` : 'In the kitchen'}</span>
                     <span className="cat__name">{c.title}</span>
                   </span>
                 </Link>
@@ -202,7 +207,7 @@ export function MtHome() {
             <Text as="p" className="lede" copy={mtHome.bespokeText} />
             <div className="hero__cta">
               <Link to={paths.contact(brand)} className="btn btn--dark">Enquire</Link>
-              <Link to={paths.collection(brand, brand.collections[2])} className="btn btn--line">Gifting</Link>
+              <Link to={paths.collection(brand, brand.collections.find((c) => c.slug === 'gifting') ?? brand.collections[0])} className="btn btn--line">Gifting</Link>
             </div>
           </Reveal>
         </div>

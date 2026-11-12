@@ -859,6 +859,59 @@ main:focus { outline: none; }
 .drawer__empty-cta { display: grid; gap: 10px; margin-top: 12px; }
 
 /* ---------------------------------------------------------------- reduced motion */
+/* =====================================================================
+   PACK ART — illustrated product placeholders (no product photos yet).
+   Line drawing + the product name, on one of four tones per brand.
+   ===================================================================== */
+.pack {
+  --pack-bg: var(--linen); --pack-ink: var(--cocoa);
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px;
+  padding: 12% 10% 20%; text-align: center; background: var(--pack-bg); color: var(--pack-ink);
+  overflow: hidden; isolation: isolate;
+}
+.pack::before { /* a quiet inner frame, like a label */
+  content: ''; position: absolute; inset: 7px; border: 1px solid currentColor; opacity: .14; border-radius: calc(var(--radius) - 1px); pointer-events: none;
+}
+.pack__motif { width: min(46%, 120px); height: auto; transition: transform .9s var(--ease); }
+.pack__fill { fill: currentColor; stroke: none; opacity: .75; }
+.card:hover .pack__motif { transform: rotate(-6deg) scale(1.04); }
+.pack__name { font: italic 400 clamp(.95rem, 2.6vw, 1.12rem)/1.2 var(--serif); letter-spacing: -0.005em; max-width: 13em; text-wrap: balance; }
+.pack__note { position: absolute; left: 0; right: 0; bottom: 6.5%; font: 600 .56rem/1.3 var(--sans); letter-spacing: .14em; white-space: nowrap; text-transform: uppercase; opacity: .55; padding-inline: 12px; }
+.pack--hero .pack__motif { width: min(38%, 200px); }
+.pack--hero .pack__name { font-size: clamp(1.3rem, 3vw, 1.9rem); }
+.pack--hero .pack__note { font-size: .62rem; }
+.pack--thumb { padding: 12%; }
+.pack--thumb::before { inset: 3px; }
+.pack--thumb .pack__motif { width: 78%; }
+/* Mia Torte tones: linen, blush, butter, cocoa */
+.pack--mt-1 { --pack-bg: #efe5d6; --pack-ink: #3a2419; }
+.pack--mt-2 { --pack-bg: #ecdcd2; --pack-ink: #6a2f27; }
+.pack--mt-3 { --pack-bg: #f1e6c9; --pack-ink: #5a4120; }
+.pack--mt-4 { --pack-bg: #3a2419; --pack-ink: #e9d3a6; }
+/* Nutri Sampoorna tones: rice paper, clay, sage, millet */
+.pack--ns-1 { --pack-bg: #e9e6dc; --pack-ink: #22261f; }
+.pack--ns-2 { --pack-bg: #ead9c7; --pack-ink: #6e3c17; }
+.pack--ns-3 { --pack-bg: #dfe2d5; --pack-ink: #33402d; }
+.pack--ns-4 { --pack-bg: #ece2cb; --pack-ink: #4a3b1e; }
+.pack--ns-1 .pack__name, .pack--ns-2 .pack__name, .pack--ns-3 .pack__name, .pack--ns-4 .pack__name { font: 380 clamp(.92rem, 2.5vw, 1.06rem)/1.2 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; font-style: normal; }
+.pack--hero.pack--ns-1 .pack__name, .pack--hero.pack--ns-2 .pack__name, .pack--hero.pack--ns-3 .pack__name, .pack--hero.pack--ns-4 .pack__name { font-size: clamp(1.3rem, 3vw, 1.85rem); }
+:root[data-brand="ns"] .pack::before { border-radius: 0; }
+.line__img, .sline__img { position: relative; }
+.line__img .pack, .sline__img .pack { border-radius: 3px; }
+.sline__img .pack { position: relative; aspect-ratio: 4 / 5; }
+.gallery__track--art { overflow: hidden; }
+.gallery__track--art .gallery__slide { position: relative; }
+
+/* ---------------------------------------------------------------- coming soon */
+.card__soon { font: 600 .66rem/1.3 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--gold-ink); white-space: nowrap; }
+.card__from { font-weight: 400; font-size: .82rem; color: var(--muted); }
+a.add-btn { text-decoration: none; }
+@media (max-width: 520px) { a.add-btn { width: auto; padding: 0 12px; } a.add-btn .add-btn__label { display: inline; font-size: .75rem; } }
+.stock--soon { color: var(--gold-ink); }
+.btn--soon:disabled { opacity: 1; color: var(--muted); border-style: dashed; cursor: default; }
+.btn--soon:disabled:hover { background: transparent; color: var(--muted); }
+.pdp__hint a { color: inherit; text-underline-offset: 3px; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
   .reveal { opacity: 1; transform: none; }

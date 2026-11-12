@@ -3,7 +3,7 @@ import { Link, NavLink, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal } from '../components/ui';
 import type { Brand, Collection } from '../content/brands';
-import { inCollection, itemContent, paths } from '../lib/brand';
+import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
 import { useCatalogue } from '../state/store';
 
 const SORTS = { featured: 'Featured', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name' } as const;
@@ -25,14 +25,14 @@ export default function BrandShop({ brand, collection }: { brand: Brand; collect
 
   const brandItems = useMemo(() => items.filter((i) => i.brand_code === brand.code), [items, brand.code]);
   const shown = useMemo(() => {
-    const list = collection ? brandItems.filter((i) => inCollection(i, collection)) : brandItems;
+    const list = oneCardPerProduct(collection ? brandItems.filter((i) => inCollection(i, collection)) : brandItems);
     const rank = (i: (typeof list)[number]) => (itemContent(i).featured ? 0 : 1);
     const avail = (a: string) => (a === 'sold_out' ? 1 : 0);
     return [...list].sort((a, b) => avail(a.availability) - avail(b.availability) || (
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price
-      : sort === 'name' ? a.name.localeCompare(b.name)
-      : rank(a) - rank(b) || a.product.localeCompare(b.product) || a.pack_grams - b.pack_grams));
+      : sort === 'name' ? a.product.localeCompare(b.product)
+      : rank(a) - rank(b) || (a.category ?? '').localeCompare(b.category ?? '') || a.product.localeCompare(b.product)));
   }, [brandItems, collection, sort]);
   const ready = brand.collections.filter((c) => brandItems.some((i) => inCollection(i, c)));
 

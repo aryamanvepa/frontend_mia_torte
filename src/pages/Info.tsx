@@ -114,7 +114,7 @@ export function Credits() {
       <header className="page-head page-head--narrow wrap">
         <p className="eyebrow">Information</p>
         <h1 className="display display--lg">Photo credits</h1>
-        <p className="lede">The photographs on this site are placeholder stock images used under the <a href="https://unsplash.com/license" rel="noopener" target="_blank">Unsplash Licence</a>. They will be replaced with photography of our own products.</p>
+        <p className="lede">The photographs on this site are placeholder stock images used under the <a href="https://unsplash.com/license" rel="noopener" target="_blank">Unsplash Licence</a>. They set the mood and show ingredients; they are not photographs of our products, which are shown as illustrations until our own photography is ready.</p>
       </header>
       <div className="wrap info__body">
         <ul className="credits">

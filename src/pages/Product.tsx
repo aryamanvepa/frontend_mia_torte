@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
+import { PackArt } from '../components/PackArt';
 import { Icon, Img, PlaceholderTag, Price, Reveal, StockNote, Stepper, Text } from '../components/ui';
 import type { Brand } from '../content/brands';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
-import { SHOW_PLACEHOLDER_FLAGS, site, type Copy } from '../content/site';
-import { brandOf, collectionOf, itemContent, paths } from '../lib/brand';
-import { packLabel, rupees, titleOf } from '../lib/format';
+import { site, type Copy } from '../content/site';
+import { brandOf, collectionOf, itemContent, oneCardPerProduct, paths } from '../lib/brand';
+import { packFull, packLabel, rupees, titleOf } from '../lib/format';
 import { useCart, useCatalogue } from '../state/store';
 import { CatalogueStatus } from './Shop';
 import { NotFound } from './Info';
@@ -42,7 +43,7 @@ function DietMark({ d }: { d?: Dietary }) {
 
 export default function Product({ brand }: { brand: Brand }) {
   const { code = '' } = useParams();
-  const { items, byCode, status } = useCatalogue();
+  const { items, byCode, status, comingSoon } = useCatalogue();
   const { add, openDrawer, lines } = useCart();
   const item = byCode.get(code.toUpperCase());
   const [qty, setQty] = useState(1);
@@ -51,7 +52,7 @@ export default function Product({ brand }: { brand: Brand }) {
   const track = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setQty(1); setActive(0); track.current?.scrollTo({ left: 0 }); }, [code]);
-  useEffect(() => { if (item) document.title = `${titleOf(item)} ${packLabel(item)} · ${item.brand}`; }, [item]);
+  useEffect(() => { if (item) document.title = `${titleOf(item)} ${packFull(item)} · ${item.brand}`; }, [item]);
 
   if (status === 'loading') return <div className="pdp wrap"><div className="pdp__grid"><div className="sk sk--pdp" /><div><div className="sk sk--line" /><div className="sk sk--line sk--short" /></div></div></div>;
   if (status === 'error' && !item) return <div className="wrap section"><CatalogueStatus /></div>;
@@ -61,8 +62,14 @@ export default function Product({ brand }: { brand: Brand }) {
 
   const c = itemContent(item);
   const collection = collectionOf(item);
+  const photos = c.images;
   const siblings = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
-  const related = items.filter((i) => i.brand_code === item.brand_code && i.product !== item.product && i.availability !== 'sold_out').slice(0, 4);
+  const soon = comingSoon(item);
+  // Other products from the same brand, one card each; same collection first.
+  const related = oneCardPerProduct(items.filter((i) => i.brand_code === item.brand_code && i.product !== item.product && (soon || i.availability !== 'sold_out')))
+    .sort((a, b) => Number(collectionOf(b)?.slug === collection?.slug) - Number(collectionOf(a)?.slug === collection?.slug)
+      || Number(Boolean(itemContent(b).featured)) - Number(Boolean(itemContent(a).featured)))
+    .slice(0, 4);
   const inBag = lines.find((l) => l.code === item.code)?.qty ?? 0;
   const max = Math.max(0, item.max_qty - inBag);
   const soldOut = item.availability === 'sold_out';
@@ -96,14 +103,17 @@ export default function Product({ brand }: { brand: Brand }) {
 
       <div className="wrap pdp__grid">
         <div className="gallery">
-          <div className="gallery__track" ref={track} onScroll={onScroll} tabIndex={0} aria-label="Product photos">
-            {c.images.map((id, n) => (
+          {photos.length === 0 && (
+            <div className="gallery__track gallery__track--art"><div className="gallery__slide"><PackArt variant="hero" product={item.product} category={item.category} brandCode={item.brand_code} /></div></div>
+          )}
+          {photos.length > 0 && <div className="gallery__track" ref={track} onScroll={onScroll} tabIndex={0} aria-label="Product photos">
+            {photos.map((id, n) => (
               <div className="gallery__slide" key={id} aria-hidden={n !== active}>
                 <Img id={id} eager={n === 0} sizes="(min-width: 900px) 55vw, 100vw" className="zoomable" />
               </div>
             ))}
-          </div>
-          {c.images.length > 1 && (
+          </div>}
+          {photos.length > 1 && (
             <div className="gallery__thumbs">
               {c.images.map((id, n) => (
                 <button key={id} className={`thumb ${n === active ? 'is-on' : ''}`} onClick={() => goTo(n)} aria-label={`Show photo ${n + 1} of ${c.images.length}`} aria-current={n === active}>
@@ -112,7 +122,7 @@ export default function Product({ brand }: { brand: Brand }) {
               ))}
             </div>
           )}
-          {SHOW_PLACEHOLDER_FLAGS && <p className="gallery__note">Stock photography, to be replaced with photographs of our own products <PlaceholderTag /></p>}
+          {photos.length === 0 && <p className="gallery__note">An illustration for now: photographs of this product will follow.</p>}
         </div>
 
         <div className="pdp__info">
@@ -121,31 +131,37 @@ export default function Product({ brand }: { brand: Brand }) {
           {c.tagline && <Text as="p" className="pdp__tagline" copy={c.tagline} />}
           <div className="pdp__intro">{c.intro ? <Text as="p" copy={c.intro} /> : <p><Needed what="Product introduction" /></p>}</div>
           <div className="pdp__price"><Price item={item} size="lg" /></div>
-          <p className="pdp__tax">Inclusive of all taxes · Net quantity {packLabel(item)}</p>
+          <p className="pdp__tax">Inclusive of all taxes · Net quantity {packLabel(item)}{packFull(item) !== packLabel(item) ? ` · ${packFull(item).slice(packLabel(item).length + 1)}` : ''}</p>
 
           {siblings.length > 1 && (
             <fieldset className="sizes">
               <legend>Pack size</legend>
               <div className="sizes__row">
                 {siblings.map((s) => (
-                  <Link key={s.code} to={paths.product(s)} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' ? 'is-out' : ''}`}
+                  <Link key={s.code} to={paths.product(s)} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' && !soon ? 'is-out' : ''}`}
                     aria-current={s.code === item.code ? 'true' : undefined} replace>
-                    {packLabel(s)}
+                    {packFull(s)}
                   </Link>
                 ))}
               </div>
             </fieldset>
           )}
 
-          <div className="pdp__stock"><StockNote item={item} /></div>
+          <div className="pdp__stock"><StockNote item={item} soon={soon} /></div>
 
           <div className="pdp__buy">
             {!soldOut && max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
-            <button className={`btn btn--dark btn--grow ${adding ? 'is-adding' : ''}`} disabled={soldOut || max === 0 || adding} onClick={onAdd}>
-              {soldOut ? 'Sold out' : max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
+            <button className={`btn ${soon ? 'btn--line btn--soon' : 'btn--dark'} btn--grow ${adding ? 'is-adding' : ''}`} disabled={soldOut || max === 0 || adding} onClick={onAdd}>
+              {soon ? 'Coming soon' : soldOut ? 'Sold out' : max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
             </button>
           </div>
-          {soldOut && <p className="pdp__hint">{isMT ? 'Sold out for now. The next batch is on its way.' : 'Out of stock for now. We are restocking the shelf.'}</p>}
+          {soon && (
+            <p className="pdp__hint">
+              {isMT ? 'Our first batch is in the kitchen. Orders open here as soon as it is ready.' : 'Arriving on the shelf soon. Orders open here as soon as the first batch is packed.'}{' '}
+              <Link to={paths.contact(brand)}>Ask us about it</Link>
+            </p>
+          )}
+          {soldOut && !soon && <p className="pdp__hint">{isMT ? 'Sold out for now. The next batch is on its way.' : 'Out of stock for now. We are restocking the shelf.'}</p>}
 
           <ul className="pdp__assure" aria-label="Ordering">
             <li><Icon name="hand" size={18} /> {site.codNote}</li>

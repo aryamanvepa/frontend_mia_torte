@@ -29,7 +29,7 @@ Each checkout attempt carries a client-generated id, so a retried submit never c
 | `/mia-torte`, `/nutri-sampoorna` | Brand home pages (separate layouts and visual themes) |
 | `/mia-torte/story`, `/nutri-sampoorna/philosophy` | Our Story / Our Philosophy |
 | `/<brand>/shop` | All of a brand's products |
-| `/mia-torte/cookies-biscuits`, `brownies-cakes`, `gifting`, `seasonal` | Mia Torte collections |
+| `/mia-torte/cookies-biscuits`, `muesli`, `savoury-snacks`, `brownies-cakes`, `gifting`, `seasonal` | Mia Torte collections |
 | `/nutri-sampoorna/atta-grain-blends`, `breakfast-dosa-mixes`, `muesli-nuts-seeds`, `pantry-snacks` | Nutri Sampoorna collections |
 | `/<brand>/product/<SKU>` | Product page |
 | `/<brand>/contact` | Contact |
@@ -40,8 +40,28 @@ Mia Torte uses cream, cocoa and gold with a serif display face; Nutri Sampoorna 
 ink and clay with a sans-serif display face and square edges (`styles.css`, "NUTRI SAMPOORNA THEME").
 
 **Collections follow the product category set in the ops app.** The mapping is in
-`src/content/brands.ts` (`categories` on each collection). A collection with no products shows a
-"coming soon" note written in the brand's voice.
+`src/content/brands.ts` (`categories` on each collection, matched case-insensitively). A collection
+with no products shows a "coming soon" note written in the brand's voice.
+
+| Ops-app category | Brand | Collection |
+|---|---|---|
+| Cookies | Mia Torte | Cookies & Biscuits |
+| Muesli | Mia Torte | Muesli |
+| Snacks | Mia Torte | Savoury Snacks |
+| Atta & flours | Nutri Sampoorna | Atta & Grain Blends |
+| Dosa & batter mixes | Nutri Sampoorna | Breakfast & Dosa Mixes |
+| Chutney powders | Nutri Sampoorna | Pantry & Snacks |
+
+A product belongs to the brand of its `brand_code` (MT / NS) in the ops app.
+
+**One card per product.** Pack sizes of the same product (the `product` field) share one card
+("4 sizes · 140 g to 500 g", "from ₹178") and are chosen on the product page. The pack type
+("jar", "pouch") is read from the end of the SKU name.
+
+**Coming soon.** While a brand has nothing in stock at all, its products read "Coming soon"
+(no add-to-bag) instead of "Sold out". As soon as any of that brand's SKUs has stock, normal
+labels return automatically: in stock, few left, sold out. Ordering rules are unchanged; the
+server still decides what can be bought.
 
 ## Replacing placeholders (for the client)
 
@@ -57,7 +77,7 @@ Two kinds of flag are shown on the site while `SHOW_PLACEHOLDER_FLAGS = true` in
 | Landing page copy | `src/content/site.ts` → `house` |
 | Brand copy: home pages, story/philosophy, contact, collections | `src/content/brands.ts` |
 | Shipping, Refunds, Privacy, Terms pages | `src/content/site.ts` → `pages` |
-| Product introduction, ingredients story, flavour/preparation, serving, **ingredients list, allergens, veg mark, nutrition table, storage, best before** | `src/content/products.ts` (keyed by SKU code) |
+| Product introduction, ingredients story, flavour/preparation, serving, **ingredients list, allergens, veg mark, nutrition table, storage, best before** | `src/content/products.ts` (keyed by product name, shared by all its pack sizes) |
 | Photos | see below |
 
 Replace `placeholder('…')` or `draft('…')` with a plain string once confirmed. Before launch, set
@@ -69,21 +89,27 @@ best before) must match the printed pack label (FSSAI Labelling & Display Regula
 ### Adding a product
 
 Create the SKU and its WEB price in the ops app, with a category that maps to a collection; it
-appears in the shop automatically, using its collection's photo. Then add an entry to
-`src/content/products.ts` under its SKU code with its own words, label information and photos.
-Write each description individually, never the same text with the name changed.
+appears in the shop automatically, with an illustrated placeholder. Then add an entry to
+`src/content/products.ts` under its exact product name, with its own words, label information and
+photos. Write each description individually, never the same text with the name changed, and
+don't state ingredient, health or nutrition facts that aren't confirmed: wrap anything factual in
+`draft('…')` until it is.
 
 ### Replacing photos
 
-All current photos are **stock placeholders** from Unsplash (free under the Unsplash Licence),
-credited in `src/content/images.ts` and on the site's `/credits` page.
+**Products have no photos yet.** Each shows an illustration (a line drawing for its category,
+its name and "photo to follow", `src/components/PackArt.tsx`), so nothing is passed off as the
+real product. The mood and ingredient photos on home, story and collection pages are **stock
+placeholders** from Unsplash (free under the Unsplash Licence), credited in
+`src/content/images.ts` and on the site's `/credits` page.
 
-1. Put the real photos in a folder, named by image id, e.g. `mt-cookies-choc-chip-1.jpg`
+1. Put the real photos in a folder, named by image id, e.g. `mt-classic-choc-chip-1.jpg`
    (reuse an existing id to replace it, or pick a new one).
 2. `npm run images -- path/to/that/folder` → writes `public/images/<id>-640/1280/1920.webp`
    and updates `src/content/images.generated.json`.
 3. Update the alt text in `src/content/images.ts` (set `credit: null` for your own photography)
-   and reference new ids from `src/content/products.ts`.
+   and list a product's photo ids in its `images` in `src/content/products.ts`; they replace
+   the illustration automatically.
 
 ## Placeholder business rules
 

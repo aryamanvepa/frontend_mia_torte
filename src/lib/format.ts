@@ -10,6 +10,18 @@ export function packLabel(i: Pick<CatalogueItem, 'pack_size' | 'pack_unit'>) {
   return i.pack_unit === 'pcs' ? `${size} pieces` : `${size} ${i.pack_unit}`;
 }
 
+/**
+ * The pack type the SKU name ends with: "Fruit & Nut Muesli 140 g Pet Jar" → "jar",
+ * "… 250 g Pouch" → "pouch". Empty when the name gives none.
+ */
+export function packKind(i: Pick<CatalogueItem, 'name'>) {
+  const m = /\d+(?:\.\d+)?\s*(?:g|kg|ml|l|pcs)\s+(.+)$/i.exec(i.name.trim());
+  if (!m) return '';
+  return m[1].replace(/^pet\s+/i, '').toLowerCase();
+}
+/** "140 g jar", "500 g", "1 kg" */
+export const packFull = (i: Pick<CatalogueItem, 'name' | 'pack_size' | 'pack_unit'>) => [packLabel(i), packKind(i)].filter(Boolean).join(' ');
+
 /** Display title: the product name; the pack size is shown separately. */
 export const titleOf = (i: Pick<CatalogueItem, 'product' | 'name'>) => i.product || i.name;
 

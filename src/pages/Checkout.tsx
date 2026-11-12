@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Icon, Img, Spinner, Stepper } from '../components/ui';
-import { lineImage } from '../lib/brand';
+import { Icon, Spinner, Stepper } from '../components/ui';
+import { ProductThumb } from '../components/layout';
 import { site } from '../content/site';
 import { getQuote, placeOrder, type Problem, type Quote } from '../lib/api';
-import { packLabel, rupees, titleOf, uuid } from '../lib/format';
+import { packFull, rupees, titleOf, uuid } from '../lib/format';
 import { INDIAN_STATES } from '../lib/states';
 import { useBag, useCart, useCatalogue } from '../state/store';
 
@@ -201,10 +201,10 @@ export default function Checkout() {
           const ql = quote?.lines.find((l) => l.sku_code === r.code);
           return (
             <li key={r.code} className={`sline ${p ? 'sline--problem' : ''}`}>
-              <div className="sline__img"><Img id={lineImage(r.code, r.item)} sizes="64px" alt="" /><span className="sline__qty" aria-hidden="true">{r.qty}</span></div>
+              <div className="sline__img"><ProductThumb code={r.code} item={r.item} sizes="64px" /><span className="sline__qty" aria-hidden="true">{r.qty}</span></div>
               <div className="sline__body">
                 <p className="sline__name">{r.item ? titleOf(r.item) : ql?.name ?? r.code}</p>
-                <p className="sline__meta">{r.item ? packLabel(r.item) : ''} · Qty {r.qty}</p>
+                <p className="sline__meta">{r.item ? packFull(r.item) : ''} · Qty {r.qty}</p>
                 {p && (
                   <div className="sline__warn" role="status">
                     {p.reason === 'insufficient' ? `Only ${p.available} left.` : p.reason === 'sold_out' ? 'Sold out.' : 'No longer available.'}

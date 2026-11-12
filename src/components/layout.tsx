@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList, type Brand } from '../content/brands';
 import { site } from '../content/site';
-import { collectionOf, itemContent, lineImage, paths, useBrand } from '../lib/brand';
-import { rupees, packLabel, titleOf } from '../lib/format';
+import type { CatalogueItem } from '../lib/api';
+import { collectionOf, itemContent, paths, useBrand } from '../lib/brand';
+import { rupees, packFull, packLabel, titleOf } from '../lib/format';
 import { useBag, useCart, useCatalogue } from '../state/store';
 import { Icon, Img, Stepper, Text } from './ui';
+import { PackArt } from './PackArt';
 
 function navFor(brand: Brand | null) {
   if (!brand) {
@@ -246,11 +248,11 @@ export function CartDrawer() {
                 const href = r.item ? paths.product(r.item) : '/';
                 return (
                   <li key={r.code} className={`line ${r.short ? 'line--problem' : ''}`}>
-                    <Link to={href} className="line__img"><Img id={lineImage(r.code, r.item)} sizes="96px" alt="" /></Link>
+                    <Link to={href} className="line__img"><ProductThumb code={r.code} item={r.item} sizes="96px" /></Link>
                     <div className="line__body">
                       <p className="line__brand">{r.item?.brand ?? ' '}</p>
                       <p className="line__name"><Link to={href}>{r.item ? titleOf(r.item) : r.code}</Link></p>
-                      {r.item && <p className="line__meta">{packLabel(r.item)} · {rupees(r.item.price)}</p>}
+                      {r.item && <p className="line__meta">{packFull(r.item)} · {rupees(r.item.price)}</p>}
                       {r.short && (
                         <p className="line__warn" role="status">
                           {!r.item || r.max === 0 ? 'No longer available' : `Only ${r.max} available`}
@@ -285,9 +287,18 @@ export function CartDrawer() {
   );
 }
 
+// ---------------------------------------------------------------- product thumbnail (bag, checkout)
+/** The product's first photo, or its illustrated placeholder. */
+export function ProductThumb({ code, item, sizes }: { code: string; item: CatalogueItem | null; sizes: string }) {
+  const img = item ? itemContent(item).images[0] : undefined;
+  if (img) return <Img id={img} sizes={sizes} alt="" />;
+  return <PackArt variant="thumb" product={item?.product} category={item?.category} brandCode={item?.brand_code ?? code.slice(0, 2)} />;
+}
+
 // ---------------------------------------------------------------- product card
+/** One card per product. With several pack sizes it shows "from" the smallest and links to the product page to choose. */
 export function ProductCard({ code, priority }: { code: string; priority?: boolean }) {
-  const { byCode } = useCatalogue();
+  const { byCode, items, comingSoon } = useCatalogue();
   const { add } = useCart();
   const item = byCode.get(code);
   const [added, setAdded] = useState(false);
@@ -298,33 +309,51 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
   }, [added]);
   if (!item) return null;
   const c = itemContent(item);
+  const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
+  const many = packs.length > 1;
+  const soon = comingSoon(item);
   const soldOut = item.availability === 'sold_out';
   const href = paths.product(item);
+  const minPrice = Math.min(...packs.map((p) => p.price));
 
   return (
     <article className="card">
       <Link to={href} className="card__media" tabIndex={-1} aria-hidden="true">
-        <Img id={c.images[0]} sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" eager={priority} />
+        {c.images[0]
+          ? <Img id={c.images[0]} sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" eager={priority} />
+          : <PackArt product={item.product} category={item.category} brandCode={item.brand_code} />}
         {c.images[1] && <Img id={c.images[1]} className="card__alt" sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" />}
-        {soldOut && <span className="card__badge">Sold out</span>}
+        {soldOut && !soon && <span className="card__badge">Sold out</span>}
         {!soldOut && item.only_left && <span className="card__badge card__badge--low">Only {item.only_left} left</span>}
       </Link>
       <div className="card__body">
         <p className="card__brand">{collectionOf(item)?.title ?? item.brand}</p>
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
-        {c.tagline && <p className="card__tagline">{typeof c.tagline === 'string' ? c.tagline : c.tagline.text}</p>}
-        <p className="card__pack">{packLabel(item)}</p>
+        {c.tagline && <p className="card__tagline">{c.tagline}</p>}
+        <p className="card__pack">{many ? `${packs.length} sizes · ${packLabel(packs[0])} to ${packLabel(packs[packs.length - 1])}` : packFull(item)}</p>
         <div className="card__foot">
-          <span className="card__price">{rupees(item.price)}{item.mrp && item.mrp > item.price && <s className="card__mrp">{rupees(item.mrp)}</s>}</span>
-          <button
-            className={`add-btn ${added ? 'is-added' : ''}`}
-            disabled={soldOut}
-            onClick={() => { add(code); setAdded(true); }}
-            aria-label={soldOut ? `${titleOf(item)} is sold out` : `Add ${titleOf(item)}, ${packLabel(item)} to bag`}
-          >
-            <span className="add-btn__icon"><Icon name={added ? 'check' : 'plus'} size={18} /></span>
-            <span className="add-btn__label">{soldOut ? 'Sold out' : added ? 'Added' : 'Add'}</span>
-          </button>
+          <span className="card__price">
+            {many && minPrice !== Math.max(...packs.map((p) => p.price)) && <span className="card__from">from </span>}
+            {rupees(many ? minPrice : item.price)}
+            {!many && item.mrp && item.mrp > item.price && <s className="card__mrp">{rupees(item.mrp)}</s>}
+          </span>
+          {soon ? (
+            <span className="card__soon">Coming soon</span>
+          ) : many ? (
+            <Link to={href} className="add-btn" aria-label={`Choose a size of ${titleOf(item)}`}>
+              <span className="add-btn__label">Choose size</span>
+            </Link>
+          ) : (
+            <button
+              className={`add-btn ${added ? 'is-added' : ''}`}
+              disabled={soldOut}
+              onClick={() => { add(code); setAdded(true); }}
+              aria-label={soldOut ? `${titleOf(item)} is sold out` : `Add ${titleOf(item)}, ${packFull(item)} to bag`}
+            >
+              <span className="add-btn__icon"><Icon name={added ? 'check' : 'plus'} size={18} /></span>
+              <span className="add-btn__label">{soldOut ? 'Sold out' : added ? 'Added' : 'Add'}</span>
+            </button>
+          )}
         </div>
       </div>
       <span className="sr-only" role="status">{added ? `${titleOf(item)} added to bag` : ''}</span>

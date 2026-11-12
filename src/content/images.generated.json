@@ -9,16 +9,6 @@
     ],
     "lqip": "data:image/webp;base64,UklGRsoAAABXRUJQVlA4IL4AAACQBgCdASoYACQAPuFco02opSMiNVv4ARAcCWIAvVghX69Im/gOlLZlAa7eC3jToogCYB1bO3Tra/CJuDAAAP7vukIvMDhLFS9xmHiQpLJ/qDDA2zPuNubN2/uaJ1VUH+crpFDZxxVOA3I6U9U7ti01rGeHFebPihjwZAT4Xvs8ydf8sXhMbKLtfge7SkGv/M6mtTHhlP1OtjWxCd2QGEX5cxwbZ9e7Dq9zxa4BCC9UxFBxNd/HaI/21oI5HoAA"
   },
-  "category-cakes": {
-    "w": 2400,
-    "h": 3600,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACQBQCdASoYACQAPtVYok2oJaMiOrmYAQAaiUAXHIGIvMGfrhcHWd+mwBvv9b/rnpX5/gmcgACPqt6ujImmsTx79ZfF8NDR7R5Hxzg1d28E+VJHXtxjHhsjVo9VCa4VGM8fkyARKxmsY7ikETumAChOwYl3wwUwfIRtgAAA"
-  },
   "category-dosa": {
     "w": 2400,
     "h": 2990,
@@ -69,46 +59,6 @@
     ],
     "lqip": "data:image/webp;base64,UklGRrAAAABXRUJQVlA4IKQAAABQBgCdASoYACQAPuFepE2opSOiNVv4ARAcCWUAuwAhXKrQWQTlpyLgCL1tD3KFZ8/w0KcloDGCcSYRsAD+9CJTvY4SaSYU8Pj6zjvJsra99aRplqWPJPrv5OagL/TUlzWFn4n1CHN4EEC5G90QOwh8iLHT0ntT0N/UqlqhrxDc7nFM5p1wncO6o5ruc9yNp6SCTp6ukRAb1t6nvLCsmOdlyEAAAA=="
   },
-  "hero-cookies-bowl": {
-    "w": 2400,
-    "h": 3000,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAABwBQCdASoYAB4APu1irFAppSQisBgIATAdiWIAwzRpX7iMjXUl2gWV6EMpBPX750sA1vVQAP772pJZfA0lDnYZAbPy9dGQp0fpLIGfo9g2tyyQXD11prWx5ZDryR+jjIUr0S74CGbJpvSSk9geVN13leeSu0/xPkAqhjduRSvqN2q0A6eTKUqPnek54AAA"
-  },
-  "mt-cookies-choc-chip-1": {
-    "w": 2400,
-    "h": 3000,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRqoAAABXRUJQVlA4IJ4AAABwBQCdASoYAB4APu1qsFCppaSiqAqpMB2JZgC/VX+gpeRL9c4Xf/DuSLYmZKLZo8z51yWoAP53FitP7+Si9Zj1E2HqLQg/AO/sPukmgRgm200KexDS4Yejl8xM1EYFEYGU4EprP6Es+RSKfK3aFUHQoaBiKsyVKwUm5DSLRhB9VNFrQXIJwog/pjzZJeZhfHwgqTc9stXrUlJBhvQAAA=="
-  },
-  "mt-cookies-choc-chip-2": {
-    "w": 2400,
-    "h": 3000,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAACQBQCdASoYAB4APu1oqk2ppiQiMAgBMB2JbACdABnDS/Ez5AbKXvCnnqNZ61OjjRtjF0+UAAD90jwvteJS/GDOAD2Z7lgG7JnRhhuykVWwMF+nnKesvNhQYW/+AjfScipOCr3L8MknCI7rX6bmrknAAgOXwY8oVPR0qFucNkskgEYlA82bJ+x6NMOPKtNLnHDjST7hH160cWYGGMVOrPgwh2g0yTE4rygEGXjMi6HBVmHWIlBxwxgA"
-  },
-  "mt-cookies-choc-chip-3": {
-    "w": 2400,
-    "h": 3600,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRtwAAABXRUJQVlA4INAAAAAQBwCdASoYACQAPu1krVAppSQiqrgMATAdiWIAnTL+uGgU1A4aEXPwwDUGn/9QdVgTPPf6rq8QSfQ9BDkN0akP8ADvZIXep/U5xtUzMmrR53fvRzv9wsi2EG94FxtuwM5g/Sk+wWI2sPs075PZlKbGrY8hgiFT/frK2lub+IgeDABWDAeYQImwVEVONIZ1WDokUAGhlw0qHi90zDRdUQmPz8BBNllTHd7628o787eYE22oExcL+1DVUuLBuVlWeQt2DNVw5ws7bkR4g095HAAA"
-  },
   "ns-atta-bowl": {
     "w": 2400,
     "h": 3600,
@@ -118,16 +68,6 @@
       1920
     ],
     "lqip": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAACwBQCdASoYACQAPu1mq08ppaOiMBVaqTAdiWcAAH6QC15kJFcyQGPScXzaC/sjdSfK+EuIBwAA/vdxYzJePyjzBW0S/6G570YVWk4Gak4n7232uujEi9sHAvtxe3ReNFeroVgrmAAAAA=="
-  },
-  "ns-atta-sack": {
-    "w": 2400,
-    "h": 3600,
-    "widths": [
-      640,
-      1280,
-      1920
-    ],
-    "lqip": "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAACQBQCdASoYACQAPuleqE2pJSQiNVQMASAdCWcA0UQi2z9MTmVyz1d2o8e2bUtA4oMifaac4ADhDtdJqkjCakaLkFpm6OesU0YP231pZo8XKzQB+x8+JA7/6B7WcjKQXsrD2mkM5fgvmH+Br+u+uJFG2+I65f9oAAA="
   },
   "pantry-grains": {
     "w": 2400,

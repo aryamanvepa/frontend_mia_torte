@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { brandList, brands, type Brand, type BrandCode, type Collection } from '../content/brands';
-import { contentFor, FALLBACK_IMAGE } from '../content/products';
+import { contentFor } from '../content/products';
 import type { CatalogueItem } from './api';
 
 /** Which brand a URL belongs to: /mia-torte/… → Mia Torte, /nutri-sampoorna/… → Nutri Sampoorna, else null (house pages). */
@@ -38,14 +38,19 @@ export function inCollection(item: Pick<CatalogueItem, 'brand_code' | 'category'
   return collectionOf(item)?.slug === c.slug;
 }
 
-/** Product content with a sensible photo fallback (its collection's, else the brand's). */
-export function itemContent(item: Pick<CatalogueItem, 'code' | 'brand_code' | 'category'>) {
-  const fallback = collectionOf(item)?.image ?? FALLBACK_IMAGE[(item.brand_code as BrandCode) in FALLBACK_IMAGE ? (item.brand_code as BrandCode) : 'NS'];
-  return contentFor(item.code, fallback);
+/** Product content: its own entry, else its category's defaults. `images` is empty until real photos exist. */
+export function itemContent(item: Pick<CatalogueItem, 'product' | 'category'>) {
+  return contentFor(item.product, item.category);
 }
 
-/** Main photo for a bag line (the product may have left the catalogue). */
-export function lineImage(code: string, item?: Pick<CatalogueItem, 'code' | 'brand_code' | 'category'> | null) {
-  if (item) return itemContent(item).images[0];
-  return contentFor(code, FALLBACK_IMAGE[code.startsWith('MT') ? 'MT' : 'NS']).images[0];
+/** One card per product: its smallest pack that can still be bought, else its smallest pack. */
+export function oneCardPerProduct<T extends Pick<CatalogueItem, 'product' | 'brand_code' | 'availability' | 'pack_grams'>>(items: T[]): T[] {
+  const best = new Map<string, T>();
+  for (const i of items) {
+    const k = `${i.brand_code}|${i.product}`;
+    const cur = best.get(k);
+    const rank = (x: T) => (x.availability === 'sold_out' ? 1e9 : 0) + x.pack_grams;
+    if (!cur || rank(i) < rank(cur)) best.set(k, i);
+  }
+  return [...best.values()];
 }
