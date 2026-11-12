@@ -907,7 +907,7 @@ main:focus { outline: none; }
 .notify__h { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: .95rem; }
 .notify__sub { font-size: .85rem; color: var(--muted); margin-top: -8px; }
 .notify__fields { display: grid; gap: 8px; }
-@media (min-width: 520px) { .notify__fields { grid-template-columns: 1.4fr 1fr; } }
+@container info (min-width: 440px) { .notify__fields { grid-template-columns: 1.4fr 1fr; } }
 .notify__field input {
   width: 100%; min-height: 46px; padding: 0 14px; font: inherit; font-size: 16px; color: var(--cocoa);
   background: var(--cream); border: 1px solid var(--line-strong); border-radius: var(--radius);
@@ -932,6 +932,62 @@ a.add-btn { text-decoration: none; }
 .btn--soon:disabled { opacity: 1; color: var(--muted); border-style: dashed; cursor: default; }
 .btn--soon:disabled:hover { background: transparent; color: var(--muted); }
 .pdp__hint a { color: inherit; text-underline-offset: 3px; }
+
+/* =====================================================================
+   SCALING — every screen from a 320 px phone to a 2560 px monitor.
+   ===================================================================== */
+/* Large monitors: type and the content column grow a little, so wide screens
+   don't look sparse. Everything sized in rem scales with it. */
+@media (min-width: 1680px) { html { font-size: 106.25%; } :root { --max: 1480px; } }
+@media (min-width: 2200px) { html { font-size: 118.75%; } :root { --max: 1720px; } }
+@media (min-width: 1680px) {
+  .hero { min-height: min(calc(100svh - var(--header-total) - 36px), 1080px); }
+  .doors { min-height: min(calc(100svh - var(--header-total) - 36px), 1120px); }
+  .story { min-height: 760px; }
+}
+
+/* Brand nav: always one row. Centred when it fits; scrolls sideways when it
+   doesn't (auto margins instead of wrapping onto a second row). */
+.header__nav ul { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+.header__nav ul::-webkit-scrollbar { display: none; }
+.header__nav li { flex: none; }
+.header__nav li:first-child { margin-left: auto; }
+.header__nav li:last-child { margin-right: auto; }
+@media (min-width: 900px) and (max-width: 1099px) {
+  .header__nav ul { column-gap: 16px; }
+  .navlink { font-size: .8rem; letter-spacing: .02em; }
+}
+
+/* Phones, landscape phones and tablets: a stacked photo never takes more than
+   most of the screen's height. */
+@media (max-width: 899px) {
+  .hero__media { max-height: 68svh; }
+  .story__media, .ns-hero__media, .coll-head__media { max-height: 60svh; }
+  .bespoke__media { max-height: 56svh; }
+  .door--ns .door__frame { min-height: min(300px, 46svh); }
+}
+.info__hero .img { max-height: 70svh; }
+.gallery__slide { max-height: 78svh; }
+
+/* Wide screens: the story band's height follows its text, not its photo. */
+@media (min-width: 900px) {
+  .story__media { position: relative; }
+  .story__media .img { position: absolute; inset: 0; height: auto; }
+}
+
+/* Product page: photo and buying column side by side from tablet width. */
+.pdp__info { container: info / inline-size; min-width: 0; }
+@media (min-width: 720px) {
+  .pdp__grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 88px); align-items: start; }
+  .pdp__info { position: sticky; top: calc(var(--header-total) + 24px); }
+  .gallery { margin-inline: 0; }
+  .gallery__track { border-radius: var(--radius); }
+  .gallery__thumbs, .gallery__note { padding-inline: 0; }
+  .gallery__slide { max-height: max(300px, calc(100svh - var(--header-total) - 40px)); }
+}
+
+/* Narrow phones: card footers wrap rather than squeeze. */
+.card__foot { flex-wrap: wrap; row-gap: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }

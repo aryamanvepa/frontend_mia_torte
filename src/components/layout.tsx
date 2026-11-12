@@ -45,6 +45,20 @@ export function Header() {
   const [pulse, setPulse] = useState(false);
   const links = navFor(brand);
   const other = brand ? brandList.find((b) => b.code !== brand.code)! : null;
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Sticky bars below the header (shop filters, product info) offset by its real height,
+  // whatever the screen size, font size or number of nav links.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const set = () => document.documentElement.style.setProperty('--header-total', `${el.offsetHeight}px`);
+    set();
+    const ro = 'ResizeObserver' in window ? new ResizeObserver(set) : null;
+    ro?.observe(el);
+    window.addEventListener('resize', set);
+    return () => { ro?.disconnect(); window.removeEventListener('resize', set); };
+  }, []);
 
   useEffect(() => setMenu(false), [pathname]);
   useEffect(() => {
@@ -75,7 +89,7 @@ export function Header() {
           </div>
         </div>
       </div>
-      <header className="header">
+      <header className="header" ref={headerRef}>
         <div className="header__bar wrap">
           <div className="header__left">
             <button className="header__menu-btn icon-btn" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-controls="mobile-menu"
@@ -296,6 +310,9 @@ export function ProductThumb({ code, item, sizes }: { code: string; item: Catalo
 }
 
 // ---------------------------------------------------------------- product card
+/** Keep "500 g" on one line. */
+const nb = (t: string) => t.replace(/ /g, '\u00a0');
+
 /** One card per product. With several pack sizes it shows "from" the smallest and links to the product page to choose. */
 export function ProductCard({ code, priority }: { code: string; priority?: boolean }) {
   const { byCode, items, comingSoon } = useCatalogue();
@@ -330,7 +347,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
         <p className="card__brand">{collectionOf(item)?.title ?? item.brand}</p>
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
         {c.tagline && <p className="card__tagline">{c.tagline}</p>}
-        <p className="card__pack">{many ? `${packs.length} sizes · ${packLabel(packs[0])} to ${packLabel(packs[packs.length - 1])}` : packFull(item)}</p>
+        <p className="card__pack">{many ? `${nb(packLabel(packs[0]))} to ${nb(packLabel(packs[packs.length - 1]))} · ${packs.length}\u00a0sizes` : nb(packFull(item))}</p>
         <div className="card__foot">
           <span className="card__price">
             {many && minPrice !== Math.max(...packs.map((p) => p.price)) && <span className="card__from">from </span>}
