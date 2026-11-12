@@ -23,6 +23,22 @@ export interface CatalogueItem {
   availability: Availability;
   only_left: number | null;
   max_qty: number;
+  /** Label details entered in the ops app (Admin → Products); the same for every pack of a product. */
+  details?: ProductDetails | null;
+}
+
+export type Diet = 'veg' | 'vegan' | 'egg' | 'non_veg';
+export interface ProductDetails {
+  description: string | null;
+  ingredients: string | null;
+  allergens: string | null;
+  diet: Diet | null;
+  /** Numbers per 100 g, keys like energy_kcal, protein_g, sodium_mg. */
+  nutrition_per_100g: Record<string, number | null> | null;
+  storage: string | null;
+  shelf_life_days: number | null;
+  /** True once Torte Living has confirmed these details against the pack label. */
+  confirmed: boolean;
 }
 
 export interface QuoteLine { sku_code: string; name: string; qty: number; unit_price: number; line_total: number }
@@ -71,6 +87,19 @@ export async function fetchCatalogue(): Promise<CatalogueItem[]> {
     pack_size: Number(r.pack_size), pack_grams: Number(r.pack_grams),
     mrp: r.mrp == null ? null : Number(r.mrp), price: Number(r.price),
   }));
+}
+
+export type NotifyResult = { ok: true } | { ok: false; error: 'consent_required' | 'invalid_email' | 'unknown_product' | 'try_later' | 'network' | string };
+
+/** "Email me when this pack is available". The list can't be read back from the website. */
+export async function notifyMe(args: { sku: string; email: string; name: string; consent: boolean }): Promise<NotifyResult> {
+  try {
+    return await rpc<NotifyResult>('storefront_notify_me', {
+      p_sku_code: args.sku, p_email: args.email.trim(), p_consent: args.consent, p_name: args.name.trim() || null,
+    });
+  } catch {
+    return { ok: false, error: 'network' };
+  }
 }
 
 export const trackOrder = (code: string, phone: string) =>

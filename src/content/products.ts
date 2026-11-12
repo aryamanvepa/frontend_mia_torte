@@ -28,7 +28,8 @@
 // =====================================================================
 import { draft, placeholder, type Copy } from './site';
 
-export type Dietary = 'veg' | 'non-veg' | 'unconfirmed';
+/** 'egg' is shown as non-vegetarian, as FSSAI requires. Only ever set from the ops app's `diet`, never guessed. */
+export type Dietary = 'veg' | 'vegan' | 'egg' | 'non-veg' | 'unconfirmed';
 
 export interface Nutrition {
   basis: string;               // e.g. 'per 100 g'
@@ -39,6 +40,21 @@ export interface Nutrition {
 export const NUTRITION_ROWS = [
   'Energy (kcal)', 'Protein (g)', 'Carbohydrate (g)', 'of which total sugars (g)', 'of which added sugars (g)',
   'Total fat (g)', 'of which saturated fat (g)', 'of which trans fat (g)', 'Cholesterol (mg)', 'Sodium (mg)',
+];
+
+/** Ops-app nutrition keys → table rows. Mandatory rows always show ("—" if missing); dietary fibre only when given. */
+export const NUTRITION_KEYS: [key: string, label: string, mandatory: boolean][] = [
+  ['energy_kcal', 'Energy (kcal)', true],
+  ['protein_g', 'Protein (g)', true],
+  ['carbohydrate_g', 'Carbohydrate (g)', true],
+  ['total_sugars_g', 'of which total sugars (g)', true],
+  ['added_sugars_g', 'of which added sugars (g)', true],
+  ['fibre_g', 'Dietary fibre (g)', false],
+  ['fat_g', 'Total fat (g)', true],
+  ['saturated_fat_g', 'of which saturated fat (g)', true],
+  ['trans_fat_g', 'of which trans fat (g)', true],
+  ['cholesterol_mg', 'Cholesterol (mg)', true],
+  ['sodium_mg', 'Sodium (mg)', true],
 ];
 
 export interface ProductContent {
@@ -59,7 +75,9 @@ export interface ProductContent {
   ingredientsList?: Copy;
   allergens?: Copy;
   dietary?: Dietary;
-  nutrition?: Nutrition;
+  /** The veg mark came from the ops app but isn't confirmed yet. */
+  dietaryDraft?: boolean;
+  nutrition?: Nutrition & { draft?: boolean };
   storage?: Copy;
   shelfLife?: Copy;
   /** Real product photo ids from src/content/images.ts; the first is the main photo. Empty = illustrated placeholder. */

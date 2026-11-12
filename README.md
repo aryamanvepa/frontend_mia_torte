@@ -63,6 +63,17 @@ A product belongs to the brand of its `brand_code` (MT / NS) in the ops app.
 labels return automatically: in stock, few left, sold out. Ordering rules are unchanged; the
 server still decides what can be bought.
 
+**Notify me.** Every sold-out or coming-soon pack size shows a small form (email, optional first
+name, an unticked consent box linking to the privacy page). It calls `storefront_notify_me`; the
+website can't read the list back. Staff see it in the ops app (More → Back-in-stock alerts).
+
+**Label details from the ops app.** `storefront_catalogue` returns `details` per product
+(description, ingredients, allergens, diet, nutrition per 100 g, storage, shelf life,
+`confirmed`), filled in under Admin → Products. Wherever a field is filled in it replaces the
+copy in `src/content/products.ts`. Until `confirmed` is true those facts carry a
+"Draft · confirm" tag. The veg / non-veg mark appears only from `diet` (egg shows as
+non-vegetarian, as FSSAI requires), never from the website's own copy.
+
 ## Replacing placeholders (for the client)
 
 Two kinds of flag are shown on the site while `SHOW_PLACEHOLDER_FLAGS = true` in `src/content/site.ts`:

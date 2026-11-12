@@ -85,6 +85,7 @@ export const pages: Record<string, PolicyPage> = {
     sections: [
       { heading: 'What we collect', body: needs('Name, phone, email, delivery address; the purpose of each') },
       { heading: 'Marketing', body: needs('Marketing messages only with separate consent; how to withdraw it') },
+      { heading: 'Back-in-stock alerts', body: draft('If you ask us to email you when a product is available, we keep your email address (and first name, if you give it) only to send you that one email. We do not use it for marketing or share it. To be removed before then, write to us and we will delete it. How long requests are kept is to be confirmed by Torte Living.') },
       { heading: 'Who we share it with', body: needs('Delivery partners, hosting providers') },
       { heading: 'Your rights & grievance officer', body: needs('Contact details of the grievance officer') },
     ],

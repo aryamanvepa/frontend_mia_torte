@@ -7,10 +7,11 @@ import type { Brand } from '../content/brands';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { site, type Copy } from '../content/site';
 import { brandOf, collectionOf, itemContent, oneCardPerProduct, paths } from '../lib/brand';
-import { packFull, packLabel, rupees, titleOf } from '../lib/format';
+import { packFull, packKind, packLabel, rupees, titleOf } from '../lib/format';
 import { useCart, useCatalogue } from '../state/store';
 import { CatalogueStatus } from './Shop';
 import { NotFound } from './Info';
+import { NotifyMe } from '../components/NotifyMe';
 
 function Needed({ what }: { what: string }) {
   return <span className="is-ph">{what} to be added. <PlaceholderTag label="Content needed" /></span>;
@@ -25,16 +26,19 @@ function Fact({ label, copy, children, need }: { label: string; copy?: Copy; chi
   );
 }
 
-function DietMark({ d }: { d?: Dietary }) {
-  if (d === 'veg' || d === 'non-veg') {
-    const veg = d === 'veg';
+/** FSSAI veg / non-veg mark, only from the ops app's `diet` (egg counts as non-vegetarian). */
+function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
+  if (d && d !== 'unconfirmed') {
+    const veg = d === 'veg' || d === 'vegan';
+    const label = d === 'vegan' ? 'Vegetarian (vegan)' : d === 'egg' ? 'Non-vegetarian (contains egg)' : veg ? 'Vegetarian' : 'Non-vegetarian';
     return (
-      <span className="diet">
+      <span className={`diet ${isDraft ? 'is-ph' : ''}`}>
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
           <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke={veg ? '#1f7a3a' : '#7a3b1f'} strokeWidth="1.6" />
           {veg ? <circle cx="9" cy="9" r="4.2" fill="#1f7a3a" /> : <path d="M9 4.6 13.6 12.8H4.4Z" fill="#7a3b1f" />}
         </svg>
-        {veg ? 'Vegetarian' : 'Non-vegetarian'}
+        {label}
+        {isDraft && <PlaceholderTag kind="draft" />}
       </span>
     );
   }
@@ -149,19 +153,15 @@ export default function Product({ brand }: { brand: Brand }) {
 
           <div className="pdp__stock"><StockNote item={item} soon={soon} /></div>
 
-          <div className="pdp__buy">
+          {!soldOut && <div className="pdp__buy">
             {!soldOut && max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
             <button className={`btn ${soon ? 'btn--line btn--soon' : 'btn--dark'} btn--grow ${adding ? 'is-adding' : ''}`} disabled={soldOut || max === 0 || adding} onClick={onAdd}>
               {soon ? 'Coming soon' : soldOut ? 'Sold out' : max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
             </button>
-          </div>
-          {soon && (
-            <p className="pdp__hint">
-              {isMT ? 'Our first batch is in the kitchen. Orders open here as soon as it is ready.' : 'Arriving on the shelf soon. Orders open here as soon as the first batch is packed.'}{' '}
-              <Link to={paths.contact(brand)}>Ask us about it</Link>
-            </p>
-          )}
+          </div>}
+          {soon && <p className="pdp__hint">{isMT ? 'Our first batch is in the kitchen. Orders open here as soon as it is ready.' : 'Arriving on the shelf soon. Orders open here as soon as the first batch is packed.'}</p>}
           {soldOut && !soon && <p className="pdp__hint">{isMT ? 'Sold out for now. The next batch is on its way.' : 'Out of stock for now. We are restocking the shelf.'}</p>}
+          {soldOut && <NotifyMe key={item.code} code={item.code} what={`${titleOf(item)}, ${packFull(item)}`} pack={packKind(item) ? packFull(item) : `${packLabel(item)} pack`} soon={soon} />}
 
           <ul className="pdp__assure" aria-label="Ordering">
             <li><Icon name="hand" size={18} /> {site.codNote}</li>
@@ -197,7 +197,7 @@ export default function Product({ brand }: { brand: Brand }) {
         <Reveal as="section" className="facts">
           <h2 className="facts__h">Product information</h2>
           <dl className="facts__list">
-            <Fact label="Food type"><DietMark d={c.dietary} /></Fact>
+            <Fact label="Food type"><DietMark d={c.dietary} isDraft={c.dietaryDraft} /></Fact>
             <Fact label="Net quantity">{packLabel(item)}</Fact>
             <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>
             <Fact label="Ingredients" copy={c.ingredientsList} need="Ingredients list" />
@@ -219,6 +219,7 @@ export default function Product({ brand }: { brand: Brand }) {
             </tbody>
           </table>
           {!c.nutrition && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
+          {c.nutrition?.draft && <p className="facts__note is-ph">Values entered by Torte Living, to be confirmed against the pack label. <PlaceholderTag kind="draft" /></p>}
           <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
         </Reveal>
       </section>

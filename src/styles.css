@@ -902,6 +902,27 @@ main:focus { outline: none; }
 .gallery__track--art { overflow: hidden; }
 .gallery__track--art .gallery__slide { position: relative; }
 
+/* ---------------------------------------------------------------- notify me */
+.notify { margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); display: grid; gap: 12px; }
+.notify__h { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: .95rem; }
+.notify__sub { font-size: .85rem; color: var(--muted); margin-top: -8px; }
+.notify__fields { display: grid; gap: 8px; }
+@media (min-width: 520px) { .notify__fields { grid-template-columns: 1.4fr 1fr; } }
+.notify__field input {
+  width: 100%; min-height: 46px; padding: 0 14px; font: inherit; font-size: 16px; color: var(--cocoa);
+  background: var(--cream); border: 1px solid var(--line-strong); border-radius: var(--radius);
+}
+.notify__field input:focus { outline: none; border-color: var(--gold-ink); box-shadow: 0 0 0 3px rgba(179, 139, 77, .22); }
+.notify__field input[aria-invalid] { border-color: var(--berry); }
+.notify__consent { display: flex; gap: 10px; align-items: flex-start; font-size: .84rem; line-height: 1.5; color: var(--muted); cursor: pointer; }
+.notify__consent input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--cocoa); flex: none; }
+.notify__consent a { color: inherit; text-underline-offset: 3px; }
+.notify__error { font-size: .86rem; color: var(--berry); }
+.notify__btn { justify-self: start; min-width: 140px; }
+.notify--done { grid-template-columns: auto 1fr; align-items: start; color: var(--ok); }
+.notify--done p { color: var(--cocoa); font-size: .92rem; }
+.diet.is-ph { display: inline-flex; flex-wrap: wrap; }
+
 /* ---------------------------------------------------------------- coming soon */
 .card__soon { font: 600 .66rem/1.3 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--gold-ink); white-space: nowrap; }
 .card__from { font-weight: 400; font-size: .82rem; color: var(--muted); }
