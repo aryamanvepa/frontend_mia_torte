@@ -63,8 +63,9 @@ export function Reveal({ children, as: Tag = 'div', className = '', delay = 0 }:
 }
 
 // ---------------------------------------------------------------- placeholder-aware text
-export function PlaceholderTag({ label = 'Placeholder', kind = 'missing' }: { label?: string; kind?: 'missing' | 'draft' }) {
+export function PlaceholderTag({ label = 'Placeholder', kind = 'missing' }: { label?: string; kind?: 'missing' | 'draft' | 'test' }) {
   if (!SHOW_PLACEHOLDER_FLAGS) return null;
+  if (kind === 'test') return <span className="ph-tag ph-tag--test" title="Made-up value for testing only. Replace with the pack label before launch">Test data</span>;
   return kind === 'draft'
     ? <span className="ph-tag ph-tag--draft" title="Copy written to the brand brief. Torte Living to confirm the facts before launch">Draft · confirm</span>
     : <span className="ph-tag" title="To be supplied by Torte Living before launch">{label}</span>;
@@ -76,7 +77,7 @@ export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | undef
   return (
     <Tag className={`${className ?? ''} ${ph ? 'is-ph' : ''}`}>
       {copyText(copy)}
-      {ph && <> <PlaceholderTag kind={(copy as { kind: 'missing' | 'draft' }).kind} /></>}
+      {ph && <> <PlaceholderTag kind={(copy as { kind: 'missing' | 'draft' | 'test' }).kind} /></>}
     </Tag>
   );
 }

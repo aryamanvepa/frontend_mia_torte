@@ -1382,3 +1382,4 @@ a.add-btn { text-decoration: none; }
 /* ---------------------------------------------------------------- illustration: flavour motif in the corner */
 .pack__accent { position: absolute; top: 9%; right: 9%; width: clamp(22px, 14%, 54px); height: auto; opacity: .9; transform: rotate(-12deg); }
 .pack--hero .pack__accent { width: clamp(32px, 11%, 72px); }
+.ph-tag--test { border-color: #c47a1c; color: #8a4f0c; background: rgba(196, 122, 28, .1); }

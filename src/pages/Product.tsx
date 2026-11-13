@@ -284,6 +284,7 @@ export default function Product() {
         </tbody>
       </table>
       {!c.nutrition && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
+      {c.nutrition?.test && <p className="facts__note is-ph">Made-up values for testing only, not from the pack label. <PlaceholderTag kind="test" /></p>}
       {c.nutrition?.draft && <p className="facts__note is-ph">Values entered by Torte Living, to be confirmed against the pack label. <PlaceholderTag kind="draft" /></p>}
       <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
     </Reveal>

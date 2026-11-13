@@ -23,7 +23,38 @@ const unsplash = (photographer: string, handle: string, photoId: string): Credit
   url: `https://unsplash.com/photos/${photoId}`,
 });
 
+/** TEST IMAGES (stock, Unsplash): stand-ins for product photography while testing. Listed in docs/test-images.md. Remove before launch. */
+const stock = (handle: string, image: string): Credit => ({ photographer: `@${handle}`, profile: `https://unsplash.com/@${handle}`, source: 'Unsplash (test image)', url: `https://images.unsplash.com/${image}` });
+
 export const images: Record<string, ImageInfo> = {
+  // ---- TEST stock photos standing in for product photography (docs/test-images.md)
+  'test-classic-choc-chip': { alt: 'Chocolate chip cookies with chunks of dark chocolate', credit: stock('foodess', 'photo-1499636136210-6f4ee915583e') },
+  'test-mocha': { alt: 'Chocolate cookies on a plate beside a cup of coffee', credit: stock('bycindys', 'photo-1559594323-25090515ee2f') },
+  'test-red-velvet': { alt: 'Red velvet cookies cooling on a rack', credit: stock('fghaessani', 'photo-1673412810103-27c233f77da6') },
+  'test-nutella-brownie': { alt: 'Cookies topped with chocolate hazelnut spread', credit: stock('vdphotography', 'photo-1642942000413-d967010dea4b') },
+  'test-carrot-creme': { alt: 'Carrot-shaped iced cookies on a cooling rack', credit: stock('supardisign', 'photo-1708850090520-eafc36a926fa') },
+  'test-biscoff': { alt: 'Biscoff cookies cooling on a rack', credit: stock('thefrostedcakestudio', 'photo-1777401845650-318b6fd65041') },
+  'test-pista': { alt: 'Pistachio cookies on a cooling rack', credit: stock('sahandbabali', 'photo-1603889386524-2dc2867a32b4') },
+  'test-jowar-jeera': { alt: 'Crisp savoury biscuits with seeds', credit: stock('bohdans', 'photo-1615294209152-571969a7fbfe') },
+  'test-orange-muesli': { alt: 'A white bowl of crunchy granola', credit: stock('fallonmichaeltx', 'photo-1578687595055-d15759a04151') },
+  'test-veg-chips': { alt: 'Colourful vegetable chips on a plate', credit: stock('khlebnikovayulia', 'photo-1579384264577-79580c9d3a36') },
+  'test-pudina-crunch': { alt: 'A close view of a crunchy savoury snack mix', credit: stock('haberdoedas', 'photo-1788180074861-40b65b841057') },
+  'test-salted-nuts': { alt: 'Mixed salted nuts', credit: stock('anniespratt', 'photo-1693812879904-b8161644ce5a') },
+  'test-trail-mix': { alt: 'A trail mix of nuts and dried fruit', credit: stock('monazme', 'photo-1767877609689-beff32b9c0ac') },
+  'test-masala-bean': { alt: 'Roasted, spiced chickpeas', credit: stock('zoshuacolah', 'photo-1788629378918-17f7818104ee') },
+  'test-mga': { alt: 'A bowl of flour beside ears of wheat', credit: stock('matveevr', 'photo-1714842981153-ffeaf74e7a1a') },
+  'test-roti': { alt: 'A flatbread cooking on a hot tawa', credit: stock('champsara', 'photo-1780907084874-14d202d39bf1') },
+  'test-gf-atta': { alt: 'A heap of flour with a scoop', credit: stock('tinkerman', 'photo-1627735483792-233bf632619b') },
+  'test-ragi': { alt: 'A bag of flour with a sieve', credit: stock('smakoladka', 'photo-1610725664285-7c57e6eeac3f') },
+  'test-bajra': { alt: 'Pearl millet growing on the plant', credit: stock('painpt4u', 'photo-1639086407827-0dadcd5718c9') },
+  'test-jowar': { alt: 'A clay pot of sorghum grains', credit: stock('hetcfoods', 'photo-1792130910504-a5226d9a98ab') },
+  'test-sattu': { alt: 'Roasted chana, the gram sattu is milled from', credit: stock('zoshuacolah', 'photo-1788629072055-736461ae2527') },
+  'test-multimillet-dosa': { alt: 'A crisp dosa with coconut chutney and sambar', credit: stock('zoshuacolah', 'photo-1694849789325-914b71ab4075') },
+  'test-multigrain-dosa': { alt: 'A crisp dosa with sambar and chutneys', credit: stock('paul19977', 'photo-1668236543090-82eba5ee5976') },
+  'test-pesarattu': { alt: 'A thin, crisp dosa with chutneys', credit: stock('pavan_09', 'photo-1751560455942-f859f1215826') },
+  'test-peanut-chutney': { alt: 'Idli covered in chutney powder with sambar', credit: stock('zoshuacolah', 'photo-1788621879512-0aefb7a774ff') },
+  'test-snack-feature': { alt: 'A bowl of crunchy savoury snack mix with peanuts', credit: stock('haberdoedas', 'photo-1788180074988-3332f56d625a') },
+
   'craft-flour-hands': { alt: 'A baker\'s hands dusting flour over a dark work table', credit: unsplash('Mae Mu', 'picoftasty', 'rgRbqFweGF0') },
   'craft-kneading': { alt: 'Hands kneading a ball of dough on a floured table', credit: unsplash('Skyler Ewing', 'skylerewing', '2uiZDQYTHBM') },
   'chocolate-cocoa': { alt: 'Dark chocolate and cocoa powder in a metal bowl', credit: unsplash('Monika Grabkowska', 'moniqa', 'jEu4F6oJtUQ') },

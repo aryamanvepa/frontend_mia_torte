@@ -15,10 +15,12 @@
 
 export const SHOW_PLACEHOLDER_FLAGS = true;
 
-export interface Placeholder { text: string; placeholder: true; kind: 'missing' | 'draft' }
+export interface Placeholder { text: string; placeholder: true; kind: 'missing' | 'draft' | 'test' }
 export type Copy = string | Placeholder;
 export const placeholder = (text: string): Placeholder => ({ text, placeholder: true, kind: 'missing' });
 export const draft = (text: string): Placeholder => ({ text, placeholder: true, kind: 'draft' });
+/** Made-up values for testing only (src/content/test-labels.ts, docs/test-label-data.md). Never for launch. */
+export const testValue = (text: string): Placeholder => ({ text, placeholder: true, kind: 'test' });
 export const isPlaceholder = (c: Copy): c is Placeholder => typeof c === 'object' && c !== null && c.placeholder;
 export const copyText = (c: Copy) => (isPlaceholder(c) ? c.text : c);
 
