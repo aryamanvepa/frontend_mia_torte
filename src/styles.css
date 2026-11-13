@@ -1003,7 +1003,7 @@ a.add-btn { text-decoration: none; }
 .searchbox__suggest a:hover, .searchbox__suggest a:focus-visible { background: var(--linen); }
 .searchbox__suggest strong { display: block; font: 400 1rem/1.25 var(--serif); }
 .searchbox__suggest small { display: block; font-size: .78rem; color: var(--muted); }
-.searchbox__thumb { display: block; width: 40px; aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; }
+.searchbox__thumb { position: relative; display: block; flex: none; width: 40px; aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; }
 .searchbox__thumb .img { height: 100%; }
 .searchbox__all { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 0 10px; margin-top: 4px; border: 0; border-top: 1px solid var(--line); background: none; font-size: .88rem; font-weight: 500; text-align: left; }
 .searchbox__all:hover { color: var(--gold-ink); }
@@ -1020,11 +1020,16 @@ a.add-btn { text-decoration: none; }
 .quickadd__menu button span:last-child { font-weight: 600; }
 .quickadd__menu button:disabled { color: var(--muted); cursor: not-allowed; }
 .quickadd__menu button:disabled span:last-child { font-weight: 400; }
-@media (max-width: 600px) {
-  /* A bottom sheet on phones, so the picker never runs off the screen. */
-  .quickadd__menu { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: auto; z-index: 70; padding: 10px; }
-  .quickadd__menu button { min-height: 50px; font-size: .95rem; }
-}
+/* Desktop dropdown: lift the open card above its neighbours (each card footer is its own layer). */
+.card__foot:has(.quickadd__menu), .reveal:has(.quickadd__menu), .mini:has(.quickadd__menu) { position: relative; z-index: 40; }
+/* Phones: the size picker is a bottom sheet rendered at the end of <body>, above everything. */
+.qa-sheet { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; justify-content: flex-end; }
+.qa-sheet__scrim { position: absolute; inset: 0; background: rgba(36, 21, 14, .42); animation: fade .2s ease both; }
+.qa-sheet__panel { position: relative; background: var(--paper); border-radius: 14px 14px 0 0; padding: 18px 16px calc(12px + env(safe-area-inset-bottom)); box-shadow: var(--shadow); animation: rise .25s var(--ease) both; max-height: 80dvh; overflow-y: auto; }
+.qa-sheet__h { display: grid; gap: 2px; font-weight: 600; margin-bottom: 8px; }
+.qa-sheet__h span { font-weight: 400; color: var(--muted); font-size: .9rem; }
+.qa-sheet .quickadd__menu { position: static; width: auto; box-shadow: none; border: 0; padding: 0 0 8px; animation: none; }
+.qa-sheet .quickadd__menu button { min-height: 52px; font-size: 1rem; border-bottom: 1px solid var(--line); border-radius: 0; }
 .card__badge--new { background: var(--gold-soft); color: var(--espresso); }
 .card__badge--new + .card__badge--low { top: 42px; }
 
@@ -1037,7 +1042,7 @@ a.add-btn { text-decoration: none; }
 .suggest ul { list-style: none; }
 .suggest li + li { border-top: 1px solid var(--line); }
 .mini { display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; }
-.mini__img { display: block; aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; }
+.mini__img { position: relative; display: block; aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; }
 .mini__img .img { height: 100%; }
 .mini__body { display: grid; gap: 2px; min-width: 0; }
 .mini__name { font: 400 .98rem/1.25 var(--serif); text-decoration: none; }
@@ -1130,7 +1135,7 @@ a.add-btn { text-decoration: none; }
 @media (min-width: 1100px) { .related-cats__list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .related-cat { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; padding: 10px 14px 10px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); text-decoration: none; transition: border-color .3s; }
 .related-cat:hover { border-color: var(--cocoa); }
-.related-cat__img { display: block; width: 64px; aspect-ratio: 1; border-radius: 3px; overflow: hidden; }
+.related-cat__img { position: relative; display: block; width: 64px; aspect-ratio: 1; border-radius: 3px; overflow: hidden; }
 .related-cat__img .img { height: 100%; }
 .related-cat strong { display: block; font: 400 1.05rem/1.2 var(--serif); }
 .related-cat small { display: block; font-size: .8rem; color: var(--muted); }
@@ -1227,3 +1232,5 @@ a.add-btn { text-decoration: none; }
 .consent-bar .btn--dark::before { background: var(--gold-soft); }
 @media (min-width: 700px) { .consent-bar { left: 24px; bottom: 24px; } }
 .footer__contact { list-style: none; padding: 0; }
+
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }

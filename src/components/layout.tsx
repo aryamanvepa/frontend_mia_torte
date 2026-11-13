@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList } from '../content/brands';
 import { site } from '../content/site';
@@ -345,12 +346,16 @@ export function ProductThumb({ code, item, sizes }: { code: string; item: Catalo
 
 // ---------------------------------------------------------------- quick add (with size picker)
 /** Adds straight to the bag; when a product comes in several sizes, opens a small size picker first. */
+const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches;
+
 export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boolean }) {
   const { items, comingSoon } = useCatalogue();
   const { add, openDrawer } = useCart();
   const [open, setOpen] = useState(false);
+  const [phone, setPhone] = useState(false);
   const [added, setAdded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
   const buyable = packs.filter((p) => p.availability !== 'sold_out' && p.max_qty > 0);
 
@@ -362,7 +367,8 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(t) && !sheetRef.current?.contains(t)) setOpen(false);
     };
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', close);
@@ -372,30 +378,45 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
   if (!buyable.length) {
     return <span className="card__soon">{comingSoon(item) ? 'Coming soon' : 'Sold out'}</span>;
   }
-  const addPack = (p: CatalogueItem) => { add(p.code); setAdded(true); setOpen(false); if (compact) openDrawer(); };
+  // On phones the bag opens after adding, so it's obvious the item went in.
+  const addPack = (p: CatalogueItem) => { add(p.code); setAdded(true); setOpen(false); if (compact || isPhone()) openDrawer(); };
+  const toggle = () => { setPhone(isPhone()); setOpen((o) => !o); };
+  const options = (
+    <ul className="quickadd__menu" role="listbox" aria-label={`Sizes of ${item.product}`}>
+      {packs.map((p) => {
+        const can = buyable.includes(p);
+        return (
+          <li key={p.code} role="option" aria-selected={false} aria-disabled={!can}>
+            <button type="button" disabled={!can} onClick={() => addPack(p)}>
+              <span>{packFull(p)}</span><span>{can ? rupees(p.price) : 'Sold out'}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 
   return (
     <div className="quickadd" ref={ref}>
       <button type="button" className={`add-btn ${added ? 'is-added' : ''} ${compact ? 'add-btn--sm' : ''}`}
-        onClick={() => (packs.length > 1 ? setOpen((o) => !o) : addPack(buyable[0]))}
+        onClick={() => (packs.length > 1 ? toggle() : addPack(buyable[0]))}
         aria-haspopup={packs.length > 1 ? 'listbox' : undefined} aria-expanded={packs.length > 1 ? open : undefined}
         aria-label={packs.length > 1 ? `Choose a size of ${item.product} to add` : `Add ${item.product}, ${packFull(buyable[0])} to bag`}>
         <span className="add-btn__icon"><Icon name={added ? 'check' : 'plus'} size={18} /></span>
         <span className="add-btn__label">{added ? 'Added' : 'Add'}</span>
       </button>
-      {open && (
-        <ul className="quickadd__menu" role="listbox" aria-label={`Sizes of ${item.product}`}>
-          {packs.map((p) => {
-            const can = buyable.includes(p);
-            return (
-              <li key={p.code} role="option" aria-selected={false} aria-disabled={!can}>
-                <button type="button" disabled={!can} onClick={() => addPack(p)}>
-                  <span>{packFull(p)}</span><span>{can ? rupees(p.price) : 'Sold out'}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      {open && !phone && options}
+      {open && phone && createPortal(
+        // Phones: a bottom sheet on top of the whole page (rendered at the end of <body>, so no card can paint over it).
+        <div className="qa-sheet" ref={sheetRef}>
+          <div className="qa-sheet__scrim" onClick={() => setOpen(false)} />
+          <div className="qa-sheet__panel" role="dialog" aria-modal="true" aria-label={`Choose a size of ${item.product}`}>
+            <p className="qa-sheet__h">Choose a size<span>{item.product}</span></p>
+            {options}
+            <button type="button" className="btn btn--ghost btn--block" onClick={() => setOpen(false)}>Cancel</button>
+          </div>
+        </div>,
+        document.body,
       )}
       <span className="sr-only" role="status">{added ? `${item.product} added to bag` : ''}</span>
     </div>
