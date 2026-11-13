@@ -88,7 +88,9 @@ export default function Checkout() {
     const t = setTimeout(async () => {
       const q = await getQuote(lines.map((l) => ({ sku_code: l.code, qty: l.qty })), extras);
       if (!live) return;
-      if (q.ok) { setQuote(q); setProblems(q.problems); setQuoteState('ready'); }
+      // Test orders are made to order: the server still reports stock shortfalls on a test quote, but
+      // doesn't block the order for them. Only unknown or withdrawn products stop a test order.
+      if (q.ok) { setQuote(q); setProblems((q as { test?: boolean }).test ? q.problems.filter((p) => p.reason === 'unavailable') : q.problems); setQuoteState('ready'); }
       else setQuoteState('error');
     }, 250);
     return () => { live = false; clearTimeout(t); };
