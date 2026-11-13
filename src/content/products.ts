@@ -114,7 +114,7 @@ const BY_CATEGORY: Record<string, ProductContent> = {
     storage: draft('Store in a cool, dry place. Close the jar or reseal the pouch after every use.'),
   },
   snacks: {
-    experienceLabel: 'Flavour & texture', notesLabel: 'Good for',
+    experienceLabel: 'Flavour & texture', notesLabel: 'Tasting notes',
     storage: draft('Store in a cool, dry place. Reseal after opening to keep the crunch.'),
   },
   'atta & flours': {
@@ -136,6 +136,8 @@ const BY_CATEGORY: Record<string, ProductContent> = {
 export const products: Record<string, ProductContent> = {
   // ============================================================ MIA TORTE · Cookies
   'Classic Chocolate Chip': {
+    experience: draft('Crisp at the edge, soft towards the middle, with pools of chocolate through every bite.'),
+    notes: ['Golden edges', 'Soft centre', 'Chocolate chunks'],
     summary: 'Golden, crisp edges and a soft centre, generous with the chocolate. Our classic chocolate chip cookie.',
     tagline: 'The one everything else is measured against.',
     intro: draft('Our take on the cookie everyone knows by heart: golden, generous and studded with chocolate. Simple to describe, and the hardest thing in the world to get exactly right.'),
@@ -143,30 +145,40 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Mocha Me Happy': {
+    experience: draft('Roasted, slightly bitter coffee up front, then rounded off by dark chocolate. Rich rather than sweet.'),
+    notes: ['Roasted coffee', 'Dark chocolate', 'Rich finish'],
     summary: 'Roasted coffee and deep, dark chocolate. A mocha cookie for coffee lovers.',
     tagline: 'Coffee and chocolate, in one good mood.',
     intro: draft('For people who take their coffee seriously and their chocolate even more so. Mocha brings the two together: the roasted bitterness of coffee, rounded by the depth of cocoa.'),
     serving: 'Alongside an espresso, or crumbled over vanilla ice cream.',
   },
   'Red Velvet Melt': {
+    experience: draft('A soft, tender bite with a gentle cocoa note and a creamy sweetness that lingers.'),
+    notes: ['Gentle cocoa', 'Soft bite', 'Creamy sweetness'],
     summary: 'Soft, gently cocoa and unmistakably red. A red velvet cookie made to melt in the mouth.',
     tagline: 'A celebration cake, reimagined as a cookie.',
     intro: draft('Red velvet has always been the most theatrical of cakes. Here its colour and its gentle cocoa character move into a cookie made, as the name suggests, to melt.'),
     serving: 'For birthdays, for gifting, or for no particular reason at all.',
   },
   'Nutella Brownie Bliss': {
+    experience: draft('Dense and fudgy like a brownie, with the hazelnut-chocolate sweetness of Nutella running through.'),
+    notes: ['Fudgy', 'Hazelnut', 'Deep chocolate'],
     summary: 'Fudgy, rich and full of hazelnut chocolate. A brownie-style cookie made with Nutella.',
     tagline: 'Where the cookie meets the brownie.',
     intro: draft('Two great chocolate pleasures in a single bake: the fudgy richness of a brownie and the hazelnut-chocolate sweetness of Nutella, in cookie form.'),
     serving: 'With a cold glass of milk, or warmed for a few seconds and served with a scoop of ice cream.',
   },
   'Carrot Crème Melt': {
+    experience: draft('Soft and warmly spiced, like carrot cake, with a creamy finish.'),
+    notes: ['Warm spice', 'Carrot cake', 'Creamy finish'],
     summary: 'Warm carrot-cake flavour with a creamy finish. A soft cookie inspired by carrot cake.',
     tagline: 'The comfort of carrot cake, in your hand.',
     intro: draft('Inspired by the carrot cake and its creamy finish, and reimagined as a cookie. Comforting, a little nostalgic, and made for afternoon tea.'),
     serving: 'With a pot of Darjeeling, or a milky cup of chai.',
   },
   'Biscoff Indulgence': {
+    experience: draft('Caramelised, toasty Biscoff flavour, with a buttery richness that makes one never quite enough.'),
+    notes: ['Caramelised', 'Toasty', 'Buttery'],
     summary: 'Deep caramelised Biscoff flavour in every bite. A rich cookie for Biscoff lovers.',
     tagline: 'Caramelised, and entirely unapologetic.',
     intro: draft('Built around the much-loved caramelised flavour of Biscoff, this is a cookie for those who believe a little more is always the right amount.'),
@@ -174,12 +186,16 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Berry Nutty About Pista': {
+    experience: draft('Tart, bright berries against the rounded, nutty richness of pistachio, with a crumbly bite.'),
+    notes: ['Bright berries', 'Pistachio', 'Crumbly'],
     summary: 'Bright berries against rich, green pistachio. A colourful cookie of fruit and nuts.',
     tagline: 'Bright berries, green pistachio, good company.',
     intro: draft('A cookie of contrasts: the brightness of berries against the rounded richness of pistachio. As pretty to look at as it is to eat.'),
     serving: 'Made for a gift box, or for the moment you finally sit down.',
   },
   'Jowar Jeera Delight (8 nos.)': {
+    experience: draft('Crisp and lightly savoury, with the warm, toasted note of cumin. Not too sweet, which is what makes it so good with tea.'),
+    notes: ['Crisp', 'Toasted cumin', 'Lightly savoury'],
     summary: 'Crisp, savoury and warm with cumin. Jowar (sorghum) biscuits for tea time, eight to a pack.',
     tagline: 'Made for the chai hour.',
     intro: draft('Jowar, the sorghum of the Deccan, and jeera, the cumin seed of every Indian kitchen, meet in a biscuit made for tea time. Eight to a pack, for sharing (or not).'),
@@ -188,6 +204,7 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ MIA TORTE · Muesli
   'Fruit & Nut Muesli': {
+    experience: draft('Crunchy toasted grains, the bite of nuts and little bursts of chewy dried fruit. It stays crunchy in milk for longer than you would expect.'),
     summary: 'Toasted grains, nuts and dried fruit with a satisfying crunch. A classic muesli for milk or yoghurt.',
     tagline: 'A generous bowl to begin the day.',
     intro: draft('Our classic muesli: fruit and nuts in good measure, for a breakfast that feels considered rather than rushed.'),
@@ -197,6 +214,7 @@ export const products: Record<string, ProductContent> = {
     images: ['mt-fruit-nut-muesli-1'],
   },
   'Nutty Mango Millets & Nuts Muesli': {
+    experience: draft('Sweet, sunny mango over crunchy millets and nuts. Fruity rather than sugary, with plenty of crunch.'),
     summary: 'Sunny mango with crunchy millets and nuts. A fruity millet muesli for a bright start to the day.',
     tagline: 'Summer, in a breakfast bowl.',
     intro: draft('Mango, the fruit India waits for all year, brings its sunny sweetness to a muesli of millets and nuts. A breakfast with a sense of occasion.'),
@@ -205,6 +223,7 @@ export const products: Record<string, ProductContent> = {
     images: ['mt-mango-muesli-1'],
   },
   'Nutty Orange Millets & Nuts Muesli': {
+    experience: draft('Fresh, zesty orange lifting a crunchy base of millets and nuts. Bright and clean on the palate.'),
     summary: 'Zesty orange with crunchy millets and nuts. A citrusy millet muesli to wake up to.',
     tagline: 'Bright, zesty and wide awake.',
     intro: draft('Orange lifts this blend of millets and nuts with a clean, citrus brightness: a muesli for mornings that need a little encouragement.'),
@@ -212,6 +231,7 @@ export const products: Record<string, ProductContent> = {
     notes: ['Cold milk', 'Yoghurt and honey', 'A breakfast parfait'],
   },
   'Crunchy Strawberry Millets & Nuts Muesli': {
+    experience: draft('Sweet strawberry and a big, satisfying crunch from millets and nuts. A bowl that tastes as cheerful as it looks.'),
     summary: 'Sweet strawberry and a big crunch, over millets and nuts. A colourful millet muesli for milk or yoghurt.',
     tagline: 'A little sweetness, a lot of crunch.',
     intro: draft('Strawberry and a satisfying crunch, with millets and nuts beneath. The breakfast bowl at its most cheerful.'),
@@ -222,12 +242,16 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ MIA TORTE · Savoury snacks
   'Peri Peri Vegie Chips': {
+    experience: draft('Thin, crisp vegetable chips with a tangy peri peri heat that builds as you go.'),
+    notes: ['Crisp', 'Tangy heat', 'Moreish'],
     summary: 'Crunchy vegetable chips with a bold, tangy peri peri kick. A savoury snack with some heat.',
     tagline: 'Bright heat, serious crunch.',
     intro: draft('Vegetable chips with the fiery, tangy warmth of peri peri. For the evening hour, the long drive, and anyone who likes a snack with some personality.'),
     serving: 'Tip into a bowl for the table, with something cold to drink.',
   },
   'Pudina Millet Crunch': {
+    experience: draft('A light, crunchy millet bite with a cool, fresh mint finish. Savoury and clean, never heavy.'),
+    notes: ['Cool mint', 'Light crunch', 'Savoury'],
     summary: 'Cool mint on crisp, crunchy millet. A savoury millet snack for tea time.',
     tagline: 'Cool mint, crisp millet.',
     intro: draft('Pudina, the mint of Indian chutneys and chaas, brings its cool lift to a crunchy millet snack. A tea-time companion with a clean, green finish.'),
@@ -235,18 +259,24 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Salted Nuts & Bean Crunch': {
+    experience: draft('Crunchy nuts and beans with just enough salt to bring out their toasty flavour.'),
+    notes: ['Toasty', 'Lightly salted', 'Big crunch'],
     summary: 'Crunchy nuts and beans, simply salted. A moreish savoury mix for sharing, or not.',
     tagline: 'Simply salted. Seriously moreish.',
     intro: draft('Nuts and crunchy beans, simply salted. The kind of snack that disappears from the bowl before anyone quite notices.'),
     serving: 'Set out a bowl when friends come over, or keep a jar on your desk.',
   },
   'Peri Peri Trail Mix': {
+    experience: draft('A crunchy mix with a tangy, smoky peri peri coating and a little heat on the finish.'),
+    notes: ['Tangy', 'A little heat', 'Crunchy mix'],
     summary: 'Bold peri peri seasoning on a crunchy trail mix. Savoury, with a little heat.',
     tagline: 'For the road, the trail and the desk drawer.',
     intro: draft('A trail mix with a spark: crunchy bites tossed in peri peri, for a gentle heat and a tangy finish.'),
     serving: 'Pack a handful for the commute, the trek or the long afternoon.',
   },
   'Masala Protein Bean Mix': {
+    experience: draft('Crunchy beans with a warm, savoury masala: chatpata, a little spicy and very hard to stop eating.'),
+    notes: ['Warm masala', 'Chatpata', 'Crunchy beans'],
     summary: 'Crunchy beans tossed in warm Indian masala. A savoury, spiced bean snack.',
     tagline: 'Masala-spiced and full of crunch.',
     intro: draft('Crunchy beans tossed in a warm Indian masala: a savoury snack for the hours between meals.'),
@@ -274,6 +304,7 @@ export const products: Record<string, ProductContent> = {
     serving: 'Serve hot with ghee, a bowl of dal and something pickled.',
   },
   'Ragi Flour': {
+    experience: draft('For rotis, mix with hot water and knead while warm; the dough comes together more easily that way. For dosas, combine with rice flour and buttermilk and rest the batter for fifteen minutes. For porridge, whisk two spoons into cold water first, then cook on a low flame, stirring, until thick.'),
     summary: 'Earthy and faintly malty. Finger millet flour for mudde, dosas, rotis and porridge.',
     taste: 'Earthy and faintly malty',
     tagline: 'Earthy, malty and deeply Indian.',
@@ -283,6 +314,7 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Bajra Flour': {
+    experience: draft('Knead small batches with warm water just before cooking; bajra dough dries quickly. Pat each rotla between your palms or on a wet cloth, cook on a hot tawa, and finish over the flame until it puffs.'),
     summary: 'Robust and nutty. Pearl millet flour for rotlas, theplas and winter flatbreads.',
     taste: 'Robust and nutty',
     tagline: 'The winter grain of the north-west.',
@@ -291,6 +323,7 @@ export const products: Record<string, ProductContent> = {
     serving: 'Pat rotlas by hand with warm water, cook on a hot tawa, and serve with garlic chutney and a spoon of white butter.',
   },
   'Jowar Flour': {
+    experience: draft('Knead with hot water to a soft, smooth dough. Pat or roll the bhakris gently, cook on a hot tawa, brushing the top with a little water, and turn once to finish.'),
     summary: 'Mild and gently sweet. Sorghum flour for soft bhakris, rotis and dosas.',
     taste: 'Mild and gently sweet',
     tagline: 'Mild, gentle and endlessly useful.',
@@ -299,6 +332,7 @@ export const products: Record<string, ProductContent> = {
     serving: 'Knead with hot water for soft bhakris, and serve with pitla, thecha or a simple dal.',
   },
   'Sattu (Roasted Gram Flour)': {
+    experience: draft('Sattu is already roasted, so it needs no cooking for drinks: whisk it into water or buttermilk. For parathas and litti, mix it with chopped onion, garlic, green chilli, lemon, mustard oil and salt to make the filling.'),
     summary: 'Toasty and versatile. Roasted gram flour for summer sharbat, litti and stuffed parathas.',
     taste: 'Toasty, like roasted chana',
     tagline: 'Bihar’s quiet pantry hero.',

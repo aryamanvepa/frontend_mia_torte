@@ -1379,3 +1379,6 @@ a.add-btn { text-decoration: none; }
 .line__brand { font-size: .74rem; text-transform: none; letter-spacing: .02em; font-weight: 400; color: var(--muted); }
 .card__brand--inline { display: inline; margin: 0; font-size: inherit; }
 .glance dd { margin: 0; }
+/* ---------------------------------------------------------------- illustration: flavour motif in the corner */
+.pack__accent { position: absolute; top: 9%; right: 9%; width: clamp(22px, 14%, 54px); height: auto; opacity: .9; transform: rotate(-12deg); }
+.pack--hero .pack__accent { width: clamp(32px, 11%, 72px); }
