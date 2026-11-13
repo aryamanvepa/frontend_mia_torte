@@ -82,9 +82,16 @@ let failed = 0;
 while (queue.length && pages.length < MAX_PAGES) {
   const path = queue.shift();
   try {
-    await page.goto(`${ORIGIN}${BASE}${path === '/' ? '' : path.slice(1)}`, { waitUntil: 'networkidle0', timeout: 30000 });
-    // Wait for the catalogue (no loading skeletons) and the page's own tags.
-    await page.waitForFunction(() => !document.querySelector('.sk') && document.title.length > 0, { timeout: 15000 });
+    // A dropped catalogue request shows the "shop is taking a moment" message: retry, never save it.
+    for (let attempt = 1; ; attempt++) {
+      await page.goto(`${ORIGIN}${BASE}${path === '/' ? '' : path.slice(1)}`, { waitUntil: 'networkidle0', timeout: 30000 });
+      // Wait for the catalogue (no loading skeletons) and the page's own tags.
+      await page.waitForFunction(() => !document.querySelector('.sk') && document.title.length > 0, { timeout: 15000 });
+      const broken = await page.evaluate(() => document.body.innerText.includes('The shop is taking a moment'));
+      if (!broken) break;
+      if (attempt >= 4) throw new Error('catalogue did not load');
+      await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
     const data = await page.evaluate(() => {
       document.querySelectorAll('.reveal').forEach((e) => e.classList.add('is-in'));
       document.documentElement.removeAttribute('style'); // runtime-only (--header-total)

@@ -26,6 +26,14 @@ export interface CatalogueItem {
   max_qty: number;
   /** Label details entered in the ops app (Admin → Products); the same for every pack of a product. */
   details?: ProductDetails | null;
+  /** Backend extras (B3/B4); absent until the backend provides them. */
+  bestseller_rank?: number | null;
+  is_new?: boolean;
+  /** Product photo URLs held in the backend (Storage). */
+  images?: string[];
+  /** Reviews (later); the website hides the section until these exist. */
+  rating?: number | null;
+  review_count?: number | null;
   /** Test mode only: sold out in reality, made orderable for test orders. */
   test_stock?: boolean;
 }
@@ -50,7 +58,13 @@ export interface Quote {
   ok: true; lines: QuoteLine[]; problems: Problem[];
   subtotal: number; shipping: number; discount: number; total: number;
   shipping_rule: { flat: number; free_above: number };
+  /** Backend task B5: present once the PIN check is live. */
+  delivery?: Delivery;
+  /** Backend task B6: present once promo codes are live. */
+  promo?: { code: string; valid: boolean; discount: number; message: string };
 }
+export interface Delivery { serviceable: boolean; zone?: 'local' | 'national'; carrier?: string; eta_min_days?: number; eta_max_days?: number; message?: string }
+export interface QuoteExtras { pincode?: string; promo_code?: string }
 
 export interface PlaceBody {
   idempotency_key: string;
@@ -71,6 +85,30 @@ export type PlaceResult =
 export interface OrderStatus {
   found: boolean; code?: string; status?: string; placed_on?: string;
   items?: { sku_code: string; name: string; qty: number }[];
+  // Backend task B2 (absent until it is live):
+  total?: number; payment_status?: string; payment_method?: 'cod' | 'online';
+  timeline?: { placed_at?: string | null; packed_at?: string | null; dispatched_at?: string | null; delivered_at?: string | null; cancelled_at?: string | null };
+  shipment?: { carrier?: string | null; booking_ref?: string | null; tracking_url?: string | null } | null;
+  cancellable?: boolean; cancel_requested?: boolean;
+  refund?: { status: string; amount: number } | null;
+}
+
+export type CancelResult = { ok: true; result: 'cancelled' | 'requested' } | { ok: false; error: 'not_found' | 'already_cancelled' | 'delivered' | 'try_later' | 'unavailable' | string };
+
+/** Ask to cancel an order (backend task B7). "unavailable" until the backend function exists. */
+export async function requestCancellation(code: string, phone: string, reason: string): Promise<CancelResult> {
+  try {
+    const res = await fetch(`${URL_}/rest/v1/rpc/storefront_request_cancellation`, {
+      method: 'POST',
+      headers: { apikey: KEY, 'content-type': 'application/json' },
+      body: JSON.stringify({ p_order_code: code.trim(), p_phone: phone, p_reason: reason.trim() || null }),
+    });
+    if (res.status === 404) return { ok: false, error: 'unavailable' };
+    if (!res.ok) return { ok: false, error: 'try_later' };
+    return (await res.json()) as CancelResult;
+  } catch {
+    return { ok: false, error: 'try_later' };
+  }
 }
 
 async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -129,7 +167,22 @@ async function callOrderFunction<T>(body: unknown): Promise<T> {
 // In test mode both requests carry "test": true; the server decides whether to honour it.
 const testFlag = testMode ? { test: true } : {};
 
-export const getQuote = (lines: { sku_code: string; qty: number }[]) =>
-  callOrderFunction<Quote | { ok: false; error: string }>({ action: 'quote', lines, ...testFlag });
+const clean = (x: QuoteExtras = {}) => Object.fromEntries(Object.entries(x).filter(([, v]) => v));
 
-export const placeOrder = (body: PlaceBody) => callOrderFunction<PlaceResult>({ action: 'place', ...body, ...testFlag });
+export const getQuote = (lines: { sku_code: string; qty: number }[], extras?: QuoteExtras) =>
+  callOrderFunction<Quote | { ok: false; error: string }>({ action: 'quote', lines, ...clean(extras), ...testFlag });
+
+/**
+ * Place the order. A dropped connection is retried automatically (twice, with a short wait) using the
+ * same idempotency key, so a retry can never create a second order.
+ */
+export async function placeOrder(body: PlaceBody & QuoteExtras): Promise<PlaceResult> {
+  const send = () => callOrderFunction<PlaceResult>({ action: 'place', ...body, ...clean({ pincode: body.pincode, promo_code: body.promo_code }), ...testFlag });
+  let res = await send();
+  for (const wait of [1200, 3000]) {
+    if (res.ok || (res.error !== 'network' && res.error !== 'server')) break;
+    await new Promise((r) => setTimeout(r, wait));
+    res = await send();
+  }
+  return res;
+}

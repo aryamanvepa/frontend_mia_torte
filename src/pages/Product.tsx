@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
-import { ProductCard } from '../components/layout';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { ProductCard, useComplements } from '../components/layout';
 import { PackArt } from '../components/PackArt';
-import { Icon, Img, PlaceholderTag, Price, Reveal, StockNote, Stepper, Text } from '../components/ui';
-import type { Brand } from '../content/brands';
+import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { copyText, site, type Copy } from '../content/site';
-import type { CatalogueItem } from '../lib/api';
+import { deliveryFallback } from '../content/store';
+import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
+import { trackViewItem } from '../lib/analytics';
 import { absUrl, breadcrumbLd, imageUrl, snippet, useSeo, type Seo } from '../lib/seo';
-import { brandOf, collectionOf, itemContent, oneCardPerProduct, paths } from '../lib/brand';
+import { brandOf, buyingKindOf, itemContent, oneCardPerProduct, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
 import { packFull, packKind, packLabel, rupees, titleOf } from '../lib/format';
 import { useCart, useCatalogue } from '../state/store';
 import { CatalogueStatus } from './Shop';
@@ -47,23 +48,78 @@ function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
   return <span className="is-ph">Vegetarian / non-vegetarian mark to be confirmed. <PlaceholderTag /></span>;
 }
 
+/** Price per 100 g (or per kg for big packs): the "value" a considered buyer compares. Display only. */
+function unitPrice(i: CatalogueItem) {
+  if (!i.pack_grams) return null;
+  return i.pack_grams >= 1000 ? `${rupees(Math.round((i.price / i.pack_grams) * 1000))} per kg` : `${rupees(Math.round((i.price / i.pack_grams) * 100))} per 100 g`;
+}
+
+/** Delivery for this product: the server's charges and, once live, its PIN check and estimated delivery (§7, §9). */
+function DeliveryCheck({ item }: { item: CatalogueItem }) {
+  const [pin, setPin] = useState(() => { try { return localStorage.getItem('torte-pin') ?? ''; } catch { return ''; } });
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [rule, setRule] = useState<{ flat: number; free_above: number } | null>(null);
+  const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const valid = /^[1-9]\d{5}$/.test(pin);
+
+  async function check(p?: string) {
+    setState('loading');
+    const q = await getQuote([{ sku_code: item.code, qty: 1 }], p ? { pincode: p } : undefined);
+    if (!q.ok) { setState('error'); return; }
+    setRule(q.shipping_rule);
+    setDelivery(p ? q.delivery ?? null : null);
+    setState('done');
+  }
+  useEffect(() => { check(valid ? pin : undefined); }, [item.code]); // eslint-disable-line react-hooks/exhaustive-deps
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!valid) return;
+    try { localStorage.setItem('torte-pin', pin); } catch { /* ignore */ }
+    check(pin);
+  };
+  const local = valid && deliveryFallback.local.test(pin);
+
+  return (
+    <section className="delivery" aria-labelledby="delivery-h">
+      <h2 id="delivery-h" className="delivery__h"><Icon name="truck" size={18} /> Delivery</h2>
+      {rule && <p>{rupees(rule.flat)} delivery, free on orders above {rupees(rule.free_above)}. Pay on delivery.</p>}
+      <form className="delivery__form" onSubmit={submit}>
+        <label className="sr-only" htmlFor="pin">Delivery PIN code</label>
+        <input id="pin" inputMode="numeric" maxLength={6} value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} placeholder="Enter PIN code" autoComplete="postal-code" />
+        <button className="btn btn--line" disabled={!valid || state === 'loading'}>{state === 'loading' ? <Spinner /> : 'Check'}</button>
+      </form>
+      <div aria-live="polite">
+        {state === 'error' && <p className="delivery__msg">We couldn’t check delivery just now.</p>}
+        {state === 'done' && valid && delivery && (
+          delivery.serviceable
+            ? <p className="delivery__msg delivery__msg--ok">Delivers to {pin}{delivery.eta_min_days != null ? ` in ${delivery.eta_min_days}–${delivery.eta_max_days} days` : ''}{delivery.carrier ? ` (${delivery.carrier})` : ''}.{delivery.message ? ` ${delivery.message}` : ''}</p>
+            : <p className="delivery__msg delivery__msg--no">{delivery.message || `Sorry, we don’t deliver to ${pin} yet.`}</p>
+        )}
+        {state === 'done' && valid && !delivery && (
+          <p className="delivery__msg">Estimated delivery to {pin}: {local ? deliveryFallback.local.eta : deliveryFallback.national.eta} after dispatch. <PlaceholderTag kind="draft" /></p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /**
- * Search and link-preview data for a product page. Every pack size has its own address, but they
- * all point search engines at one canonical page (the pack shown on the shop card), which lists
- * every pack as an offer. Prices are the live website prices; no barcodes, no GST.
+ * Search and link-preview data. Every pack size has its own address, but all point search engines at
+ * one canonical page per product, which lists every pack as an offer. Website prices; no barcodes, no GST.
  */
-function productSeo(item: CatalogueItem, items: CatalogueItem[], brand: Brand): Seo {
+function productSeo(item: CatalogueItem, items: CatalogueItem[]): Seo {
   const c = itemContent(item);
-  const collection = collectionOf(item);
+  const cat = primaryCategoryOf(item);
+  const brand = brandOf(item.brand_code);
   const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
   const canonical = oneCardPerProduct(packs)[0] ?? item;
   const intro = c.intro ? copyText(c.intro) : '';
-  const description = snippet([c.tagline, intro].filter(Boolean).join(' ') || `${item.product} from ${brand.name}. ${collection?.intro ?? brand.blurb}`);
+  const description = snippet([c.tagline, intro].filter(Boolean).join(' ') || `${item.product} from ${item.brand}. ${cat?.intro ?? ''}`);
   const availability = (i: CatalogueItem) => (i.availability === 'sold_out' || i.test_stock ? 'https://schema.org/OutOfStock'
     : i.availability === 'low' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock');
   const photo = c.images[0] ? imageUrl(c.images[0]) : undefined;
   return {
-    title: `${titleOf(item)} ${packFull(item)} · ${brand.name}`,
+    title: `${titleOf(item)} ${packFull(item)} · ${item.brand}`,
     description,
     canonical: paths.product(canonical),
     image: c.images[0],
@@ -74,10 +130,11 @@ function productSeo(item: CatalogueItem, items: CatalogueItem[], brand: Brand): 
         '@type': 'Product',
         name: item.product,
         description,
-        brand: { '@type': 'Brand', name: brand.name },
+        brand: { '@type': 'Brand', name: brand?.name ?? item.brand },
         manufacturer: { '@type': 'Organization', name: site.legalEntity },
-        ...(collection ? { category: collection.title } : {}),
+        ...(cat ? { category: cat.title } : {}),
         ...(photo ? { image: [photo] } : {}),
+        ...(item.rating && item.review_count ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: item.rating, reviewCount: item.review_count } } : {}),
         url: absUrl(paths.product(canonical)),
         offers: packs.map((p) => ({
           '@type': 'Offer',
@@ -92,15 +149,15 @@ function productSeo(item: CatalogueItem, items: CatalogueItem[], brand: Brand): 
         })),
       },
       breadcrumbLd([
-        { name: brand.name, path: paths.home(brand) },
-        ...(collection ? [{ name: collection.title, path: paths.collection(brand, collection) }] : [{ name: brand.shop.title, path: paths.shop(brand) }]),
+        { name: 'Home', path: '/' },
+        ...(cat ? [{ name: cat.title, path: paths.category(cat) }] : [{ name: 'Shop all', path: paths.shop() }]),
         { name: item.product, path: paths.product(canonical) },
       ]),
     ],
   };
 }
 
-export default function Product({ brand }: { brand: Brand }) {
+export default function Product() {
   const { code = '' } = useParams();
   const { items, byCode, status, comingSoon } = useCatalogue();
   const { add, openDrawer, lines } = useCart();
@@ -109,30 +166,34 @@ export default function Product({ brand }: { brand: Brand }) {
   const [active, setActive] = useState(0);
   const [adding, setAdding] = useState(false);
   const track = useRef<HTMLDivElement>(null);
+  const complements = useComplements(item ? [item.code] : [], 4);
 
   useEffect(() => { setQty(1); setActive(0); track.current?.scrollTo({ left: 0 }); }, [code]);
-  useSeo(item && item.brand_code === brand.code ? productSeo(item, items, brand) : null);
+  useEffect(() => { if (item) trackViewItem(item); }, [item?.code]); // eslint-disable-line react-hooks/exhaustive-deps
+  useSeo(item ? productSeo(item, items) : null);
 
   if (status === 'loading') return <div className="pdp wrap"><div className="pdp__grid"><div className="sk sk--pdp" /><div><div className="sk sk--line" /><div className="sk sk--line sk--short" /></div></div></div>;
   if (status === 'error' && !item) return <div className="wrap section"><CatalogueStatus /></div>;
   if (!item) return <NotFound what="product" />;
-  // A product opened under the other brand's address: send it home.
-  if (item.brand_code !== brand.code && brandOf(item.brand_code)) return <Navigate to={paths.product(item)} replace />;
 
   const c = itemContent(item);
-  const collection = collectionOf(item);
+  const cat = primaryCategoryOf(item);
+  const brand = brandOf(item.brand_code);
+  const considered = buyingKindOf(item) === 'considered';
   const photos = c.images;
   const siblings = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
   const soon = comingSoon(item);
-  // Other products from the same brand, one card each; same collection first.
-  const related = oneCardPerProduct(items.filter((i) => i.brand_code === item.brand_code && i.product !== item.product && (soon || i.availability !== 'sold_out')))
-    .sort((a, b) => Number(collectionOf(b)?.slug === collection?.slug) - Number(collectionOf(a)?.slug === collection?.slug)
+  const myCats = new Set(storeCategoriesOf(item).map((x) => x.slug));
+  // More from the same category first, then others.
+  const related = oneCardPerProduct(items.filter((i) => i.product !== item.product && (soon || i.availability !== 'sold_out')))
+    .sort((a, b) => Number(storeCategoriesOf(b).some((x) => myCats.has(x.slug))) - Number(storeCategoriesOf(a).some((x) => myCats.has(x.slug)))
       || Number(Boolean(itemContent(b).featured)) - Number(Boolean(itemContent(a).featured)))
     .slice(0, 4);
+  const pairs = complements.filter((x) => !related.some((r) => r.product === x.product)).slice(0, 4);
   const inBag = lines.find((l) => l.code === item.code)?.qty ?? 0;
   const max = Math.max(0, item.max_qty - inBag);
   const soldOut = item.availability === 'sold_out';
-  const isMT = brand.theme === 'mt';
+  const unit = unitPrice(item);
 
   const onAdd = () => {
     setAdding(true);
@@ -149,13 +210,38 @@ export default function Product({ brand }: { brand: Brand }) {
     if (el) el.scrollTo({ left: n * el.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
+  // Product details, ordered for the kind of purchase (§7): sensory buys lead with taste and texture;
+  // everyday staples lead with preparation, ingredients and nutrition.
+  const experience = (
+    <Reveal as="section" className="pdp-block" key="exp">
+      <h2 className="pdp-block__h">{c.experienceLabel ?? (considered ? 'In the kitchen' : 'Flavour & texture')}</h2>
+      {c.experience ? <Text as="p" copy={c.experience} /> : <p><Needed what={considered ? 'Preparation notes' : 'Flavour and texture notes'} /></p>}
+      {c.notes?.length ? (
+        <>
+          <h3 className="pdp-block__sub">{c.notesLabel ?? (considered ? 'Good for' : 'Tasting notes')}</h3>
+          <ul className="notes">{c.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+        </>
+      ) : null}
+    </Reveal>
+  );
+  const ingredients = (
+    <Reveal as="section" className="pdp-block" key="ing">
+      <h2 className="pdp-block__h">The ingredients</h2>
+      {c.ingredientStory ? <Text as="p" copy={c.ingredientStory} /> : c.ingredientsList ? <Text as="p" copy={c.ingredientsList} /> : <p><Needed what="A description of the ingredients" /></p>}
+    </Reveal>
+  );
+  const serving = c.serving ? (
+    <Reveal as="section" className="pdp-block" key="srv">
+      <h2 className="pdp-block__h">{considered ? 'Serving suggestions' : 'To enjoy'}</h2>
+      <Text as="p" copy={c.serving} />
+    </Reveal>
+  ) : null;
+
   return (
-    <div className="pdp">
+    <div className={`pdp pdp--${considered ? 'considered' : 'sensory'}`}>
       <nav className="crumbs wrap" aria-label="Breadcrumb">
-        <Link to={paths.home(brand)}>{brand.name}</Link><span aria-hidden="true">/</span>
-        {collection
-          ? <Link to={paths.collection(brand, collection)}>{collection.title}</Link>
-          : <Link to={paths.shop(brand)}>{brand.shop.title}</Link>}
+        <Link to="/">Home</Link><span aria-hidden="true">/</span>
+        {cat ? <Link to={paths.category(cat)}>{cat.title}</Link> : <Link to={paths.shop()}>Shop all</Link>}
         <span aria-hidden="true">/</span>
         <span aria-current="page">{titleOf(item)}</span>
       </nav>
@@ -168,14 +254,14 @@ export default function Product({ brand }: { brand: Brand }) {
           {photos.length > 0 && <div className="gallery__track" ref={track} onScroll={onScroll} tabIndex={0} aria-label="Product photos">
             {photos.map((id, n) => (
               <div className="gallery__slide" key={id} aria-hidden={n !== active}>
-                <Img id={id} eager={n === 0} sizes="(min-width: 900px) 55vw, 100vw" className="zoomable" />
+                <Img id={id} eager={n === 0} sizes="(min-width: 900px) 55vw, 100vw" className="zoomable" alt={n === 0 ? `${item.product}, ${packFull(item)}` : ''} />
               </div>
             ))}
           </div>}
           {photos.length > 1 && (
             <div className="gallery__thumbs">
-              {c.images.map((id, n) => (
-                <button key={id} className={`thumb ${n === active ? 'is-on' : ''}`} onClick={() => goTo(n)} aria-label={`Show photo ${n + 1} of ${c.images.length}`} aria-current={n === active}>
+              {photos.map((id, n) => (
+                <button key={id} className={`thumb ${n === active ? 'is-on' : ''}`} onClick={() => goTo(n)} aria-label={`Show photo ${n + 1} of ${photos.length}`} aria-current={n === active}>
                   <Img id={id} sizes="80px" alt="" eager />
                 </button>
               ))}
@@ -185,12 +271,17 @@ export default function Product({ brand }: { brand: Brand }) {
         </div>
 
         <div className="pdp__info">
-          <p className="eyebrow">{collection?.title ?? brand.name}</p>
+          <p className="eyebrow">{brand ? <Link to={paths.brand(brand)} className="pdp__brand">{item.brand}</Link> : item.brand}{cat ? ` · ${cat.title}` : ''}</p>
           <h1 className="display display--lg pdp__title">{titleOf(item)}</h1>
+          {item.rating && item.review_count ? (
+            <a href="#reviews" className="pdp__rating" aria-label={`Rated ${item.rating} out of 5 from ${item.review_count} reviews`}>
+              <span aria-hidden="true">{'★'.repeat(Math.round(item.rating))}{'☆'.repeat(5 - Math.round(item.rating))}</span> {item.review_count} reviews
+            </a>
+          ) : null}
           {c.tagline && <Text as="p" className="pdp__tagline" copy={c.tagline} />}
           <div className="pdp__intro">{c.intro ? <Text as="p" copy={c.intro} /> : <p><Needed what="Product introduction" /></p>}</div>
           <div className="pdp__price"><Price item={item} size="lg" /></div>
-          <p className="pdp__tax">Inclusive of all taxes · Net quantity {packLabel(item)}{packFull(item) !== packLabel(item) ? ` · ${packFull(item).slice(packLabel(item).length + 1)}` : ''}</p>
+          <p className="pdp__tax">Inclusive of all taxes · Net quantity {packLabel(item)}{packKind(item) ? ` · ${packKind(item)}` : ''}{unit ? ` · ${unit}` : ''}</p>
 
           {siblings.length > 1 && (
             <fieldset className="sizes">
@@ -199,7 +290,7 @@ export default function Product({ brand }: { brand: Brand }) {
                 {siblings.map((s) => (
                   <Link key={s.code} to={paths.product(s)} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' && !soon ? 'is-out' : ''}`}
                     aria-current={s.code === item.code ? 'true' : undefined} replace>
-                    {packFull(s)}
+                    <span>{packFull(s)}</span><small>{rupees(s.price)}</small>
                   </Link>
                 ))}
               </div>
@@ -209,52 +300,40 @@ export default function Product({ brand }: { brand: Brand }) {
           <div className="pdp__stock"><StockNote item={item} soon={soon} /></div>
 
           {!soldOut && <div className="pdp__buy">
-            {!soldOut && max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
-            <button className={`btn ${soon ? 'btn--line btn--soon' : 'btn--dark'} btn--grow ${adding ? 'is-adding' : ''}`} disabled={soldOut || max === 0 || adding} onClick={onAdd}>
-              {soon ? 'Coming soon' : soldOut ? 'Sold out' : max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
+            {max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
+            <button className={`btn btn--dark btn--grow ${adding ? 'is-adding' : ''}`} disabled={max === 0 || adding} onClick={onAdd}>
+              {max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
             </button>
           </div>}
-          {soon && <p className="pdp__hint">{isMT ? 'Our first batch is in the kitchen. Orders open here as soon as it is ready.' : 'Arriving on the shelf soon. Orders open here as soon as the first batch is packed.'}</p>}
-          {soldOut && !soon && <p className="pdp__hint">{isMT ? 'Sold out for now. The next batch is on its way.' : 'Out of stock for now. We are restocking the shelf.'}</p>}
+          {soon && <p className="pdp__hint">Our first batch is being made. Orders open here as soon as it is ready.</p>}
+          {soldOut && !soon && <p className="pdp__hint">Sold out for now. The next batch is on its way.</p>}
           {soldOut && <NotifyMe key={item.code} code={item.code} what={`${titleOf(item)}, ${packFull(item)}`} pack={packKind(item) ? packFull(item) : `${packLabel(item)} pack`} soon={soon} />}
 
-          <ul className="pdp__assure" aria-label="Ordering">
-            <li><Icon name="hand" size={18} /> {site.codNote}</li>
-            <li><Icon name="truck" size={18} /> <span><Text copy={site.dispatchNote} /> <Text copy={site.deliveryNote} /></span></li>
-          </ul>
+          {considered && (
+            <ul className="pdp__keyfacts" aria-label="At a glance">
+              <li><span>Ingredients</span><Text copy={c.ingredientsList} /></li>
+              <li><span>Per 100 g</span>{c.nutrition ? c.nutrition.rows.slice(0, 3).map(([l, v]) => `${l.replace(/ \(.*\)/, '')} ${v}`).join(' · ') : <em>Nutrition to be added</em>}</li>
+              <li><a href="#details">Preparation, nutrition and storage <Icon name="arrow" size={14} /></a></li>
+            </ul>
+          )}
+
+          <DeliveryCheck item={item} />
         </div>
       </div>
 
-      <section className="wrap pdp-details" aria-label="Product details">
+      <section className="wrap pdp-details" id="details" aria-label="Product details">
         <div className="pdp-details__story">
-          <Reveal as="section" className="pdp-block">
-            <h2 className="pdp-block__h">The ingredients</h2>
-            {c.ingredientStory ? <Text as="p" copy={c.ingredientStory} /> : <p><Needed what="A description of the ingredients" /></p>}
-          </Reveal>
-          <Reveal as="section" className="pdp-block">
-            <h2 className="pdp-block__h">{c.experienceLabel ?? (isMT ? 'Flavour & texture' : 'In the kitchen')}</h2>
-            {c.experience ? <Text as="p" copy={c.experience} /> : <p><Needed what={isMT ? 'Flavour and texture notes' : 'Preparation notes'} /></p>}
-            {c.notes?.length ? (
-              <>
-                <h3 className="pdp-block__sub">{c.notesLabel ?? (isMT ? 'Tasting notes' : 'Good for')}</h3>
-                <ul className="notes">{c.notes.map((n) => <li key={n}>{n}</li>)}</ul>
-              </>
-            ) : null}
-          </Reveal>
-          {c.serving && (
-            <Reveal as="section" className="pdp-block">
-              <h2 className="pdp-block__h">{isMT ? 'To enjoy' : 'Try it'}</h2>
-              <Text as="p" copy={c.serving} />
-            </Reveal>
-          )}
+          {experience}{ingredients}{serving}
         </div>
 
         <Reveal as="section" className="facts">
           <h2 className="facts__h">Product information</h2>
           <dl className="facts__list">
+            <Fact label="Brand">{item.brand}</Fact>
             <Fact label="Food type"><DietMark d={c.dietary} isDraft={c.dietaryDraft} /></Fact>
             <Fact label="Net quantity">{packLabel(item)}</Fact>
             <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>
+            {unit && <Fact label="Unit price">{unit}</Fact>}
             <Fact label="Ingredients" copy={c.ingredientsList} need="Ingredients list" />
             <Fact label="Allergens" copy={c.allergens} need="Allergen information" />
             <Fact label="Storage" copy={c.storage} need="Storage instructions" />
@@ -279,14 +358,32 @@ export default function Product({ brand }: { brand: Brand }) {
         </Reveal>
       </section>
 
+      {item.rating && item.review_count ? (
+        <section className="wrap section section--tight" id="reviews" aria-labelledby="reviews-h">
+          <h2 id="reviews-h" className="display display--sm">Reviews</h2>
+          <p>{item.rating.toFixed(1)} out of 5, from {item.review_count} reviews.</p>
+        </section>
+      ) : null}
+
       {related.length > 0 && (
         <section className="section wrap" aria-labelledby="related-h">
           <Reveal className="section__head">
-            <p className="eyebrow">{isMT ? 'Also on the counter' : 'Also on the shelf'}</p>
-            <h2 id="related-h" className="display display--md">{isMT ? 'You may also enjoy' : 'Keep exploring'}</h2>
+            <p className="eyebrow">{cat?.title ?? 'More to explore'}</p>
+            <h2 id="related-h" className="display display--md">You may also like</h2>
           </Reveal>
           <div className="grid grid--feature">
             {related.map((i, n) => <Reveal key={i.code} delay={n * 80}><ProductCard code={i.code} /></Reveal>)}
+          </div>
+        </section>
+      )}
+      {pairs.length > 0 && (
+        <section className="section section--tight wrap" aria-labelledby="pairs-h">
+          <Reveal className="section__head">
+            <p className="eyebrow">Complete the basket</p>
+            <h2 id="pairs-h" className="display display--md">Goes well with</h2>
+          </Reveal>
+          <div className="grid grid--feature">
+            {pairs.map((i, n) => <Reveal key={i.code} delay={n * 80}><ProductCard code={i.code} /></Reveal>)}
           </div>
         </section>
       )}

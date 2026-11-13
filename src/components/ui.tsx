@@ -12,6 +12,14 @@ export function Img({ id, sizes, className, eager, alt, style }: {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLImageElement>(null);
   useEffect(() => { if (ref.current?.complete) setLoaded(true); }, []);
+  // A product photo held in the backend (a full URL) rather than one of the site's own images.
+  if (/^https?:\/\//.test(id)) {
+    return (
+      <div className={`img ${loaded ? 'is-loaded' : ''} ${className ?? ''}`} style={style}>
+        <img ref={ref} src={id} alt={alt ?? ''} loading={eager ? 'eager' : 'lazy'} decoding="async" onLoad={() => setLoaded(true)} />
+      </div>
+    );
+  }
   if (!s) return <div className={`img ${className ?? ''}`} aria-hidden="true" />;
   return (
     <div className={`img ${loaded ? 'is-loaded' : ''} ${className ?? ''}`} style={{ backgroundImage: `url(${s.lqip})`, ...style }}>
@@ -129,6 +137,10 @@ const paths: Record<string, ReactNode> = {
   mail: <><rect x="3.5" y="5.5" width="17" height="13" rx="1.5" /><path d="M4 7l8 6 8-6" /></>,
   phone: <path d="M6.5 3.5h3l1.5 4-2 1.3a10 10 0 0 0 6.2 6.2l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2Z" />,
   clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
+  search: <><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></>,
+  user: <><circle cx="12" cy="8.5" r="3.8" /><path d="M4.5 20c1.2-3.6 4-5.4 7.5-5.4s6.3 1.8 7.5 5.4" /></>,
+  chevron: <path d="M7 10l5 5 5-5" />,
+  filter: <><path d="M4 7h16" /><path d="M7 12h10" /><path d="M10 17h4" /></>,
 };
 export function Icon({ name, size = 20, className }: { name: keyof typeof paths | string; size?: number; className?: string }) {
   return (

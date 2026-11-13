@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon, Spinner } from '../components/ui';
 import { site } from '../content/site';
-import { trackOrder, type OrderStatus } from '../lib/api';
+import { requestCancellation, trackOrder, type OrderStatus } from '../lib/api';
 import { rupees } from '../lib/format';
 import { LAST_ORDER_KEY } from '../lib/keys';
 import { useSeo } from '../lib/seo';
@@ -159,9 +159,64 @@ export function Track() {
             <ul className="track__items">
               {result.items?.map((i) => <li key={i.sku_code}><span>{i.name}</span><span>× {Number(i.qty)}</span></li>)}
             </ul>
+            {(result.total != null || result.payment_status) && (
+              <p className="track__pay">
+                {result.total != null && <>Total {rupees(Number(result.total))}</>}
+                {result.payment_status && <> · {result.payment_method === 'online' ? 'Paid online' : 'Pay on delivery'}{result.payment_status === 'paid' ? ' · paid' : ''}</>}
+              </p>
+            )}
+            {result.shipment && (result.shipment.carrier || result.shipment.tracking_url) && (
+              <div className="track__ship">
+                <Icon name="truck" size={18} />
+                <span>{result.shipment.carrier ? `With ${result.shipment.carrier}` : 'Shipped'}{result.shipment.booking_ref ? ` · ref ${result.shipment.booking_ref}` : ''}</span>
+                {result.shipment.tracking_url && <a href={result.shipment.tracking_url} target="_blank" rel="noopener" className="btn btn--line">Track delivery</a>}
+              </div>
+            )}
+            {result.refund && <p className="banner banner--info">Refund {result.refund.status}: {rupees(Number(result.refund.amount))}.</p>}
+            {result.status !== 'cancelled' && result.status !== 'delivered' && <CancelRequest code={result.code!} phone={phone} status={result} />}
+            {result.status === 'delivered' && <p className="track__help">Something not right? <Link to="/contact">Contact us</Link> about a return or refund.</p>}
           </section>
         )}
       </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------- cancellation request (§10)
+function CancelRequest({ code, phone, status }: { code: string; phone: string; status: OrderStatus }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [state, setState] = useState<'idle' | 'sending' | 'cancelled' | 'requested' | 'error'>(status.cancel_requested ? 'requested' : 'idle');
+  const [msg, setMsg] = useState('');
+  const MESSAGES: Record<string, string> = {
+    not_found: 'We couldn’t find that order.',
+    already_cancelled: 'This order is already cancelled.',
+    delivered: 'This order has been delivered. Please contact us about a return.',
+    unavailable: 'Online cancellation isn’t available yet. Please contact us and we’ll cancel it for you.',
+    try_later: 'We couldn’t send that just now. Please try again in a moment.',
+  };
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    setState('sending');
+    const r = await requestCancellation(code, phone, reason);
+    if (r.ok) { setState(r.result); return; }
+    setState('error'); setMsg(MESSAGES[r.error] ?? MESSAGES.try_later);
+  }
+  if (state === 'cancelled') return <p className="banner banner--info" role="status">Your order has been cancelled. If you paid online, the refund will follow.</p>;
+  if (state === 'requested') return <p className="banner banner--info" role="status">We’ve received your cancellation request and will confirm shortly.</p>;
+  if (!open) return <button type="button" className="linkbtn track__cancel" onClick={() => setOpen(true)}>Request cancellation</button>;
+  return (
+    <form className="track__cancel-form" onSubmit={submit}>
+      <p>{status.cancellable === false ? 'This order is already packed, so we’ll review your request.' : 'Orders that aren’t packed yet are cancelled straight away.'}</p>
+      <div className="field">
+        <label htmlFor="cancel-reason">Reason <span className="field__opt">(optional)</span></label>
+        <input id="cancel-reason" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} />
+      </div>
+      {state === 'error' && <p className="banner banner--error" role="alert">{msg} {msg.includes('contact') && <Link to="/contact">Contact us</Link>}</p>}
+      <div className="track__cancel-btns">
+        <button className="btn btn--dark" disabled={state === 'sending'}>{state === 'sending' ? <><Spinner /> Sending…</> : 'Cancel this order'}</button>
+        <button type="button" className="btn btn--ghost" onClick={() => setOpen(false)}>Keep my order</button>
+      </div>
+    </form>
   );
 }

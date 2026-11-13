@@ -1,10 +1,13 @@
 import { useLocation } from 'react-router-dom';
-import { brandList, brands, type Brand, type BrandCode, type Collection } from '../content/brands';
+import { brandList, brands, type Brand, type BrandCode } from '../content/brands';
+import { storeCategories, type BuyingKind, type StoreCategory } from '../content/store';
 import { contentFor, NUTRITION_KEYS, type Dietary } from '../content/products';
 import { draft } from '../content/site';
 import type { CatalogueItem } from './api';
 
-/** Which brand a URL belongs to: /mia-torte/… → Mia Torte, /nutri-sampoorna/… → Nutri Sampoorna, else null (house pages). */
+export const brandOf = (code: string | null | undefined): Brand | null => (code ? brands[code as BrandCode] ?? null : null);
+
+/** Brand page for a URL (/mia-torte, /nutri-sampoorna), else null. Kept for the brand pages only: the store is not split by brand. */
 export function brandFromPath(pathname: string): Brand | null {
   const seg = pathname.split('/')[1];
   return brandList.find((b) => b.slug === seg) ?? null;
@@ -13,31 +16,40 @@ export function useBrand(): Brand | null {
   return brandFromPath(useLocation().pathname);
 }
 
-export const brandOf = (code: string | null | undefined): Brand | null => (code ? brands[code as BrandCode] ?? null : null);
-
 export const paths = {
-  home: (b: Brand) => `/${b.slug}`,
-  shop: (b: Brand) => `/${b.slug}/shop`,
-  story: (b: Brand) => `/${b.slug}/${b.story.slug}`,
-  contact: (b: Brand) => `/${b.slug}/contact`,
-  collection: (b: Brand, c: Collection) => `/${b.slug}/${c.slug}`,
-  product: (item: Pick<CatalogueItem, 'code' | 'brand_code'>) => {
-    const b = brandOf(item.brand_code);
-    return b ? `/${b.slug}/product/${item.code}` : `/product/${item.code}`;
-  },
+  shop: () => '/shop',
+  category: (c: Pick<StoreCategory, 'slug'>) => `/${c.slug}`,
+  bestsellers: () => '/bestsellers',
+  search: (q?: string) => (q ? `/search?q=${encodeURIComponent(q)}` : '/search'),
+  brand: (b: Brand) => `/${b.slug}`,
+  product: (item: Pick<CatalogueItem, 'code'>) => `/product/${item.code}`,
 };
 
-/** The brand collection a product belongs to, by its ops-app category. */
-export function collectionOf(item: Pick<CatalogueItem, 'brand_code' | 'category'>): Collection | null {
-  const b = brandOf(item.brand_code);
-  if (!b || !item.category) return null;
-  const cat = item.category.trim().toLowerCase();
-  return b.collections.find((c) => c.categories.some((x) => x.toLowerCase() === cat)) ?? null;
-}
+type CatItem = Pick<CatalogueItem, 'product' | 'category'>;
 
-export function inCollection(item: Pick<CatalogueItem, 'brand_code' | 'category'>, c: Collection) {
-  return collectionOf(item)?.slug === c.slug;
+/** Every store category a product appears in (by its ops category, plus cross-listings). */
+export function storeCategoriesOf(item: CatItem): StoreCategory[] {
+  const cat = (item.category ?? '').trim().toLowerCase();
+  return storeCategories.filter((c) => c.categories.some((x) => x.toLowerCase() === cat) || c.alsoIncludes?.includes(item.product));
 }
+/** The product's main store category (its own ops category), for breadcrumbs and labels. */
+export function primaryCategoryOf(item: CatItem): StoreCategory | null {
+  const cat = (item.category ?? '').trim().toLowerCase();
+  return storeCategories.find((c) => c.categories.some((x) => x.toLowerCase() === cat)) ?? storeCategoriesOf(item)[0] ?? null;
+}
+export const inStoreCategory = (item: CatItem, c: StoreCategory) => storeCategoriesOf(item).some((x) => x.slug === c.slug);
+export const buyingKindOf = (item: CatItem): BuyingKind => primaryCategoryOf(item)?.kind ?? 'sensory';
+
+/** Bestsellers: ranked by the backend's sales rank when it provides one, else the hand-picked featured products. */
+export function bestsellers<T extends CatalogueItem>(items: T[], n = 8): T[] {
+  const cards = oneCardPerProduct(items);
+  const ranked = cards.filter((i) => i.bestseller_rank != null).sort((a, b) => a.bestseller_rank! - b.bestseller_rank!);
+  if (ranked.length >= Math.min(4, cards.length)) return ranked.slice(0, n);
+  const featured = cards.filter((i) => itemContent(i).featured);
+  return [...ranked, ...featured.filter((f) => !ranked.includes(f))].slice(0, n);
+}
+/** New products (backend's is_new flag). */
+export const newProducts = <T extends CatalogueItem>(items: T[]) => oneCardPerProduct(items).filter((i) => i.is_new);
 
 const DIET: Record<string, Dietary> = { veg: 'veg', vegan: 'vegan', egg: 'egg', non_veg: 'non-veg' };
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, ''));
@@ -54,8 +66,10 @@ function shelfLifeText(days: number) {
  * are filled in. Until Torte Living marks them confirmed, those facts carry a
  * "Draft · confirm" tag. `images` is empty until real photos exist.
  */
-export function itemContent(item: Pick<CatalogueItem, 'product' | 'category'> & { details?: CatalogueItem['details'] }) {
-  const c = contentFor(item.product, item.category);
+export function itemContent(item: Pick<CatalogueItem, 'product' | 'category'> & { details?: CatalogueItem['details']; images?: string[] }) {
+  const base = contentFor(item.product, item.category);
+  // Photos held in the backend replace the site's own (there are none yet: illustrations show instead).
+  const c = item.images?.length ? { ...base, images: item.images } : base;
   const d = item.details;
   if (!d) return c;
   const fact = (v: string | null | undefined) => (v && v.trim() ? (d.confirmed ? v.trim() : draft(v.trim())) : undefined);

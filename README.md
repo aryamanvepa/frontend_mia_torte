@@ -1,6 +1,6 @@
 # Torte Living — online shop
 
-Customer-facing shop for two brands of Torte Living Pvt. Ltd., each with its own identity:
+Customer-facing shop for Torte Living Pvt. Ltd., selling two brands in one store:
 **Mia Torte** (boutique bakery in the European pâtisserie tradition) and **Nutri Sampoorna**
 (contemporary pantry of Indian grains, millets and pulses). React + Vite + TypeScript, hosted on GitHub Pages, running on the
 Torte Living Supabase back end (the same database as the
@@ -23,21 +23,33 @@ Each checkout attempt carries a client-generated id, so a retried submit never c
 
 ## Site structure
 
+One food store organised by **buying behaviour**; Mia Torte and Nutri Sampoorna appear only as
+labels on products (and on their own brand-story pages). One visual theme for the whole store.
+
 | Address | Page |
 |---|---|
-| `/` | Torte Living: one entrance to each brand |
-| `/mia-torte`, `/nutri-sampoorna` | Brand home pages (separate layouts and visual themes) |
-| `/mia-torte/story`, `/nutri-sampoorna/philosophy` | Our Story / Our Philosophy |
-| `/<brand>/shop` | All of a brand's products |
-| `/mia-torte/cookies-biscuits`, `muesli`, `savoury-snacks`, `brownies-cakes`, `gifting`, `seasonal` | Mia Torte collections |
-| `/nutri-sampoorna/atta-grain-blends`, `breakfast-dosa-mixes`, `muesli-nuts-seeds`, `pantry-snacks` | Nutri Sampoorna collections |
-| `/<brand>/product/<SKU>` | Product page |
-| `/<brand>/contact` | Contact |
-| `/checkout`, `/track`, `/shipping`, `/refunds`, `/privacy`, `/terms` | Shared |
+| `/` | Store home: hero, shop by craving, bestsellers, Better Snacking band, Everyday Nourishment entry points, new discoveries, gifting, company |
+| `/shop` | Shop All |
+| `/indulgence-treats`, `/better-snacking`, `/everyday-nourishment`, `/gifting-discovery` | Store categories (filters in the URL: type, brand, price, pack size, diet, sort) |
+| `/bestsellers` | Bestsellers (backend `bestseller_rank`; until then a fixed order) |
+| `/search?q=` | Search with synonyms (`src/lib/search.ts`); the header box suggests as you type |
+| `/product/<SKU>` | Product page (canonical = first pack of the product) |
+| `/mia-torte`, `/nutri-sampoorna` | Brand story + that brand's products |
+| `/about`, `/contact`, `/account`, `/track` | Company, contact, account (email code sign-in), order tracking + cancellation request |
+| `/checkout`, `/shipping`, `/refunds`, `/privacy`, `/terms` | Shared |
 
-One bag covers both brands. The theme switches with the address (`data-brand` on `<html>`):
-Mia Torte uses cream, cocoa and gold with a serif display face; Nutri Sampoorna uses rice paper,
-ink and clay with a sans-serif display face and square edges (`styles.css`, "NUTRI SAMPOORNA THEME").
+Old brand addresses (`/mia-torte/shop`, `/<brand>/product/<SKU>`, …) redirect to the new ones.
+Store categories and the mapping from ops-app categories live in `src/content/store.ts`.
+
+**Backend extras with fallbacks** (see the backend task list): `bestseller_rank`, `is_new`,
+`images`, `rating`/`review_count` on the catalogue; `delivery` (PIN check + ETA) and `promo` on the
+quote; `storefront_my_orders` / `storefront_my_profile`; `storefront_request_cancellation`; the
+extra fields of `storefront_order_status`. Until each exists the website hides the feature or
+shows a placeholder (e.g. delivery estimate from `deliveryFallback`, "Promo codes aren't
+available yet", "contact us to cancel").
+
+**Analytics** (GA4 `VITE_GA4_ID`, Meta `VITE_META_PIXEL_ID`, both optional) load only after the
+shopper accepts the cookie bar; test orders never count as purchases.
 
 **Collections follow the product category set in the ops app.** The mapping is in
 `src/content/brands.ts` (`categories` on each collection, matched case-insensitively). A collection

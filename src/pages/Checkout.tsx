@@ -3,7 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Icon, Spinner, Stepper } from '../components/ui';
 import { ProductThumb } from '../components/layout';
 import { site } from '../content/site';
-import { getQuote, placeOrder, type Problem, type Quote } from '../lib/api';
+import { getQuote, placeOrder, type Problem, type Quote, type QuoteExtras } from '../lib/api';
+import { deliveryFallback } from '../content/store';
+import { myProfile, useSession } from '../lib/auth';
+import { trackBeginCheckout, trackPurchase } from '../lib/analytics';
 import { packFull, rupees, titleOf, uuid } from '../lib/format';
 import { INDIAN_STATES } from '../lib/states';
 import { useBag, useCart, useCatalogue } from '../state/store';
@@ -36,6 +39,10 @@ function validate(f: Form): Partial<Record<Fields, string>> {
   if (f.notes.length > 300) e.notes = 'Keep delivery notes under 300 characters';
   return e;
 }
+const PROMO_ERR: Record<string, string> = {
+  promo_invalid: 'That promo code isn’t valid.', promo_expired: 'That promo code has expired.',
+  promo_min_subtotal: 'Your bag is below the minimum for that promo code.',
+};
 const SERVER_FIELD: Record<string, Fields> = {
   'customer.name': 'name', 'customer.phone': 'phone', 'customer.email': 'email', 'address.address1': 'address1',
   'address.address2': 'address2', 'address.city': 'city', 'address.state': 'state', 'address.pincode': 'pincode', notes: 'notes',
@@ -58,7 +65,10 @@ export default function Checkout() {
   const [banner, setBanner] = useState<{ tone: 'warn' | 'error' | 'info'; text: string } | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [quoteNonce, setQuoteNonce] = useState(0);
+  const [promoInput, setPromoInput] = useState('');
+  const [promo, setPromo] = useState(''); // the code sent to the server ('' = none)
   const bannerRef = useRef<HTMLDivElement>(null);
+  const { session } = useSession();
   const formRef = useRef<HTMLFormElement>(null);
 
   useSeo({ title: `Checkout · ${site.name}`, noindex: true });
@@ -67,14 +77,35 @@ export default function Checkout() {
     try { sessionStorage.setItem(FORM_KEY, JSON.stringify(keep)); } catch { /* ignore */ }
   }, [form]);
 
-  // Server quote: re-price and re-check stock whenever the bag changes.
-  const lineKey = JSON.stringify(lines);
+  // Signed-in shoppers: fill empty fields from their account (backend task B8; skipped until it exists).
+  useEffect(() => {
+    if (!session) return;
+    let live = true;
+    const email = session.user.email ?? '';
+    myProfile().then((r) => {
+      if (!live) return;
+      const p = r.ok ? r.data ?? {} : {};
+      setForm((f) => ({
+        ...f,
+        name: f.name || p.full_name || '', phone: f.phone || p.phone || '', email: f.email || p.email || email,
+        city: f.city || p.city || '', state: f.state || (p.state && INDIAN_STATES.includes(p.state) ? p.state : ''), pincode: f.pincode || p.pincode || '',
+      }));
+    });
+    return () => { live = false; };
+  }, [session]);
+
+  // The PIN goes to the server once it looks complete, for serviceability + delivery estimate (B5).
+  const pin = /^[1-9]\d{5}$/.test(form.pincode.trim()) ? form.pincode.trim() : '';
+  const extras: QuoteExtras = { pincode: pin || undefined, promo_code: promo || undefined };
+
+  // Server quote: re-price and re-check stock whenever the bag, PIN or promo code changes.
+  const lineKey = JSON.stringify([lines, pin, promo]);
   useEffect(() => {
     if (!lines.length) { setQuote(null); setQuoteState('idle'); return; }
     let live = true;
     setQuoteState('loading');
     const t = setTimeout(async () => {
-      const q = await getQuote(lines.map((l) => ({ sku_code: l.code, qty: l.qty })));
+      const q = await getQuote(lines.map((l) => ({ sku_code: l.code, qty: l.qty })), extras);
       if (!live) return;
       if (q.ok) { setQuote(q); setProblems(q.problems); setQuoteState('ready'); }
       else setQuoteState('error');
@@ -84,8 +115,17 @@ export default function Checkout() {
 
   useEffect(() => { if (banner) bannerRef.current?.focus(); }, [banner]);
 
+  // Analytics: one begin_checkout per visit, once the server has priced the bag.
+  const begun = useRef(false);
+  useEffect(() => {
+    if (begun.current || !quote) return;
+    begun.current = true;
+    trackBeginCheckout(rows.filter((r) => r.item).map((r) => ({ item: r.item!, qty: r.qty })), quote.total);
+  }, [quote]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const problemFor = (code: string) => problems.find((p) => p.sku_code === code);
-  const blocked = problems.length > 0 || quoteState !== 'ready';
+  const unserviceable = quote?.delivery?.serviceable === false;
+  const blocked = problems.length > 0 || quoteState !== 'ready' || unserviceable;
   const update = (k: keyof Form, v: string | boolean) => {
     setForm((f) => ({ ...f, [k]: v }));
     if (errors[k as Fields]) setErrors((e) => ({ ...e, [k]: undefined }));
@@ -98,7 +138,9 @@ export default function Checkout() {
     address: { address1: form.address1.trim(), address2: form.address2.trim(), city: form.city.trim(), state: form.state, pincode: form.pincode.trim() },
     notes: form.notes.trim(),
     expected_total: quote?.total ?? 0,
-  }), [lines, form, quote]);
+    ...(pin ? { pincode: pin } : {}),
+    ...(promo ? { promo_code: promo } : {}),
+  }), [lines, form, quote, pin, promo]);
 
   // One id per distinct order attempt: a retry of the same details reuses it (no duplicate order);
   // any change to bag, details or total starts a new attempt.
@@ -141,6 +183,7 @@ export default function Checkout() {
         sessionStorage.removeItem(ATTEMPT_KEY);
         sessionStorage.removeItem(FORM_KEY);
       } catch { /* ignore */ }
+      trackPurchase(res.order_code, summary.total, quote.shipping, rows.filter((r) => r.item).map((r) => ({ item: r.item!, qty: r.qty })), summary.test);
       clear();
       reload();
       navigate(`/order/${encodeURIComponent(res.order_code)}`, { replace: true });
@@ -167,6 +210,14 @@ export default function Checkout() {
       case 'test_mode_off':
         setBanner({ tone: 'error', text: 'Test orders are switched off. Turn on testing mode in the ops app (More → Testing tools), then try again.' });
         break;
+      case 'unserviceable_pincode':
+        setErrors((er) => ({ ...er, pincode: 'We don’t deliver to this PIN code yet' }));
+        setBanner({ tone: 'error', text: 'Sorry, we don’t deliver to this PIN code yet. Please use another address or contact us.' });
+        break;
+      case 'promo_invalid': case 'promo_expired': case 'promo_min_subtotal':
+        setPromo('');
+        setBanner({ tone: 'warn', text: `${PROMO_ERR[res.error]} We have removed it. Please check your new total and place your order again.` });
+        break;
       case 'too_many_orders':
         setBanner({ tone: 'error', text: 'We have received several orders from this phone number today. Please contact us to place another.' });
         break;
@@ -183,7 +234,7 @@ export default function Checkout() {
       <div className="wrap section checkout-empty">
         <h1 className="display display--md">Your bag is empty</h1>
         <p>Add something lovely and come back.</p>
-        <Link to="/" className="btn btn--dark">Browse the shops</Link>
+        <Link to="/shop" className="btn btn--dark">Shop all</Link>
       </div>
     );
   }
@@ -198,7 +249,20 @@ export default function Checkout() {
     </div>
   );
 
-  const summary = (
+  // Delivery estimate: the server's answer (B5) when it gives one, otherwise the placeholder rules.
+  const d = quote?.delivery;
+  const delivery = !pin ? null
+    : d ? { ok: d.serviceable, text: d.message || (d.serviceable && d.eta_min_days != null ? `Estimated delivery in ${d.eta_min_days}–${d.eta_max_days ?? d.eta_min_days} days${d.carrier ? ` by ${d.carrier}` : ''}.` : d.serviceable ? 'We deliver to this PIN code.' : 'We don’t deliver to this PIN code yet.') }
+    : deliveryFallback.local.test(pin)
+      ? { ok: true, text: `Delivering to ${deliveryFallback.local.label}: usually ${deliveryFallback.local.eta} after dispatch (estimate).` }
+      : { ok: true, text: `Delivering across India by ${deliveryFallback.national.carrier}: usually ${deliveryFallback.national.eta} after dispatch (estimate).` };
+
+  const promoNote = !promo || quoteState !== 'ready' ? null
+    : quote?.promo ? { ok: quote.promo.valid, text: quote.promo.message || (quote.promo.valid ? `Code ${quote.promo.code} applied.` : 'This code can’t be used.') }
+    : { ok: false, text: 'Promo codes aren’t available yet. Your total is unchanged.' };
+  const applyPromo = (e?: FormEvent) => { e?.preventDefault(); setPromo(promoInput.trim().toUpperCase().slice(0, 30)); };
+
+  const summary = (where: 'm' | 'a') => (
     <div className="summary">
       <ul className="summary__lines">
         {rows.map((r) => {
@@ -231,9 +295,21 @@ export default function Checkout() {
       <dl className="totals" aria-live="polite">
         <div><dt>Subtotal</dt><dd>{quote ? rupees(quote.subtotal) : '—'}</dd></div>
         <div><dt>Delivery</dt><dd>{quote ? (quote.shipping ? rupees(quote.shipping) : 'Free') : '—'}</dd></div>
+        {quote && quote.discount > 0 && <div className="totals__discount"><dt>Discount{quote.promo?.valid ? ` (${quote.promo.code})` : ''}</dt><dd>−{rupees(quote.discount)}</dd></div>}
         {freeGap > 0 && <p className="totals__free">Add {rupees(Math.ceil(freeGap))} more for free delivery.</p>}
         <div className="totals__grand"><dt>Total <span>incl. GST</span></dt><dd>{quoteState === 'loading' ? <Spinner /> : quote ? rupees(quote.total) : '—'}</dd></div>
       </dl>
+      <div className="promo">
+        <label htmlFor={`promo-${where}`} className="promo__label">Promo code</label>
+        <div className="promo__row">
+          <input id={`promo-${where}`} value={promoInput} maxLength={30} autoComplete="off" autoCapitalize="characters"
+            onChange={(e) => setPromoInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') applyPromo(e); }} />
+          {promo
+            ? <button type="button" className="btn btn--line" onClick={() => { setPromo(''); setPromoInput(''); }}>Remove</button>
+            : <button type="button" className="btn btn--line" disabled={!promoInput.trim()} onClick={() => applyPromo()}>Apply</button>}
+        </div>
+        {promoNote && <p className={promoNote.ok ? 'field__hint promo__ok' : 'field__hint'} role="status">{promoNote.text}</p>}
+      </div>
       {quoteState === 'error' && <p className="field__error" role="alert">Could not confirm prices. <button type="button" className="linkbtn" onClick={() => setQuoteNonce((n) => n + 1)}>Retry</button></p>}
     </div>
   );
@@ -250,7 +326,7 @@ export default function Checkout() {
           <span><Icon name="bag" size={18} /> {summaryOpen ? 'Hide' : 'Show'} order summary</span>
           <strong>{quote ? rupees(quote.total) : '—'}</strong>
         </button>
-        <div id="mobile-summary" hidden={!summaryOpen}>{summary}</div>
+        <div id="mobile-summary" hidden={!summaryOpen}>{summary('m')}</div>
       </div>
 
       <div className="checkout__grid">
@@ -298,6 +374,11 @@ export default function Checkout() {
               </div>
               {field('pincode', 'PIN code', { inputMode: 'numeric', autoComplete: 'postal-code', maxLength: 6, pattern: '[0-9]*' })}
             </div>
+            {delivery && (
+              <p className={`delivery-eta ${delivery.ok ? '' : 'delivery-eta--no'}`} role="status">
+                <Icon name={delivery.ok ? 'truck' : 'info'} size={18} /> {delivery.text}
+              </p>
+            )}
             <div className={`field ${errors.notes ? 'has-error' : ''}`}>
               <label htmlFor="f-notes">Delivery notes <span className="field__opt">(optional)</span></label>
               <textarea id="f-notes" name="notes" rows={2} maxLength={300} value={form.notes} onChange={(e) => update('notes', e.target.value)}
@@ -333,6 +414,7 @@ export default function Checkout() {
             <button type="submit" className="btn btn--dark btn--block btn--lg" disabled={submitting || blocked} aria-busy={submitting}>
               {submitting ? <><Spinner /> Placing your order…</> : <>Place order{quote ? ` · ${rupees(quote.total)}` : ''}</>}
             </button>
+            {unserviceable && <p className="field__error">We don’t deliver to this PIN code yet.</p>}
             {problems.length > 0 && <p className="field__error">Please update the items marked in your order summary.</p>}
             <p className="place__terms">By placing this order you agree to our <Link to="/terms">terms of sale</Link> and <Link to="/privacy">privacy policy</Link>.</p>
             {catStatus === 'error' && <p className="field__hint">Live stock could not be refreshed. Your order will still be checked before it is placed.</p>}
@@ -341,7 +423,7 @@ export default function Checkout() {
 
         <aside className="checkout__aside" aria-label="Order summary">
           <h2 className="checkout__aside-h">Order summary</h2>
-          {summary}
+          {summary('a')}
           <p className="aside__note"><Icon name="info" size={16} /> Prices and stock are confirmed by our system when you place the order.</p>
         </aside>
       </div>

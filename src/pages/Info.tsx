@@ -1,21 +1,26 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { ProductCard } from '../components/layout';
+import { useCatalogue } from '../state/store';
 import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
-import { brandList, type Brand } from '../content/brands';
+import { brandList, miaTorte, nutriSampoorna, type Brand } from '../content/brands';
 import { images } from '../content/images';
-import { SHOW_PLACEHOLDER_FLAGS, pages, site } from '../content/site';
-import { paths, useBrand } from '../lib/brand';
+import { SHOW_PLACEHOLDER_FLAGS, house, pages, site } from '../content/site';
+import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { copyText } from '../content/site';
 
-// ---------------------------------------------------------------- brand: story / philosophy
-export function BrandStory({ brand }: { brand: Brand }) {
+// ---------------------------------------------------------------- brand page (story + its products)
+export function BrandPage({ brand }: { brand: Brand }) {
   const s = brand.story;
-  const other = brandList.find((b) => b.code !== brand.code)!;
-  useSeo({ title: `${s.label} · ${brand.name}`, description: snippet(s.intro), image: s.image, type: 'article', jsonLd: breadcrumbLd([{ name: brand.name, path: paths.home(brand) }, { name: s.label, path: paths.story(brand) }]) });
+  const { items } = useCatalogue();
+  const products = useMemo(() => oneCardPerProduct(items.filter((i) => i.brand_code === brand.code)), [items, brand.code]);
+  useSeo({ title: `${brand.name} · ${s.label} · Torte Living`, description: snippet(`${brand.blurb} ${s.intro}`), image: s.image, type: 'article',
+    jsonLd: breadcrumbLd([{ name: 'Home', path: '/' }, { name: brand.name, path: paths.brand(brand) }]) });
   return (
     <article className="info info--story">
       <header className="page-head page-head--narrow wrap">
-        <p className="eyebrow">{s.label}</p>
+        <p className="eyebrow">{brand.name} · {brand.descriptor}</p>
         <h1 className="display display--lg">{s.title}</h1>
         <p className="lede">{s.intro}</p>
       </header>
@@ -29,24 +34,69 @@ export function BrandStory({ brand }: { brand: Brand }) {
           </Reveal>
         ))}
       </div>
-      <div className="wrap story-end">
-        <Link to={paths.shop(brand)} className="btn btn--dark">Shop {brand.name}</Link>
-        <Link to={paths.home(other)} className="arrow-link">Visit {other.name} <Icon name="arrow" size={18} /></Link>
+      {products.length > 0 && (
+        <section className="section wrap" aria-labelledby="brand-products-h">
+          <Reveal className="section__head">
+            <p className="eyebrow">{brand.name}</p>
+            <h2 id="brand-products-h" className="display display--md">Shop {brand.name}</h2>
+            <Link to={`${paths.shop()}?brand=${brand.code}`} className="arrow-link">See all {products.length} <Icon name="arrow" size={18} /></Link>
+          </Reveal>
+          <div className="grid grid--feature">{products.slice(0, 8).map((i) => <ProductCard key={i.code} code={i.code} />)}</div>
+        </section>
+      )}
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------- about the company
+export function About() {
+  useSeo({ title: 'About Torte Living', description: snippet(house.intro) });
+  return (
+    <article className="info">
+      <header className="page-head page-head--narrow wrap">
+        <p className="eyebrow">{house.eyebrow}</p>
+        <h1 className="display display--lg">{house.title.replace('\n', ' ')}</h1>
+        <p className="lede">{house.intro}</p>
+      </header>
+      <div className="wrap">
+        <ul className="beliefs">
+          {house.beliefs.map((b, i) => (
+            <li key={b.title} className="belief">
+              <span className="belief__no">0{i + 1}</span>
+              <h2 className="belief__title">{b.title}</h2>
+              <p>{b.text}</p>
+            </li>
+          ))}
+        </ul>
+        <ul className="company__brands company__brands--about">
+          {brandList.map((b) => (
+            <li key={b.code}>
+              <Link to={paths.brand(b)} className="brand-card">
+                <span className="brand-card__name">{b.name}</span>
+                <span className="brand-card__line">{b.blurb}</span>
+                <span className="arrow-link">{b.story.label} <Icon name="arrow" size={16} /></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </article>
   );
 }
 
-// ---------------------------------------------------------------- brand: contact
-export function BrandContact({ brand }: { brand: Brand }) {
-  const c = brand.contact;
-  useSeo({ title: `Contact · ${brand.name}`, description: snippet(c.intro) });
+// ---------------------------------------------------------------- contact (one for the whole store)
+export function Contact() {
+  useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of Mia Torte and Nutri Sampoorna.' });
+  const blocks = [
+    ...miaTorte.contact.blocks.filter((b) => b.heading !== 'The kitchen'),
+    ...nutriSampoorna.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),
+  ];
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">
-        <p className="eyebrow">{brand.name}</p>
-        <h1 className="display display--lg">{c.title}</h1>
-        <p className="lede">{c.intro}</p>
+        <p className="eyebrow">Help</p>
+        <h1 className="display display--lg">Contact us</h1>
+        <p className="lede">Questions about an order, a product, gifting or trade. We’d be glad to hear from you.</p>
       </header>
       <div className="wrap contact">
         <div className="contact__card">
@@ -59,7 +109,7 @@ export function BrandContact({ brand }: { brand: Brand }) {
           <Link to="/track" className="btn btn--line btn--block">Track an order</Link>
         </div>
         <div className="contact__blocks">
-          {c.blocks.map((b) => (
+          {blocks.map((b) => (
             <Reveal as="section" key={b.heading} className="info__section">
               <h2>{b.heading}</h2>
               <Text as="p" copy={b.body} />
@@ -132,17 +182,15 @@ export function Credits() {
 }
 
 export function NotFound({ what = 'page' }: { what?: string }) {
-  const brand = useBrand();
-  useSeo({ title: `Not found · ${brand?.name ?? site.name}`, noindex: true });
+  useSeo({ title: `Not found · ${site.name}`, noindex: true });
   return (
     <div className="wrap section notfound">
       <p className="eyebrow">404</p>
       <h1 className="display display--lg">We couldn’t find that {what}.</h1>
       <p className="lede">It may no longer be available, or the link may be wrong.</p>
       <div className="closing__cta">
-        {brand
-          ? <><Link to={paths.shop(brand)} className="btn btn--dark">Shop {brand.name}</Link><Link to={paths.home(brand)} className="btn btn--line">{brand.name} home</Link></>
-          : <Link to="/" className="btn btn--dark">Torte Living home</Link>}
+        <Link to={paths.shop()} className="btn btn--dark">Shop all</Link>
+        <Link to={paths.search()} className="btn btn--line">Search</Link>
       </div>
     </div>
   );

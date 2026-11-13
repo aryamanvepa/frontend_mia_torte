@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { backendConfigured, fetchCatalogue, type CatalogueItem } from '../lib/api';
 import { TEST_MAX, testMode } from '../lib/testmode';
+import { trackAddToCart } from '../lib/analytics';
 
 // ---------------------------------------------------------------- catalogue
 interface CatalogueState {
@@ -98,6 +99,7 @@ function readStored(): CartLine[] {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>(readStored);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { byCode } = useCatalogue();
   const [bump, setBump] = useState(0);
 
   useEffect(() => {
@@ -122,6 +124,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...ls, { code, qty: Math.min(qty, MAX_QTY) }];
       });
       setBump((b) => b + 1);
+      const item = byCode.get(code);
+      if (item) trackAddToCart(item, qty);
     },
     setQty: (code, qty) => setLines((ls) => (qty <= 0 ? ls.filter((l) => l.code !== code)
       : ls.map((l) => (l.code === code ? { ...l, qty: Math.min(qty, MAX_QTY) } : l)))),
@@ -131,7 +135,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     openDrawer: () => setDrawerOpen(true),
     closeDrawer: () => setDrawerOpen(false),
     bump,
-  }), [lines, drawerOpen, bump]);
+  }), [lines, drawerOpen, bump, byCode]);
 
   return <CartCtx.Provider value={value}>{children}</CartCtx.Provider>;
 }

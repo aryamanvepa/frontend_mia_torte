@@ -1,81 +1,161 @@
-import { useMemo } from 'react';
-import { Link, NavLink, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal } from '../components/ui';
-import type { Brand, Collection } from '../content/brands';
-import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
-import { useCatalogue } from '../state/store';
+import { brands, type BrandCode } from '../content/brands';
+import { bestsellersPage, shopAllPage, storeCategories, typeLabel, type StoreCategory } from '../content/store';
+import type { CatalogueItem } from '../lib/api';
+import { trackViewItemList } from '../lib/analytics';
+import { bestsellers, inStoreCategory, itemContent, oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
+import { useCatalogue } from '../state/store';
 
-const SORTS = { featured: 'Featured', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name' } as const;
+const SORTS = { featured: 'Recommended', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name A–Z', new: 'Newest' } as const;
 type Sort = keyof typeof SORTS;
 
-/** A brand's shop ("/mia-torte/shop") or one of its collections ("/mia-torte/gifting"). */
-export default function BrandShop({ brand, collection }: { brand: Brand; collection?: Collection }) {
+// Filter buckets (§6). A product matches when any of its pack sizes does.
+const PRICES = [
+  { key: 'u150', label: 'Under ₹150', test: (p: number) => p < 150 },
+  { key: '150-300', label: '₹150 – ₹300', test: (p: number) => p >= 150 && p < 300 },
+  { key: '300-500', label: '₹300 – ₹500', test: (p: number) => p >= 300 && p < 500 },
+  { key: 'o500', label: '₹500 and above', test: (p: number) => p >= 500 },
+];
+const SIZES = [
+  { key: 's', label: 'Up to 100 g', test: (g: number) => g <= 100 },
+  { key: 'm', label: '101 – 250 g', test: (g: number) => g > 100 && g <= 250 },
+  { key: 'l', label: '251 – 500 g', test: (g: number) => g > 250 && g <= 500 },
+  { key: 'xl', label: '1 kg and above', test: (g: number) => g >= 1000 },
+];
+const DIETS: Record<string, string> = { veg: 'Vegetarian', vegan: 'Vegan', egg: 'Contains egg', non_veg: 'Non-vegetarian' };
+
+type Mode = 'all' | 'category' | 'bestsellers';
+
+/** Shop All, a store category, or Bestsellers: filters, sorting, product grid with Quick Add, and related categories. */
+export default function Listing({ mode, category }: { mode: Mode; category?: StoreCategory }) {
   const { items, status } = useCatalogue();
   const [params, setParams] = useSearchParams();
-  const sort = ((params.get('sort') ?? 'featured') in SORTS ? params.get('sort') ?? 'featured' : 'featured') as Sort;
-  const setSort = (v: string) => {
+  const get = (k: string) => params.get(k) ?? '';
+  const set = (k: string, v: string) => {
     const next = new URLSearchParams(params);
-    if (v && v !== 'featured') next.set('sort', v); else next.delete('sort');
+    if (v) next.set(k, v); else next.delete(k);
     setParams(next, { replace: true });
   };
+  const sortParam = get('sort') as Sort;
+  const sort: Sort = sortParam in SORTS ? sortParam : 'featured';
 
-  const title = collection?.title ?? brand.shop.title;
+  const head = mode === 'category' && category
+    ? { title: category.title, intro: category.intro, image: category.image, path: paths.category(category) }
+    : mode === 'bestsellers'
+      ? { title: bestsellersPage.title, intro: bestsellersPage.intro, image: bestsellersPage.image, path: paths.bestsellers() }
+      : { title: shopAllPage.title, intro: shopAllPage.intro, image: undefined as string | undefined, path: paths.shop() };
+
   useSeo({
-    title: `${title} · ${brand.name}`,
-    description: snippet(collection?.intro ?? `${brand.shop.intro} ${brand.blurb}`),
-    image: collection?.image ?? (brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl'),
-    jsonLd: breadcrumbLd([
-      { name: brand.name, path: paths.home(brand) },
-      { name: brand.shop.title, path: paths.shop(brand) },
-      ...(collection ? [{ name: collection.title, path: paths.collection(brand, collection) }] : []),
-    ]),
+    title: `${head.title} · Torte Living`,
+    description: snippet(head.intro),
+    image: head.image,
+    jsonLd: breadcrumbLd([{ name: 'Home', path: '/' }, { name: head.title, path: head.path }]),
   });
 
-  const brandItems = useMemo(() => items.filter((i) => i.brand_code === brand.code), [items, brand.code]);
+  // The products in this listing (every pack), before filters.
+  const scope = useMemo(() => {
+    if (mode === 'bestsellers') {
+      const top = new Set(bestsellers(items, 50).map((i) => i.product));
+      return items.filter((i) => top.has(i.product));
+    }
+    return mode === 'category' && category ? items.filter((i) => inStoreCategory(i, category)) : items;
+  }, [items, mode, category]);
+
+  const packsOf = useMemo(() => {
+    const m = new Map<string, CatalogueItem[]>();
+    for (const i of scope) m.set(i.product, [...(m.get(i.product) ?? []), i]);
+    return m;
+  }, [scope]);
+
+  // Filter options with counts (only options that exist here).
+  const productsWith = (pred: (packs: CatalogueItem[]) => boolean) => [...packsOf.values()].filter(pred).length;
+  const types = [...new Set(scope.map((i) => typeLabel(i.category)))].sort();
+  const brandCodes = [...new Set(scope.map((i) => i.brand_code))].filter((b) => b in brands).sort();
+  const diets = [...new Set(scope.map((i) => i.details?.diet).filter(Boolean) as string[])];
+  const priceOpts = PRICES.filter((p) => productsWith((ps) => ps.some((x) => p.test(x.price))));
+  const sizeOpts = SIZES.filter((s) => productsWith((ps) => ps.some((x) => s.test(x.pack_grams))));
+
+  const f = { type: get('type'), brand: get('brand'), price: get('price'), size: get('size'), diet: get('diet') };
+  const active = Object.values(f).some(Boolean);
+
   const shown = useMemo(() => {
-    const list = oneCardPerProduct(collection ? brandItems.filter((i) => inCollection(i, collection)) : brandItems);
-    const rank = (i: (typeof list)[number]) => (itemContent(i).featured ? 0 : 1);
-    const avail = (a: string) => (a === 'sold_out' ? 1 : 0);
-    return [...list].sort((a, b) => avail(a.availability) - avail(b.availability) || (
+    const price = PRICES.find((p) => p.key === f.price);
+    const size = SIZES.find((s) => s.key === f.size);
+    const keep = [...packsOf.entries()].filter(([, ps]) => {
+      const i = ps[0];
+      if (f.type && typeLabel(i.category) !== f.type) return false;
+      if (f.brand && i.brand_code !== f.brand) return false;
+      if (f.diet && i.details?.diet !== f.diet) return false;
+      if (price && !ps.some((x) => price.test(x.price))) return false;
+      if (size && !ps.some((x) => size.test(x.pack_grams))) return false;
+      return true;
+    }).flatMap(([, ps]) => ps);
+    const cards = oneCardPerProduct(keep);
+    const rankOf = (i: CatalogueItem) => i.bestseller_rank ?? (itemContent(i).featured ? 1000 : 2000);
+    const sold = (i: CatalogueItem) => (i.availability === 'sold_out' ? 1 : 0);
+    return cards.sort((a, b) => sold(a) - sold(b) || (
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price
       : sort === 'name' ? a.product.localeCompare(b.product)
-      : rank(a) - rank(b) || (a.category ?? '').localeCompare(b.category ?? '') || a.product.localeCompare(b.product)));
-  }, [brandItems, collection, sort]);
-  const ready = brand.collections.filter((c) => brandItems.some((i) => inCollection(i, c)));
+      : sort === 'new' ? Number(Boolean(b.is_new)) - Number(Boolean(a.is_new)) || a.product.localeCompare(b.product)
+      : rankOf(a) - rankOf(b) || (a.category ?? '').localeCompare(b.category ?? '') || a.product.localeCompare(b.product)));
+  }, [packsOf, f.type, f.brand, f.price, f.size, f.diet, sort]);
+
+  useEffect(() => {
+    if (status === 'ready' && shown.length) trackViewItemList(head.title, shown);
+  }, [status, head.title, shown.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const others = storeCategories.filter((c) => c.slug !== category?.slug);
+  const select = (key: keyof typeof f, label: string, options: { value: string; label: string }[]) => options.length > 1 || f[key] ? (
+    <label className="filter">
+      <span className="filter__label">{label}</span>
+      <select value={f[key]} onChange={(e) => set(key, e.target.value)}>
+        <option value="">All</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </label>
+  ) : null;
 
   return (
     <div className="shop">
-      <header className={`coll-head wrap ${collection ? 'coll-head--media' : ''}`}>
+      <header className={`coll-head wrap ${head.image ? 'coll-head--media' : ''}`}>
         <div className="coll-head__text">
           <nav className="crumbs crumbs--inline" aria-label="Breadcrumb">
-            <Link to={paths.home(brand)}>{brand.name}</Link>
-            {collection && <><span aria-hidden="true">/</span><Link to={paths.shop(brand)}>{brand.shop.title}</Link></>}
+            <Link to="/">Home</Link>
+            {mode !== 'all' && <><span aria-hidden="true">/</span><Link to={paths.shop()}>Shop all</Link></>}
           </nav>
-          <h1 className="display display--lg">{title}</h1>
-          <p className="lede">{collection?.intro ?? brand.shop.intro}</p>
+          <h1 className="display display--lg">{head.title}</h1>
+          <p className="lede">{head.intro}</p>
         </div>
-        {collection && <div className="coll-head__media"><Img id={collection.image} eager sizes="(min-width: 900px) 40vw, 100vw" /></div>}
+        {head.image && <div className="coll-head__media"><Img id={head.image} eager sizes="(min-width: 900px) 40vw, 100vw" /></div>}
       </header>
 
-      <div className="filters wrap" role="region" aria-label="Collections and sorting">
-        <nav className="chips" aria-label={`${brand.name} collections`}>
-          <NavLink to={paths.shop(brand)} end className="chip">All</NavLink>
-          {brand.collections.map((c) => <NavLink key={c.slug} to={paths.collection(brand, c)} className="chip">{c.title}</NavLink>)}
-        </nav>
-        {shown.length > 1 && (
-          <label className="sort">
-            <span className="sr-only">Sort by</span>
-            <select value={sort} onChange={(e) => setSort(e.target.value)}>
+      <div className="filters wrap" role="region" aria-label="Filter and sort">
+        <div className="filters__row">
+          {select('type', 'Type', types.map((t) => ({ value: t, label: t })))}
+          {select('brand', 'Brand', brandCodes.map((b) => ({ value: b, label: brands[b as BrandCode].name })))}
+          {select('price', 'Price', priceOpts.map((p) => ({ value: p.key, label: p.label })))}
+          {select('size', 'Pack size', sizeOpts.map((s) => ({ value: s.key, label: s.label })))}
+          {diets.length > 0 && select('diet', 'Diet', diets.map((d) => ({ value: d, label: DIETS[d] ?? d })))}
+          <label className="filter filter--sort">
+            <span className="filter__label">Sort</span>
+            <select value={sort} onChange={(e) => set('sort', e.target.value === 'featured' ? '' : e.target.value)}>
               {Object.entries(SORTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
           </label>
-        )}
+          {active && (
+            <button type="button" className="linkbtn filters__clear" onClick={() => setParams(params.get('sort') ? { sort: params.get('sort')! } : {}, { replace: true })}>
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
-      <section className="wrap shop__results" aria-live="polite" aria-label={title}>
+      <section className="wrap shop__results" aria-live="polite" aria-label={head.title}>
         {status === 'loading' && <GridSkeleton n={4} />}
         {status === 'error' && <CatalogueStatus />}
         {status === 'ready' && (shown.length ? (
@@ -87,16 +167,31 @@ export default function BrandShop({ brand, collection }: { brand: Brand; collect
           </>
         ) : (
           <div className="soon">
-            <p className="eyebrow">{brand.theme === 'mt' ? 'In the kitchen' : 'In development'}</p>
-            <p className="soon__text">{collection?.comingSoon ?? 'New products are on their way.'}</p>
+            <p className="eyebrow">{active ? 'No matches' : 'Coming soon'}</p>
+            <p className="soon__text">{active ? 'Nothing matches those filters. Try removing one.' : category?.empty ?? 'New products are on their way.'}</p>
             <div className="soon__cta">
-              {ready.filter((c) => c.slug !== collection?.slug).slice(0, 2).map((c) => (
-                <Link key={c.slug} to={paths.collection(brand, c)} className="btn btn--line">See {c.title}</Link>
-              ))}
-              <Link to={paths.contact(brand)} className="arrow-link">Write to us <Icon name="arrow" size={18} /></Link>
+              {active
+                ? <button type="button" className="btn btn--line" onClick={() => setParams({}, { replace: true })}>Clear filters</button>
+                : <Link to={paths.shop()} className="btn btn--line">Shop all</Link>}
+              <Link to="/contact" className="arrow-link">Write to us <Icon name="arrow" size={18} /></Link>
             </div>
           </div>
         ))}
+      </section>
+
+      <section className="wrap section section--tight related-cats" aria-labelledby="more-h">
+        <h2 id="more-h" className="display display--sm">{mode === 'category' ? 'Explore more' : 'Shop by craving'}</h2>
+        <ul className="related-cats__list">
+          {(mode === 'category' ? others : storeCategories).map((c) => (
+            <li key={c.slug}>
+              <Link to={paths.category(c)} className="related-cat">
+                <span className="related-cat__img"><Img id={c.image} sizes="120px" alt="" /></span>
+                <span><strong>{c.title}</strong><small>{c.craving}</small></span>
+                <Icon name="arrow" size={18} />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );

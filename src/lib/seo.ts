@@ -24,6 +24,7 @@ export const absUrl = (path: string) => `${SITE_URL}${path.endsWith('/') ? path 
 
 /** Absolute address of a registered photo, for link previews. */
 export function imageUrl(id: string) {
+  if (/^https?:\/\//.test(id)) return id;
   const s = imageSet(id);
   if (!s) return undefined;
   const file = s.srcSet.split(', ').map((x) => x.split(' ')[0]).find((u) => u.includes('-1280.')) ?? s.src;

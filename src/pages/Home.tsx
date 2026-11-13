@@ -1,317 +1,180 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
-import { Icon, Img, Reveal, Text } from '../components/ui';
-import { miaTorte, mtHome, nsHome, nutriSampoorna, type Brand } from '../content/brands';
-import { house, site } from '../content/site';
-import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
+import { Icon, Img, Reveal } from '../components/ui';
+import { brandList } from '../content/brands';
+import { nourishmentTypes, storeCategories, storeHome } from '../content/store';
+import { bestsellers, inStoreCategory, newProducts, oneCardPerProduct, paths } from '../lib/brand';
 import { organisationLd, snippet, useSeo } from '../lib/seo';
-import { rupees, titleOf } from '../lib/format';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
 import { CatalogueStatus, GridSkeleton } from './Shop';
 
-/** One card per product (smallest pack), featured first, sold-out last. */
-function useFeatured(brand: Brand, n = 4) {
-  const { items } = useCatalogue();
-  return useMemo(() => {
-    return oneCardPerProduct(items.filter((i) => i.brand_code === brand.code))
-      .sort((a, b) => Number(a.availability === 'sold_out') - Number(b.availability === 'sold_out')
-        || Number(Boolean(itemContent(b).featured)) - Number(Boolean(itemContent(a).featured)))
-      .slice(0, n);
-  }, [items, brand.code, n]);
-}
+const cat = (slug: string) => storeCategories.find((c) => c.slug === slug)!;
+const lines = (t: string) => t.split('\n').map((l, i) => <span key={i} className="hero__line">{l}</span>);
 
-function Featured({ brand, eyebrow, title }: { brand: Brand; eyebrow: string; title: string }) {
+function Grid({ items, n = 4 }: { items: CatalogueItem[]; n?: number }) {
   const { status } = useCatalogue();
-  const featured = useFeatured(brand);
+  if (status === 'loading') return <GridSkeleton n={n} />;
+  if (status === 'error') return <CatalogueStatus />;
   return (
-    <section className="section wrap" aria-labelledby={`featured-${brand.code}`}>
-      <Reveal className="section__head">
-        <p className="eyebrow">{eyebrow}</p>
-        <h2 id={`featured-${brand.code}`} className="display display--md">{title}</h2>
-        <Link to={paths.shop(brand)} className="arrow-link">Shop {brand.name} <Icon name="arrow" size={18} /></Link>
-      </Reveal>
-      {status === 'loading' && <GridSkeleton n={3} />}
-      {status === 'error' && <CatalogueStatus />}
-      {status === 'ready' && (
-        <div className="grid grid--feature">
-          {featured.map((i, n) => <Reveal key={i.code} delay={n * 80}><ProductCard code={i.code} /></Reveal>)}
-        </div>
-      )}
-    </section>
+    <div className="grid grid--feature">
+      {items.slice(0, n).map((i, k) => <Reveal key={i.code} delay={k * 70}><ProductCard code={i.code} /></Reveal>)}
+    </div>
   );
 }
 
-/** Number of products (not pack sizes) in a collection. */
-const countIn = (items: CatalogueItem[], brand: Brand) => (slug: string) =>
-  new Set(items.filter((i) => i.brand_code === brand.code && inCollection(i, brand.collections.find((c) => c.slug === slug)!)).map((i) => i.product)).size;
-
-// ================================================================ Torte Living landing
-export function Landing() {
-  useSeo({ title: 'Torte Living · Mia Torte & Nutri Sampoorna', description: snippet(house.intro), image: 'craft-flour-hands', jsonLd: organisationLd });
+function SectionHead({ eyebrow, title, to, cta }: { eyebrow?: string; title: string; to: string; cta: string }) {
   return (
-    <>
-      <h1 className="sr-only">Torte Living: Mia Torte and Nutri Sampoorna</h1>
-      <section className="doors" aria-label="Our brands">
-        <Link to={paths.home(miaTorte)} className="door door--mt theme-mt">
-          <Img id="craft-flour-hands" eager className="door__img" sizes="(min-width: 900px) 56vw, 100vw" alt="" />
-          <span className="door__body">
-            <span className="door__kicker">{house.doors.MT.kicker}</span>
-            <span className="door__name">Mia Torte</span>
-            <span className="door__line">{house.doors.MT.line}</span>
-            <span className="door__cta">{house.doors.MT.cta} <Icon name="arrow" size={18} /></span>
-          </span>
-        </Link>
-        <Link to={paths.home(nutriSampoorna)} className="door door--ns theme-ns">
-          <span className="door__frame"><Img id="ns-seeds-spoons" eager className="door__img" sizes="(min-width: 900px) 40vw, 100vw" alt="" /></span>
-          <span className="door__body">
-            <span className="door__kicker">{house.doors.NS.kicker}</span>
-            <span className="door__name">Nutri Sampoorna</span>
-            <span className="door__line">{house.doors.NS.line}</span>
-            <span className="door__cta">{house.doors.NS.cta} <Icon name="arrow" size={18} /></span>
-          </span>
-        </Link>
-      </section>
-
-      <section className="house wrap" aria-labelledby="house-h">
-        <Reveal className="house__intro">
-          <p className="eyebrow">{house.eyebrow}</p>
-          <h2 id="house-h" className="display display--lg">{house.title.split('\n').map((l, i) => <span key={i} className="hero__line">{i === 1 ? <em>{l}</em> : l}</span>)}</h2>
-          <p className="lede">{house.intro}</p>
-        </Reveal>
-        <ul className="beliefs">
-          {house.beliefs.map((b, i) => (
-            <Reveal as="li" key={b.title} delay={i * 90} className="belief">
-              <span className="belief__no">0{i + 1}</span>
-              <h3 className="belief__title">{b.title}</h3>
-              <p>{b.text}</p>
-            </Reveal>
-          ))}
-        </ul>
-      </section>
-
-      <section className="closing wrap">
-        <Reveal className="closing__inner">
-          <Icon name="hand" size={30} />
-          <h2 className="display display--sm">One bag, both houses.</h2>
-          <p>Shop Mia Torte and Nutri Sampoorna together and check out once. {site.codNote}</p>
-          <div className="closing__cta">
-            <Link to="/track" className="btn btn--line">Track an order</Link>
-          </div>
-        </Reveal>
-      </section>
-    </>
+    <Reveal className="section__head">
+      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+      <h2 className="display display--md">{lines(title)}</h2>
+      <Link to={to} className="arrow-link">{cta} <Icon name="arrow" size={18} /></Link>
+    </Reveal>
   );
 }
 
-// ================================================================ Mia Torte
-export function MtHome() {
-  const brand = miaTorte;
-  const { items, comingSoon } = useCatalogue();
-  const count = countIn(items, brand);
-  const hero = useFeatured(brand, 1)[0];
-  const productCount = new Set(items.filter((i) => i.brand_code === brand.code).map((i) => i.product)).size;
-  useSeo({ title: `${brand.name} · ${brand.tagline}`, description: snippet(brand.blurb), image: brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl', jsonLd: organisationLd });
-
-  return (
-    <>
-      <section className="hero">
-        <div className="hero__text">
-          <p className="eyebrow hero__in" style={{ animationDelay: '80ms' }}>{mtHome.heroEyebrow}</p>
-          <h1 className="display hero__title hero__in" style={{ animationDelay: '160ms' }}>
-            {mtHome.heroTitle.split('\n').map((l, i) => <span key={i} className="hero__line">{i === 1 ? <em>{l}</em> : l}</span>)}
-          </h1>
-          <p className="lede hero__in" style={{ animationDelay: '240ms' }}>{mtHome.heroText}</p>
-          <div className="hero__cta hero__in" style={{ animationDelay: '320ms' }}>
-            <Link to={paths.shop(brand)} className="btn btn--dark">Visit the counter</Link>
-            <Link to={paths.story(brand)} className="btn btn--line">Our story</Link>
-          </div>
-        </div>
-        <div className="hero__media">
-          <Img id="craft-flour-hands" eager sizes="(min-width: 900px) 52vw, 100vw" className="hero__img" />
-          {hero && (comingSoon(hero) ? (
-            <Link to={paths.shop(brand)} className="hero__chip">
-              <span className="hero__chip-label">Opening soon</span>
-              <span className="hero__chip-name">{productCount} creations, coming to the counter</span>
-              <span className="hero__chip-price">See the repertoire <Icon name="arrow" size={16} /></span>
-            </Link>
-          ) : (
-            <Link to={paths.product(hero)} className="hero__chip">
-              <span className="hero__chip-label">On the counter</span>
-              <span className="hero__chip-name">{titleOf(hero)}</span>
-              <span className="hero__chip-price">{rupees(hero.price)} <Icon name="arrow" size={16} /></span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="manifesto" aria-label="Our approach">
-        <Reveal className="wrap manifesto__inner">
-          <p className="manifesto__quote">{mtHome.manifesto}</p>
-        </Reveal>
-      </section>
-
-      <Featured brand={brand} eyebrow={mtHome.featuredEyebrow} title={mtHome.featuredTitle} />
-
-      <section className="story" aria-labelledby="story-h">
-        <Reveal className="story__media"><Img id="craft-kneading" sizes="(min-width: 900px) 45vw, 100vw" /></Reveal>
-        <Reveal className="story__text" delay={120}>
-          <p className="eyebrow eyebrow--light">{mtHome.storyEyebrow}</p>
-          <h2 id="story-h" className="display display--md">{mtHome.storyTitle}</h2>
-          <p className="lede">{mtHome.storyText}</p>
-          <Link to={paths.story(brand)} className="arrow-link arrow-link--light">Read our story <Icon name="arrow" size={18} /></Link>
-        </Reveal>
-      </section>
-
-      <section className="section wrap" aria-labelledby="cat-h">
-        <Reveal className="section__head">
-          <p className="eyebrow">{mtHome.repertoireEyebrow}</p>
-          <h2 id="cat-h" className="display display--md">{mtHome.repertoireTitle}</h2>
-        </Reveal>
-        <ul className={`cats ${brand.collections.length === 4 ? 'cats--4' : ''}`}>
-          {brand.collections.map((c, n) => {
-            const k = count(c.slug);
-            return (
-              <Reveal as="li" key={c.slug} delay={(n % 4) * 80} className="cat">
-                <Link to={paths.collection(brand, c)} className="cat__link" aria-label={`${c.title}${k ? '' : ', coming soon'}`}>
-                  <Img id={c.image} sizes="(min-width: 900px) 24vw, 50vw" className="cat__img" />
-                  <span className="cat__body">
-                    <span className="cat__brand">{k ? `${k} ${k === 1 ? 'creation' : 'creations'}` : 'In the kitchen'}</span>
-                    <span className="cat__name">{c.title}</span>
-                  </span>
-                </Link>
-              </Reveal>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="promises" aria-label="How we bake">
-        <ul className="wrap promises__list">
-          {mtHome.principles.map((p, i) => (
-            <Reveal as="li" key={p.title} delay={i * 90} className="promise">
-              <span className="promise__no">0{i + 1}</span>
-              <h2 className="promise__title">{p.title}</h2>
-              <Text as="p" copy={p.text} />
-            </Reveal>
-          ))}
-        </ul>
-      </section>
-
-      <section className="bespoke" aria-labelledby="bespoke-h">
-        <div className="wrap bespoke__grid">
-          <Reveal className="bespoke__media"><Img id="mt-seasonal-tarts" sizes="(min-width: 900px) 40vw, 100vw" /></Reveal>
-          <Reveal className="bespoke__text" delay={100}>
-            <p className="eyebrow">{mtHome.bespokeEyebrow}</p>
-            <h2 id="bespoke-h" className="display display--md">{mtHome.bespokeTitle}</h2>
-            <Text as="p" className="lede" copy={mtHome.bespokeText} />
-            <div className="hero__cta">
-              <Link to={paths.contact(brand)} className="btn btn--dark">Enquire</Link>
-              <Link to={paths.collection(brand, brand.collections.find((c) => c.slug === 'gifting') ?? brand.collections[0])} className="btn btn--line">Gifting</Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-    </>
-  );
-}
-
-// ================================================================ Nutri Sampoorna
-export function NsHome() {
-  const brand = nutriSampoorna;
+/** The store's home page (Website Design Brief §5): appetite and discovery first, company story last. */
+export function StoreHome() {
   const { items } = useCatalogue();
-  const count = countIn(items, brand);
-  useSeo({ title: `${brand.name} · ${brand.tagline}`, description: snippet(brand.blurb), image: brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl', jsonLd: organisationLd });
+  useSeo({
+    title: 'Torte Living · Cookies, better snacks and everyday staples',
+    description: snippet(`${storeHome.heroTitle.replace('\n', ' ')} ${storeHome.heroText}`),
+    image: 'craft-flour-hands',
+    jsonLd: organisationLd,
+  });
+
+  const best = useMemo(() => bestsellers(items, 8), [items]);
+  const cards = useMemo(() => oneCardPerProduct(items), [items]);
+  const snacking = useMemo(() => cards.filter((i) => inStoreCategory(i, cat('better-snacking'))), [cards]);
+  const nourishing = useMemo(() => cards.filter((i) => inStoreCategory(i, cat('everyday-nourishment'))), [cards]);
+  const gifting = useMemo(() => cards.filter((i) => inStoreCategory(i, cat('gifting-discovery'))), [cards]);
+  // New discoveries: the backend's "new" flag; until it exists, products not already shown above.
+  const discoveries = useMemo(() => {
+    const flagged = newProducts(items);
+    if (flagged.length) return flagged;
+    const shown = new Set([...best.slice(0, 4), ...snacking.slice(0, 4), ...nourishing.slice(0, 4)].map((i) => i.product));
+    return cards.filter((i) => !shown.has(i.product));
+  }, [items, cards, best, snacking, nourishing]);
+  const nourishCounts = (type: string) => new Set(items.filter((i) => (i.category ?? '').toLowerCase() === type.toLowerCase()).map((i) => i.product)).size;
 
   return (
     <>
-      <section className="ns-hero wrap">
-        <div className="ns-hero__text">
-          <p className="eyebrow hero__in" style={{ animationDelay: '80ms' }}>{nsHome.heroEyebrow}</p>
-          <h1 className="display ns-hero__title hero__in" style={{ animationDelay: '160ms' }}>
-            {nsHome.heroTitle.split('\n').map((l, i) => <span key={i} className="hero__line">{i === 1 ? <em>{l}</em> : l}</span>)}
-          </h1>
-          <p className="lede hero__in" style={{ animationDelay: '240ms' }}>{nsHome.heroText}</p>
-          <div className="hero__cta hero__in" style={{ animationDelay: '320ms' }}>
-            <Link to={paths.shop(brand)} className="btn btn--dark">Explore the shelf</Link>
-            <Link to={paths.story(brand)} className="btn btn--line">Our philosophy</Link>
+      {/* 2 · Main banner */}
+      <section className="store-hero">
+        <div className="store-hero__media"><Img id="craft-flour-hands" eager sizes="100vw" className="store-hero__img" alt="" /></div>
+        <div className="wrap store-hero__inner">
+          <div className="store-hero__card hero__in">
+            <h1 className="display store-hero__title">{lines(storeHome.heroTitle)}</h1>
+            <p className="lede">{storeHome.heroText}</p>
+            <div className="hero__cta">
+              <Link to={paths.shop()} className="btn btn--dark">Shop now</Link>
+              <Link to={paths.bestsellers()} className="btn btn--line">Bestsellers</Link>
+            </div>
           </div>
         </div>
-        <div className="ns-hero__media hero__in" style={{ animationDelay: '200ms' }}>
-          <Img id="ns-atta-bowl" eager sizes="(min-width: 900px) 42vw, 100vw" />
-        </div>
       </section>
 
-      <section className="index wrap" aria-labelledby="index-h">
-        <Reveal className="section__head">
-          <p className="eyebrow">{nsHome.shelfEyebrow}</p>
-          <h2 id="index-h" className="display display--md">{nsHome.shelfTitle}</h2>
-        </Reveal>
-        <ol className="index__list">
-          {brand.collections.map((c, n) => {
-            const k = count(c.slug);
-            return (
-              <Reveal as="li" key={c.slug} delay={n * 60}>
-                <Link to={paths.collection(brand, c)} className="index__row">
-                  <span className="index__no">{String(n + 1).padStart(2, '0')}</span>
-                  <span className="index__thumb"><Img id={c.image} sizes="120px" alt="" /></span>
-                  <span className="index__main">
-                    <span className="index__title">{c.title}</span>
-                    <span className="index__intro">{c.intro}</span>
-                  </span>
-                  <span className="index__count">{k ? `${k} ${k === 1 ? 'product' : 'products'}` : 'In development'}</span>
-                  <Icon name="arrow" size={20} className="index__arrow" />
-                </Link>
-              </Reveal>
-            );
-          })}
-        </ol>
-      </section>
-
-      <Featured brand={brand} eyebrow={nsHome.featuredEyebrow} title={nsHome.featuredTitle} />
-
-      <section className="band" aria-labelledby="band-h">
-        <Img id="ns-grain-texture" sizes="100vw" className="band__img" alt="" />
-        <Reveal className="band__card">
-          <h2 id="band-h" className="display display--md">{nsHome.bandTitle}</h2>
-          <p>{nsHome.bandText}</p>
-          <Link to={paths.story(brand)} className="arrow-link">Our philosophy <Icon name="arrow" size={18} /></Link>
-        </Reveal>
-      </section>
-
-      <section className="section wrap" aria-labelledby="principles-h">
-        <Reveal className="section__head">
-          <h2 id="principles-h" className="display display--md">{nsHome.principlesTitle}</h2>
-        </Reveal>
-        <ul className="principles">
-          {nsHome.principles.map((p, i) => (
-            <Reveal as="li" key={p.title} delay={i * 70} className="principle">
-              <span className="principle__no">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="principle__title">{p.title}</h3>
-              <p>{p.text}</p>
+      {/* 3 · Shop by craving */}
+      <section className="section section--tight wrap" aria-labelledby="craving-h">
+        <Reveal className="section__head"><h2 id="craving-h" className="display display--md">{storeHome.cravingTitle}</h2></Reveal>
+        <ul className="cats cats--4">
+          {storeCategories.map((c, n) => (
+            <Reveal as="li" key={c.slug} delay={n * 70} className="cat">
+              <Link to={paths.category(c)} className="cat__link">
+                <Img id={c.image} sizes="(min-width: 900px) 24vw, 50vw" className="cat__img" />
+                <span className="cat__body">
+                  <span className="cat__brand">{c.title}</span>
+                  <span className="cat__name">{c.craving}</span>
+                </span>
+              </Link>
             </Reveal>
           ))}
         </ul>
       </section>
 
-      <section className="library" aria-labelledby="library-h">
-        <div className="wrap">
-          <Reveal className="section__head">
-            <p className="eyebrow">{nsHome.libraryEyebrow}</p>
-            <h2 id="library-h" className="display display--md">{nsHome.libraryTitle}</h2>
-            <p className="lede">{nsHome.libraryIntro}</p>
+      {/* 4 · Bestsellers */}
+      <section className="section section--tight wrap" aria-label="Bestsellers">
+        <SectionHead title={storeHome.bestsellersTitle} to={paths.bestsellers()} cta="See all bestsellers" />
+        <Grid items={best} />
+      </section>
+
+      {/* 5 · Better Snacking */}
+      <section className="feature-band" aria-labelledby="snack-h">
+        <div className="wrap feature-band__grid">
+          <Reveal className="feature-band__text">
+            <p className="eyebrow eyebrow--light">{storeHome.snacking.eyebrow}</p>
+            <h2 id="snack-h" className="display display--md">{lines(storeHome.snacking.title)}</h2>
+            <p className="lede">{storeHome.snacking.text}</p>
+            <Link to={paths.category(cat('better-snacking'))} className="btn btn--cream">Shop Better Snacking</Link>
           </Reveal>
-          <ul className="library__grid">
-            {nsHome.library.map((g, i) => (
-              <Reveal as="li" key={g.name} delay={(i % 3) * 70} className="grain">
-                <h3 className="grain__name">{g.name}</h3>
-                <p className="grain__also">{g.also}</p>
-                <p className="grain__text">{g.text}</p>
-              </Reveal>
-            ))}
-          </ul>
+          <div className="feature-band__products"><Grid items={snacking} n={4} /></div>
         </div>
+      </section>
+
+      {/* 6 · Everyday Nourishment */}
+      <section className="section wrap" aria-labelledby="nourish-h">
+        <Reveal className="section__head">
+          <p className="eyebrow">{storeHome.nourishment.eyebrow}</p>
+          <h2 id="nourish-h" className="display display--md">{storeHome.nourishment.title}</h2>
+          <p className="lede">{storeHome.nourishment.text}</p>
+        </Reveal>
+        <ul className="type-links">
+          {nourishmentTypes.map((t) => (
+            <li key={t}>
+              <Link to={`${paths.category(cat('everyday-nourishment'))}?type=${encodeURIComponent(t)}`} className="type-link">
+                <span>{t}</span><small>{nourishCounts(t) || ''} {nourishCounts(t) === 1 ? 'product' : nourishCounts(t) ? 'products' : ''}</small>
+                <Icon name="arrow" size={18} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <Grid items={nourishing} />
+      </section>
+
+      {/* 7 · New discoveries */}
+      {discoveries.length > 0 && (
+        <section className="section section--tight wrap" aria-label="New discoveries">
+          <SectionHead eyebrow={storeHome.discoveries.eyebrow} title={storeHome.discoveries.title} to={paths.shop()} cta="Shop all" />
+          <Grid items={discoveries} />
+        </section>
+      )}
+
+      {/* 8 · Bundles and gifting */}
+      <section className="gifting" aria-labelledby="gift-h">
+        <div className="wrap gifting__grid">
+          <Reveal className="gifting__media"><Img id="mt-gifting-box" sizes="(min-width: 900px) 40vw, 100vw" /></Reveal>
+          <Reveal className="gifting__text" delay={80}>
+            <p className="eyebrow">{storeHome.gifting.eyebrow}</p>
+            <h2 id="gift-h" className="display display--md">{storeHome.gifting.title}</h2>
+            <p className="lede">{storeHome.gifting.text}</p>
+            {gifting.length > 0
+              ? <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">Shop gifting</Link>
+              : <p className="gifting__soon">{cat('gifting-discovery').empty} <Link to="/contact">Write to us</Link></p>}
+          </Reveal>
+        </div>
+        {gifting.length > 0 && <div className="wrap"><Grid items={gifting} /></div>}
+      </section>
+
+      {/* 9 · Brand and company information */}
+      <section className="section wrap company" aria-labelledby="company-h">
+        <Reveal className="company__intro">
+          <p className="eyebrow">{storeHome.company.eyebrow}</p>
+          <h2 id="company-h" className="display display--sm">{storeHome.company.title}</h2>
+          <p>{storeHome.company.text}</p>
+          <Link to="/about" className="arrow-link">About Torte Living <Icon name="arrow" size={18} /></Link>
+        </Reveal>
+        <ul className="company__brands">
+          {brandList.map((b) => (
+            <li key={b.code}>
+              <Link to={paths.brand(b)} className="brand-card">
+                <span className="brand-card__name">{b.name}</span>
+                <span className="brand-card__line">{b.tagline}</span>
+                <span className="arrow-link">Our story <Icon name="arrow" size={16} /></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </>
   );
