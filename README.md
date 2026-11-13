@@ -122,6 +122,21 @@ placeholders** from Unsplash (free under the Unsplash Licence), credited in
    and list a product's photo ids in its `images` in `src/content/products.ts`; they replace
    the illustration automatically.
 
+## Test orders (before there is stock)
+
+Open any page with `?test=1` to turn on **test mode** in that browser (`?test=0` or the banner's
+"Exit test mode" turns it off). While it's on:
+
+* a striped banner shows on every page;
+* sold-out and coming-soon packs can go in the bag (up to 5 per line);
+* checkout has a **Fill test details** button (Test Customer, a 9000000xxx phone, a
+  "TEST ORDER – do not ship" address);
+* quote and place requests carry `"test": true`.
+
+The server decides: the `storefront-order` function accepts test orders only while the ops app's
+testing mode is on (More → Testing tools), and marks them as test orders. Then follow each one
+through in the ops app: Orders → Process → pack → dispatch → record the cash on delivery.
+
 ## Placeholder business rules
 
 * Delivery: ₹60 per order, free when the subtotal is above ₹999. The constants are in

@@ -8,6 +8,7 @@ import BrandShop from './pages/Shop';
 import Product from './pages/Product';
 import { BrandContact, BrandStory, Credits, InfoPage, NotFound } from './pages/Info';
 import { OrderConfirmed, Track } from './pages/Order';
+import { exitTestMode, testMode } from './lib/testmode';
 
 const Checkout = lazy(() => import('./pages/Checkout'));
 
@@ -45,6 +46,12 @@ export default function App() {
   return (
     <>
       <a href="#main" className="skip">Skip to content</a>
+      {testMode && (
+        <div className="testbar" role="status">
+          <strong>Test mode</strong> Sold-out items can be ordered; orders are sent as test orders.
+          <button type="button" onClick={exitTestMode}>Exit test mode</button>
+        </div>
+      )}
       <RouteEffects />
       <Header />
       <CartDrawer />

@@ -14,6 +14,7 @@ const EMPTY: Form = { name: '', phone: '', email: '', address1: '', address2: ''
 const FORM_KEY = 'mia-torte-checkout-form';
 const ATTEMPT_KEY = 'mia-torte-checkout-attempt';
 import { LAST_ORDER_KEY } from '../lib/keys';
+import { testCustomer, testMode } from '../lib/testmode';
 
 // Mirrors the Edge Function's checks so shoppers get instant feedback (the server re-checks everything).
 function normalisePhone(raw: string) {
@@ -132,7 +133,7 @@ export default function Checkout() {
       const summary = {
         code: res.order_code, status: res.status, stock_reserved: res.stock_reserved !== false,
         total: res.total ?? quote.total, lines: quote.lines.map((l) => ({ name: l.name, qty: l.qty })),
-        name: form.name.trim().split(' ')[0], phone: normalisePhone(form.phone),
+        name: form.name.trim().split(' ')[0], phone: normalisePhone(form.phone), test: res.test ?? testMode,
       };
       try {
         sessionStorage.setItem(LAST_ORDER_KEY, JSON.stringify(summary));
@@ -162,6 +163,9 @@ export default function Checkout() {
         setBanner({ tone: 'error', text: Object.keys(fe).length ? 'Please check the highlighted details.' : 'Something about this order could not be accepted. Please refresh the page and try again.' });
         break;
       }
+      case 'test_mode_off':
+        setBanner({ tone: 'error', text: 'Test orders are switched off. Turn on testing mode in the ops app (More → Testing tools), then try again.' });
+        break;
       case 'too_many_orders':
         setBanner({ tone: 'error', text: 'We have received several orders from this phone number today. Please contact us to place another.' });
         break;
@@ -250,6 +254,12 @@ export default function Checkout() {
 
       <div className="checkout__grid">
         <form ref={formRef} className="checkout__form" onSubmit={onSubmit} noValidate>
+          {testMode && (
+            <div className="banner banner--info test-fill">
+              <span><strong>Test mode.</strong> This order is sent as a test order.</span>
+              <button type="button" className="btn btn--line" onClick={() => { setForm((f) => ({ ...f, ...testCustomer() })); setErrors({}); }}>Fill test details</button>
+            </div>
+          )}
           {banner && <div ref={bannerRef} tabIndex={-1} className={`banner banner--${banner.tone}`} role="alert">{banner.text}</div>}
 
           <fieldset className="fs">

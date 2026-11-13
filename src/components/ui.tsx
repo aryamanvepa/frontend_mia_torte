@@ -89,7 +89,8 @@ export function Price({ item, size = 'md' }: { item: Pick<CatalogueItem, 'price'
   );
 }
 
-export function StockNote({ item, soon }: { item: Pick<CatalogueItem, 'availability' | 'only_left'>; soon?: boolean }) {
+export function StockNote({ item, soon }: { item: Pick<CatalogueItem, 'availability' | 'only_left' | 'test_stock'>; soon?: boolean }) {
+  if (item.test_stock) return <span className="stock stock--test">Test mode: can be ordered</span>;
   if (soon) return <span className="stock stock--soon">Coming soon</span>;
   if (item.availability === 'sold_out') return <span className="stock stock--out">Sold out</span>;
   if (item.only_left) return <span className="stock stock--low">Only {item.only_left} left</span>;

@@ -7,7 +7,7 @@ import { rupees } from '../lib/format';
 import { LAST_ORDER_KEY } from '../lib/keys';
 
 interface LastOrder {
-  code: string; status: string | null; stock_reserved: boolean; total: number;
+  code: string; status: string | null; stock_reserved: boolean; total: number; test?: boolean;
   lines: { name: string; qty: number }[]; name: string; phone: string | null;
 }
 
@@ -40,7 +40,10 @@ export function OrderConfirmed() {
           <button className="linkbtn" onClick={copy} aria-live="polite"><Icon name="copy" size={16} /> {copied ? 'Copied' : 'Copy'}</button>
         </div>
 
-        {last && !last.stock_reserved && (
+        {last?.test && (
+          <p className="banner banner--info"><strong>Test order.</strong> Follow it through in the ops app: Orders → Process → pack, dispatch and record the cash on delivery.</p>
+        )}
+        {last && !last.test && !last.stock_reserved && (
           <p className="banner banner--info">One of your items ran short just as you ordered. We will call you to confirm before dispatch.</p>
         )}
 

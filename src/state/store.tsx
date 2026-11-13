@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { backendConfigured, fetchCatalogue, type CatalogueItem } from '../lib/api';
+import { TEST_MAX, testMode } from '../lib/testmode';
 
 // ---------------------------------------------------------------- catalogue
 interface CatalogueState {
@@ -31,7 +32,10 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     }
     try {
       const rows = await fetchCatalogue();
-      setItems(rows);
+      // Test mode: every pack can go in the bag (the server decides whether the order is accepted).
+      setItems(testMode ? rows.map((r) => (r.availability === 'sold_out'
+        ? { ...r, availability: 'in_stock' as const, max_qty: TEST_MAX, only_left: null, test_stock: true }
+        : r)) : rows);
       setStatus('ready');
       setError(null);
       loadedAt.current = Date.now();

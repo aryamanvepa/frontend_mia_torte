@@ -1,3 +1,4 @@
+import { testMode } from './testmode';
 // Talks to the Torte Living back end with the publishable key only.
 //   reads:  storefront_catalogue, storefront_order_status (database functions)
 //   writes: the storefront-order Edge Function (quote + place)
@@ -25,6 +26,8 @@ export interface CatalogueItem {
   max_qty: number;
   /** Label details entered in the ops app (Admin → Products); the same for every pack of a product. */
   details?: ProductDetails | null;
+  /** Test mode only: sold out in reality, made orderable for test orders. */
+  test_stock?: boolean;
 }
 
 export type Diet = 'veg' | 'vegan' | 'egg' | 'non_veg';
@@ -59,7 +62,7 @@ export interface PlaceBody {
   website: string; // honeypot
 }
 export type PlaceResult =
-  | { ok: true; order_code: string; status: string | null; stock_reserved?: boolean; total?: number; duplicate: boolean }
+  | { ok: true; order_code: string; status: string | null; stock_reserved?: boolean; total?: number; duplicate: boolean; test?: boolean }
   | { ok: false; error: 'sold_out'; problems: Problem[] }
   | { ok: false; error: 'price_changed'; lines: QuoteLine[]; subtotal: number; shipping: number; total: number }
   | { ok: false; error: 'invalid'; fields: Record<string, string> }
@@ -123,7 +126,10 @@ async function callOrderFunction<T>(body: unknown): Promise<T> {
   }
 }
 
-export const getQuote = (lines: { sku_code: string; qty: number }[]) =>
-  callOrderFunction<Quote | { ok: false; error: string }>({ action: 'quote', lines });
+// In test mode both requests carry "test": true; the server decides whether to honour it.
+const testFlag = testMode ? { test: true } : {};
 
-export const placeOrder = (body: PlaceBody) => callOrderFunction<PlaceResult>({ action: 'place', ...body });
+export const getQuote = (lines: { sku_code: string; qty: number }[]) =>
+  callOrderFunction<Quote | { ok: false; error: string }>({ action: 'quote', lines, ...testFlag });
+
+export const placeOrder = (body: PlaceBody) => callOrderFunction<PlaceResult>({ action: 'place', ...body, ...testFlag });
