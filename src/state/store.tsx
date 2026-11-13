@@ -1,11 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { backendConfigured, fetchCatalogue, type CatalogueItem } from '../lib/api';
+import { backendConfigured, fetchCatalogue, getQuote, type CatalogueItem, type ProductStatus } from '../lib/api';
 import { TEST_MAX, testMode } from '../lib/testmode';
 import { trackAddToCart } from '../lib/analytics';
 
 // ---------------------------------------------------------------- catalogue
 interface CatalogueState {
+  /** Everything the shop lists (discontinued packs left out). */
   items: CatalogueItem[];
+  /** Every pack, discontinued ones included (for old links and bags). */
   byCode: Map<string, CatalogueItem>;
   status: 'loading' | 'ready' | 'error';
   error: string | null;
@@ -16,6 +18,10 @@ interface CatalogueState {
    * products has stock, normal "Sold out" labels return.
    */
   comingSoon: (item: Pick<CatalogueItem, 'brand_code' | 'availability'>) => boolean;
+  /** One of the four shopper-facing statuses (backend `status` when present). */
+  statusOf: (item: CatalogueItem) => ProductStatus;
+  /** Delivery charge rule from the server (flat charge, free above), once known. */
+  shipping: { flat: number; free_above: number } | null;
 }
 const CatalogueCtx = createContext<CatalogueState | null>(null);
 
@@ -23,6 +29,7 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CatalogueItem[]>([]);
   const [status, setStatus] = useState<CatalogueState['status']>('loading');
   const [error, setError] = useState<string | null>(null);
+  const [shipping, setShipping] = useState<CatalogueState['shipping']>(null);
   const loadedAt = useRef(0);
 
   const reload = useCallback(async () => {
@@ -34,7 +41,7 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     try {
       const rows = await fetchCatalogue();
       // Test mode: every pack can go in the bag (the server decides whether the order is accepted).
-      setItems(testMode ? rows.map((r) => (r.availability === 'sold_out'
+      setItems(testMode ? rows.map((r) => (r.availability === 'sold_out' && r.status !== 'discontinued'
         ? { ...r, availability: 'in_stock' as const, max_qty: TEST_MAX, only_left: null, test_stock: true }
         : r)) : rows);
       setStatus('ready');
@@ -54,11 +61,26 @@ export function CatalogueProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [reload]);
 
+  // The delivery rule (for "free delivery above …") comes from the server's quote, once per visit.
+  const firstCode = items[0]?.code;
+  useEffect(() => {
+    if (!firstCode || shipping) return;
+    getQuote([{ sku_code: firstCode, qty: 1 }]).then((q) => { if (q.ok) setShipping(q.shipping_rule); }).catch(() => {});
+  }, [firstCode, shipping]);
+
   const value = useMemo(() => {
     const stocked = new Set(items.filter((i) => i.availability !== 'sold_out').map((i) => i.brand_code));
     const comingSoon = (i: Pick<CatalogueItem, 'brand_code' | 'availability'>) => i.availability === 'sold_out' && !stocked.has(i.brand_code);
-    return { items, byCode: new Map(items.map((i) => [i.code, i])), status, error, reload, comingSoon };
-  }, [items, status, error, reload]);
+    const statusOf = (i: CatalogueItem): ProductStatus => {
+      if (i.status === 'discontinued') return 'discontinued';
+      if (i.test_stock) return 'available';
+      if (i.status) return i.status === 'available' && i.availability === 'sold_out' ? 'out_of_stock' : i.status;
+      if (i.availability !== 'sold_out' && i.max_qty > 0) return 'available';
+      return comingSoon(i) ? 'coming_soon' : 'out_of_stock';
+    };
+    const listed = items.filter((i) => i.status !== 'discontinued');
+    return { items: listed, byCode: new Map(items.map((i) => [i.code, i])), status, error, reload, comingSoon, statusOf, shipping };
+  }, [items, status, error, reload, shipping]);
   return <CatalogueCtx.Provider value={value}>{children}</CatalogueCtx.Provider>;
 }
 export const useCatalogue = () => useContext(CatalogueCtx)!;
@@ -106,6 +128,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(lines)); } catch { /* private mode: bag lasts for this visit */ }
   }, [lines]);
 
+  // Test mode only: ?bag=demo fills the bag with a mixed basket from both brands, for reviews.
+  const { items: listed } = useCatalogue();
+  useEffect(() => {
+    if (!testMode || !listed.length) return;
+    const u = new URL(window.location.href);
+    if (u.searchParams.get('bag') !== 'demo') return;
+    const pick = (product: string, grams?: number) => {
+      const packs = listed.filter((i) => i.product === product).sort((a, b) => a.pack_grams - b.pack_grams);
+      return (grams ? packs.find((p) => p.pack_grams === grams) : undefined) ?? packs[0];
+    };
+    const demo = [
+      [pick('Classic Chocolate Chip'), 2], [pick('Peri Peri Trail Mix'), 1],
+      [pick('Multigrain Superseed Atta (MGA)', 1000), 1], [pick('Instant Pesarattu Dosa Mix'), 1],
+    ] as const;
+    setLines(demo.filter(([i]) => i).map(([i, qty]) => ({ code: i!.code, qty })));
+    u.searchParams.delete('bag');
+    window.history.replaceState(window.history.state, '', u.toString());
+    setDrawerOpen(true);
+  }, [listed.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Keep several tabs in step.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => { if (e.key === STORAGE_KEY) setLines(readStored()); };
@@ -148,7 +190,8 @@ export function useBag() {
   return useMemo(() => {
     const rows = lines.map((l) => {
       const item = byCode.get(l.code) ?? null;
-      const max = item ? item.max_qty : 0;
+      const gone = !item || item.status === 'discontinued';
+      const max = item && !gone ? item.max_qty : 0;
       return { ...l, item, max, short: status === 'ready' && (!item || l.qty > max) };
     });
     const subtotal = rows.reduce((s, r) => s + (r.item ? r.item.price * r.qty : 0), 0);

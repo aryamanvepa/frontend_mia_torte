@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList } from '../content/brands';
 import { site } from '../content/site';
-import { storeCategories } from '../content/store';
+import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
-import { bestsellers, isNew, itemContent, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
-import { rupees, packFull, packLabel, titleOf } from '../lib/format';
+import { bestsellers, isNew, itemContent, oneCardPerProduct, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
+import { rupees, packFull, savingPct, titleOf } from '../lib/format';
 import { search } from '../lib/search';
 import { useBag, useCart, useCatalogue } from '../state/store';
 import { Icon, Img, Stepper, Text } from './ui';
@@ -62,9 +62,9 @@ function SearchBox({ onDone, autoFocus }: { onDone?: () => void; autoFocus?: boo
 // ---------------------------------------------------------------- header
 export function Header() {
   const { count, openDrawer, bump } = useCart();
+  const { shipping } = useCatalogue();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [pulse, setPulse] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
@@ -80,7 +80,7 @@ export function Header() {
     return () => { ro?.disconnect(); window.removeEventListener('resize', set); };
   }, []);
 
-  useEffect(() => { setMenu(false); setSearching(false); }, [pathname]);
+  useEffect(() => { setMenu(false); }, [pathname]);
   useEffect(() => {
     if (!bump) return;
     setPulse(true);
@@ -89,17 +89,18 @@ export function Header() {
   }, [bump]);
   useEffect(() => {
     document.body.classList.toggle('no-scroll', menu);
-    if (!menu && !searching) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setMenu(false); setSearching(false); } };
+    if (!menu) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenu(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [menu, searching]);
+  }, [menu]);
 
   return (
     <>
       <div className="topbar">
         <div className="wrap topbar__inner">
-          <p className="topbar__note"><Icon name="hand" size={15} /> Pay on delivery · Mixed baskets, one checkout</p>
+          {/* Service promise, not payment: payment options are shown at checkout and in the footer. */}
+          <p className="topbar__note"><Icon name="truck" size={15} /> {shipping ? `Free delivery on orders over ${rupees(shipping.free_above)}` : 'Delivering across India'}<span className="topbar__extra"> · One basket for the whole store</span></p>
           <div className="topbar__right">
             <NavLink to="/track" className="topbar__link">Track an order</NavLink>
             <NavLink to="/contact" className="topbar__link">Help</NavLink>
@@ -117,24 +118,22 @@ export function Header() {
           </div>
           <Link to="/" className="header__mark" aria-label={`${site.name}, home`}><Wordmark /></Link>
           <div className="header__right">
-            <button className="icon-btn header__search-btn" onClick={() => setSearching((s) => !s)} aria-expanded={searching} aria-controls="search-panel" aria-label="Search">
-              <Icon name="search" size={22} />
-            </button>
             {/* Account icon hidden until customer accounts (backend B8) are approved. */}
             <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
               <Icon name="bag" size={24} />
+              <span className="bag-btn__label" aria-hidden="true">Bag</span>
               <span className={`bag-btn__count ${count ? '' : 'is-empty'}`} aria-hidden="true">{count}</span>
             </button>
           </div>
         </div>
-        {searching && <div id="search-panel" className="search-panel wrap"><SearchBox autoFocus onDone={() => setSearching(false)} /></div>}
+        {/* Phones and tablets: search is always on screen, under the logo. */}
+        <div className="search-row wrap"><SearchBox /></div>
         <nav className="header__nav" aria-label="Shop">
           <ul className="wrap">
             {NAV.map((l) => <li key={l.to}><NavLink to={l.to} end className="navlink">{l.label}</NavLink></li>)}
           </ul>
         </nav>
         <div id="mobile-menu" className={`mobile-menu ${menu ? 'is-open' : ''}`} hidden={!menu}>
-          <SearchBox onDone={() => setMenu(false)} />
           <nav aria-label="Shop (menu)">
             <ul>{NAV.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}</ul>
             <ul className="mobile-menu__minor">
@@ -190,7 +189,7 @@ export function Footer() {
       </div>
       <div className="wrap footer__legal">
         <p>Mia Torte and Nutri Sampoorna are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
-        <p>© {year} {site.legalEntity}. All prices include GST.</p>
+        <p>© {year} {site.legalEntity}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>
     </footer>
@@ -198,25 +197,39 @@ export function Footer() {
 }
 
 // ---------------------------------------------------------------- recommendations
-/** Products that go with what's in the bag: from other categories first, best-sellers first. */
+/**
+ * "Goes well with": products from the categories that pair with what's being bought (content/store.ts
+ * `pairings`: cookies → brownies, snacks; atta → dosa mixes, breakfast), then other categories, then the rest.
+ * Bestsellers first within each group. Only products that can be bought now (or, before launch, coming soon).
+ */
 export function useComplements(codes: string[], n = 3) {
-  const { items, byCode } = useCatalogue();
+  const { items, byCode, statusOf } = useCatalogue();
   return useMemo(() => {
     const inBag = codes.map((c) => byCode.get(c)).filter(Boolean) as CatalogueItem[];
     const products = new Set(inBag.map((i) => i.product));
     const cats = new Set(inBag.flatMap((i) => storeCategoriesOf(i).map((c) => c.slug)));
-    const pool = bestsellers(items, 40).concat(items).filter((i, idx, arr) => arr.findIndex((x) => x.product === i.product) === idx)
-      .filter((i) => !products.has(i.product) && i.availability !== 'sold_out');
-    const other = pool.filter((i) => !storeCategoriesOf(i).some((c) => cats.has(c.slug)));
-    return [...other, ...pool.filter((i) => !other.includes(i))].slice(0, n);
-  }, [codes.join(','), items, byCode]); // eslint-disable-line react-hooks/exhaustive-deps
+    const opsCat = (i: CatalogueItem) => (i.category ?? '').trim().toLowerCase();
+    const wanted = inBag.flatMap((i) => pairings[opsCat(i)] ?? []);
+    const unique = bestsellers(items, 40).concat(oneCardPerProduct(items)).filter((i, idx, arr) => arr.findIndex((x) => x.product === i.product) === idx)
+      .filter((i) => !products.has(i.product));
+    const buyable = unique.filter((i) => statusOf(i) === 'available');
+    const pool = buyable.length ? buyable : unique.filter((i) => statusOf(i) === 'coming_soon');
+    const score = (i: CatalogueItem) => {
+      const w = wanted.indexOf(opsCat(i));
+      if (w >= 0) return w;
+      return storeCategoriesOf(i).some((c) => cats.has(c.slug)) ? 200 : 100;
+    };
+    return pool.map((i, k) => ({ i, k })).sort((a, b) => score(a.i) - score(b.i) || a.k - b.k).map((x) => x.i).slice(0, n);
+  }, [codes.join(','), items, byCode, statusOf]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 // ---------------------------------------------------------------- cart drawer
 export function CartDrawer() {
   const { drawerOpen, closeDrawer, setQty, remove, count, lines } = useCart();
   const { rows, subtotal, hasProblems } = useBag();
-  const { status } = useCatalogue();
+  const { status, statusOf, shipping } = useCatalogue();
+  // Free-delivery nudge (display only: the server works out the delivery charge at checkout).
+  const toFree = shipping ? Math.max(0, shipping.free_above - subtotal) : null;
   const complements = useComplements(lines.map((l) => l.code));
   const panel = useRef<HTMLDivElement>(null);
   const returnTo = useRef<HTMLElement | null>(null);
@@ -271,6 +284,12 @@ export function CartDrawer() {
         ) : (
           <>
             <div className="drawer__scroll">
+              {shipping && toFree !== null && (
+                <div className={`freebar ${toFree === 0 ? 'is-done' : ''}`} role="status">
+                  <p>{toFree === 0 ? <><Icon name="check" size={16} /> Your order qualifies for free delivery.</> : <>Add <strong>{rupees(toFree)}</strong> more for free delivery.</>}</p>
+                  <span className="freebar__track" aria-hidden="true"><span style={{ width: `${Math.min(100, (subtotal / shipping.free_above) * 100)}%` }} /></span>
+                </div>
+              )}
               <ul className="drawer__lines">
                 {rows.map((r) => {
                   const href = r.item ? paths.product(r.item) : '/';
@@ -283,7 +302,9 @@ export function CartDrawer() {
                         {r.item && <p className="line__meta">{packFull(r.item)} · {rupees(r.item.price)}</p>}
                         {r.short && (
                           <p className="line__warn" role="status">
-                            {!r.item || r.max === 0 ? 'No longer available' : `Only ${r.max} available`}
+                            {!r.item || statusOf(r.item) === 'discontinued' ? 'No longer available. Please remove it to continue.'
+                              : r.max === 0 ? (statusOf(r.item) === 'coming_soon' ? 'Not on sale yet. Please remove it to continue.' : 'Out of stock for now. Please remove it to continue.')
+                              : `Only ${r.max} available`}
                             {r.item && r.max > 0 && <button className="linkbtn" onClick={() => setQty(r.code, r.max)}>Update to {r.max}</button>}
                           </p>
                         )}
@@ -348,8 +369,15 @@ export function ProductThumb({ code, item, sizes }: { code: string; item: Catalo
 /** Adds straight to the bag; when a product comes in several sizes, opens a small size picker first. */
 const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 600px)').matches;
 
-export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boolean }) {
-  const { items, comingSoon } = useCatalogue();
+const STATUS_LABEL = { out_of_stock: 'Out of stock', coming_soon: 'Coming soon', discontinued: 'No longer available' } as const;
+
+/**
+ * Add to bag without leaving the page. With `pack`, adds that exact size (product cards pick the size
+ * themselves); without, a product with several sizes opens a size picker (dropdown, or a bottom sheet on phones).
+ * Only available packs can be added: anything else shows its status instead.
+ */
+export function QuickAdd({ item, pack, compact }: { item: CatalogueItem; pack?: CatalogueItem; compact?: boolean }) {
+  const { items, statusOf } = useCatalogue();
   const { add, openDrawer, lines } = useCart();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState(false);
@@ -357,7 +385,7 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
   const ref = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
-  const buyable = packs.filter((p) => p.availability !== 'sold_out' && p.max_qty > 0);
+  const buyable = packs.filter((p) => statusOf(p) === 'available');
   // How many of this product (all sizes together) are already in the bag, and of each size.
   const qtyOf = (code: string) => lines.find((l) => l.code === code)?.qty ?? 0;
   const inBag = packs.reduce((n, p) => n + qtyOf(p.code), 0);
@@ -378,8 +406,13 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
   }, [open]);
 
-  if (!buyable.length) {
-    return <span className="card__soon">{comingSoon(item) ? 'Coming soon' : 'Sold out'}</span>;
+  const target = pack ?? (packs.length === 1 ? packs[0] : undefined);
+  const targetStatus = target ? statusOf(target) : buyable.length ? 'available' : statusOf(packs[0] ?? item);
+  if (targetStatus !== 'available') {
+    // Not buyable: say why. Out of stock links to the product page, where "Notify me" lives.
+    return targetStatus === 'out_of_stock'
+      ? <Link to={paths.product(target ?? item)} className="card__notify">Notify me</Link>
+      : <span className="card__soon">{STATUS_LABEL[targetStatus]}</span>;
   }
   // On phones the bag opens after adding, so it's obvious the item went in.
   const addPack = (p: CatalogueItem) => { add(p.code); setAdded(true); setOpen(false); if (compact || isPhone()) openDrawer(); };
@@ -391,7 +424,8 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
         return (
           <li key={p.code} role="option" aria-selected={false} aria-disabled={!can}>
             <button type="button" disabled={!can} onClick={() => addPack(p)}>
-              <span>{packFull(p)}{qtyOf(p.code) > 0 && <small className="quickadd__inbag"> · {qtyOf(p.code)} in bag</small>}</span><span>{can ? rupees(p.price) : 'Sold out'}</span>
+              <span>{packFull(p)}{qtyOf(p.code) > 0 && <small className="quickadd__inbag"> · {qtyOf(p.code)} in bag</small>}</span>
+              <span>{can ? rupees(p.price) : STATUS_LABEL[statusOf(p) as keyof typeof STATUS_LABEL] ?? 'Unavailable'}</span>
             </button>
           </li>
         );
@@ -402,9 +436,9 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
   return (
     <div className="quickadd" ref={ref}>
       <button type="button" className={`add-btn ${added ? 'is-added' : ''} ${compact ? 'add-btn--sm' : ''}`}
-        onClick={() => (packs.length > 1 ? toggle() : addPack(buyable[0]))}
-        aria-haspopup={packs.length > 1 ? 'listbox' : undefined} aria-expanded={packs.length > 1 ? open : undefined}
-        aria-label={(packs.length > 1 ? `Choose a size of ${item.product} to add` : `Add ${item.product}, ${packFull(buyable[0])} to bag`) + (inBag ? ` (${inBag} in bag)` : '')}>
+        onClick={() => (target ? addPack(target) : toggle())}
+        aria-haspopup={target ? undefined : 'listbox'} aria-expanded={target ? undefined : open}
+        aria-label={(target ? `Add ${item.product}, ${packFull(target)} to bag` : `Choose a size of ${item.product} to add`) + (inBag ? ` (${inBag} in bag)` : '')}>
         <span className="add-btn__icon"><Icon name={added ? 'check' : 'plus'} size={18} /></span>
         <span className="add-btn__label">{added ? 'Added' : 'Add'}</span>
         {inBag > 0 && <span key={inBag} className="add-btn__count" aria-hidden="true">{inBag}</span>}
@@ -429,42 +463,66 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
 
 // ---------------------------------------------------------------- product card
 /** Keep "500 g" on one line. */
-const nb = (t: string) => t.replace(/ /g, ' ');
+const nb = (t: string) => t.replace(/ /g, ' ');
 
-/** One card per product: photo (or illustration), brand label, name, short description, sizes, price, Quick Add. */
+/**
+ * One card per product. Photo, name, short description, size, price (and discount), Quick Add: everything
+ * needed to buy without opening the product page. The brand is a small secondary line, never the headline.
+ * Several sizes: a size menu on the card; price and Quick Add follow the chosen size.
+ */
 export function ProductCard({ code, priority }: { code: string; priority?: boolean }) {
-  const { byCode, items } = useCatalogue();
+  const { byCode, items, statusOf } = useCatalogue();
+  const { lines } = useCart();
   const item = byCode.get(code);
+  const packs = item ? items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams) : [];
+  const firstBuyable = packs.find((p) => statusOf(p) === 'available');
+  const [chosen, setChosen] = useState<string | null>(null);
   if (!item) return null;
+  const pack = packs.find((p) => p.code === chosen) ?? (statusOf(item) === 'available' ? item : firstBuyable ?? item);
   const c = itemContent(item);
-  const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
   const many = packs.length > 1;
-  const href = paths.product(item);
-  const minPrice = Math.min(...packs.map((p) => p.price));
-  const soldOutAll = packs.every((p) => p.availability === 'sold_out');
+  const href = paths.product(pack);
+  const status = statusOf(pack);
+  const save = savingPct(pack);
+  const qtyOf = (k: string) => lines.find((l) => l.code === k)?.qty ?? 0;
 
   return (
-    <article className="card">
+    <article className={`card card--${status}`}>
       <Link to={href} className="card__media" tabIndex={-1} aria-hidden="true">
         {c.images[0]
           ? <Img id={c.images[0]} sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" eager={priority} />
           : <PackArt product={item.product} category={item.category} brandCode={item.brand_code} />}
         {c.images[1] && <Img id={c.images[1]} className="card__alt" sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" />}
-        {isNew(item, items) && <span className="card__badge card__badge--new">New</span>}
-        {!soldOutAll && item.only_left && <span className="card__badge card__badge--low">Only {item.only_left} left</span>}
+        <span className="card__badges">
+          {isNew(item, items) && <span className="card__badge card__badge--new">New</span>}
+          {status === 'available' && save > 0 && <span className="card__badge card__badge--save">{save}% off</span>}
+          {status === 'available' && pack.only_left && <span className="card__badge card__badge--low">Only {pack.only_left} left</span>}
+          {status === 'out_of_stock' && <span className="card__badge card__badge--out">Out of stock</span>}
+        </span>
       </Link>
       <div className="card__body">
-        <p className="card__brand">{item.brand}</p>
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
-        {c.tagline && <p className="card__tagline">{c.tagline}</p>}
-        <p className="card__pack">{many ? `${nb(packLabel(packs[0]))} to ${nb(packLabel(packs[packs.length - 1]))} · ${packs.length} sizes` : nb(packFull(item))}</p>
+        {(c.summary || c.tagline) && <p className="card__summary">{c.summary ?? c.tagline}</p>}
+        {many && <p className="card__brand">{item.brand}</p>}
+        {many ? (
+          <label className="card__size">
+            <span className="sr-only">Pack size of {item.product}</span>
+            <select value={pack.code} onChange={(e) => setChosen(e.target.value)}>
+              {packs.map((p) => {
+                const st = statusOf(p);
+                const n = qtyOf(p.code);
+                return <option key={p.code} value={p.code}>{nb(packFull(p))} · {rupees(p.price)}{st !== 'available' ? ` · ${STATUS_LABEL[st as keyof typeof STATUS_LABEL]}` : ''}{n ? ` · ${n} in bag` : ''}</option>;
+              })}
+            </select>
+            <Icon name="chevron" size={16} className="card__size-icon" />
+          </label>
+        ) : <p className="card__pack">{nb(packFull(item))} <span className="card__brand card__brand--inline">· {item.brand}</span></p>}
         <div className="card__foot">
           <span className="card__price">
-            {many && minPrice !== Math.max(...packs.map((p) => p.price)) && <span className="card__from">from </span>}
-            {rupees(many ? minPrice : item.price)}
-            {!many && item.mrp && item.mrp > item.price && <s className="card__mrp">{rupees(item.mrp)}</s>}
+            {rupees(pack.price)}
+            {save > 0 && <s className="card__mrp"><span className="sr-only">MRP </span>{rupees(pack.mrp!)}</s>}
           </span>
-          <QuickAdd item={item} />
+          <QuickAdd item={item} pack={pack} />
         </div>
       </div>
     </article>

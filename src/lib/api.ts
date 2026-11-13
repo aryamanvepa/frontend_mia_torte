@@ -9,6 +9,15 @@ const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '';
 export const backendConfigured = Boolean(URL_ && KEY);
 
 export type Availability = 'in_stock' | 'low' | 'sold_out';
+/**
+ * What the shopper can do with a pack (requested from the backend as `status`; until then the website
+ * works it out from `availability`). Only 'available' can go in the bag.
+ *   available     can be bought now
+ *   out_of_stock  temporarily out: next batch on its way ("Notify me")
+ *   coming_soon   not launched yet
+ *   discontinued  no longer made: hidden from listings; its page points to alternatives
+ */
+export type ProductStatus = 'available' | 'out_of_stock' | 'coming_soon' | 'discontinued';
 export interface CatalogueItem {
   code: string;
   name: string;
@@ -22,6 +31,8 @@ export interface CatalogueItem {
   mrp: number | null;
   price: number;
   availability: Availability;
+  /** Backend (B15): the pack's status. Absent until provided; see ProductStatus. */
+  status?: ProductStatus | null;
   only_left: number | null;
   max_qty: number;
   /** Label details entered in the ops app (Admin → Products); the same for every pack of a product. */

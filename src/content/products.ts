@@ -22,9 +22,10 @@
 // and best-before must match the printed pack label (FSSAI Labelling &
 // Display Regulations 2020). They are placeholder(…) until supplied.
 //
-// PHOTOS: there are no product photographs yet, so every product shows an
-// illustrated placeholder (src/components/PackArt.tsx). When real photos
-// exist, add their ids to `images` (see src/content/images.ts).
+// PHOTOS: products without photographs show an illustrated placeholder
+// (src/components/PackArt.tsx). Add photo ids to `images` in this order:
+// 1 the pack (cards, search, link previews), 2 a close-up of the food,
+// 3 a serving or lifestyle shot (see docs/photography-brief.md).
 // =====================================================================
 import { draft, placeholder, type Copy } from './site';
 
@@ -58,6 +59,14 @@ export const NUTRITION_KEYS: [key: string, label: string, mandatory: boolean][] 
 ];
 
 export interface ProductContent {
+  /**
+   * The short description on product cards and under the product name (Brief §5 iteration 2):
+   * a sensory hook, then a plain statement of what the product is. Two short sentences.
+   * Written from the product name and category only: Torte Living to confirm.
+   */
+  summary?: string;
+  /** Considered products: what it tastes like, in a few words (shown in "At a glance"). */
+  taste?: string;
   /** One line under the title. */
   tagline?: string;
   /** A concise, appealing introduction (2–3 sentences). */
@@ -127,43 +136,51 @@ const BY_CATEGORY: Record<string, ProductContent> = {
 export const products: Record<string, ProductContent> = {
   // ============================================================ MIA TORTE · Cookies
   'Classic Chocolate Chip': {
+    summary: 'Golden, crisp edges and a soft centre, generous with the chocolate. Our classic chocolate chip cookie.',
     tagline: 'The one everything else is measured against.',
     intro: draft('Our take on the cookie everyone knows by heart: golden, generous and studded with chocolate. Simple to describe, and the hardest thing in the world to get exactly right.'),
     serving: 'With a glass of cold milk, or a strong coffee at four o’clock.',
     featured: true,
   },
   'Mocha Me Happy': {
+    summary: 'Roasted coffee and deep, dark chocolate. A mocha cookie for coffee lovers.',
     tagline: 'Coffee and chocolate, in one good mood.',
     intro: draft('For people who take their coffee seriously and their chocolate even more so. Mocha brings the two together: the roasted bitterness of coffee, rounded by the depth of cocoa.'),
     serving: 'Alongside an espresso, or crumbled over vanilla ice cream.',
   },
   'Red Velvet Melt': {
+    summary: 'Soft, gently cocoa and unmistakably red. A red velvet cookie made to melt in the mouth.',
     tagline: 'A celebration cake, reimagined as a cookie.',
     intro: draft('Red velvet has always been the most theatrical of cakes. Here its colour and its gentle cocoa character move into a cookie made, as the name suggests, to melt.'),
     serving: 'For birthdays, for gifting, or for no particular reason at all.',
   },
   'Nutella Brownie Bliss': {
+    summary: 'Fudgy, rich and full of hazelnut chocolate. A brownie-style cookie made with Nutella.',
     tagline: 'Where the cookie meets the brownie.',
     intro: draft('Two great chocolate pleasures in a single bake: the fudgy richness of a brownie and the hazelnut-chocolate sweetness of Nutella, in cookie form.'),
     serving: 'With a cold glass of milk, or warmed for a few seconds and served with a scoop of ice cream.',
   },
   'Carrot Crème Melt': {
+    summary: 'Warm carrot-cake flavour with a creamy finish. A soft cookie inspired by carrot cake.',
     tagline: 'The comfort of carrot cake, in your hand.',
     intro: draft('Inspired by the carrot cake and its creamy finish, and reimagined as a cookie. Comforting, a little nostalgic, and made for afternoon tea.'),
     serving: 'With a pot of Darjeeling, or a milky cup of chai.',
   },
   'Biscoff Indulgence': {
+    summary: 'Deep caramelised Biscoff flavour in every bite. A rich cookie for Biscoff lovers.',
     tagline: 'Caramelised, and entirely unapologetic.',
     intro: draft('Built around the much-loved caramelised flavour of Biscoff, this is a cookie for those who believe a little more is always the right amount.'),
     serving: 'With a flat white, or crumbled over a bowl of vanilla ice cream.',
     featured: true,
   },
   'Berry Nutty About Pista': {
+    summary: 'Bright berries against rich, green pistachio. A colourful cookie of fruit and nuts.',
     tagline: 'Bright berries, green pistachio, good company.',
     intro: draft('A cookie of contrasts: the brightness of berries against the rounded richness of pistachio. As pretty to look at as it is to eat.'),
     serving: 'Made for a gift box, or for the moment you finally sit down.',
   },
   'Jowar Jeera Delight (8 nos.)': {
+    summary: 'Crisp, savoury and warm with cumin. Jowar (sorghum) biscuits for tea time, eight to a pack.',
     tagline: 'Made for the chai hour.',
     intro: draft('Jowar, the sorghum of the Deccan, and jeera, the cumin seed of every Indian kitchen, meet in a biscuit made for tea time. Eight to a pack, for sharing (or not).'),
     serving: 'With masala chai, or a tumbler of filter coffee.',
@@ -171,6 +188,7 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ MIA TORTE · Muesli
   'Fruit & Nut Muesli': {
+    summary: 'Toasted grains, nuts and dried fruit with a satisfying crunch. A classic muesli for milk or yoghurt.',
     tagline: 'A generous bowl to begin the day.',
     intro: draft('Our classic muesli: fruit and nuts in good measure, for a breakfast that feels considered rather than rushed.'),
     serving: 'With cold milk or yoghurt, a few slices of seasonal fruit, and a little time to enjoy it.',
@@ -179,6 +197,7 @@ export const products: Record<string, ProductContent> = {
     images: ['mt-fruit-nut-muesli-1'],
   },
   'Nutty Mango Millets & Nuts Muesli': {
+    summary: 'Sunny mango with crunchy millets and nuts. A fruity millet muesli for a bright start to the day.',
     tagline: 'Summer, in a breakfast bowl.',
     intro: draft('Mango, the fruit India waits for all year, brings its sunny sweetness to a muesli of millets and nuts. A breakfast with a sense of occasion.'),
     serving: 'Spoon over thick curd or Greek yoghurt; mango loves something a little tangy.',
@@ -186,12 +205,14 @@ export const products: Record<string, ProductContent> = {
     images: ['mt-mango-muesli-1'],
   },
   'Nutty Orange Millets & Nuts Muesli': {
+    summary: 'Zesty orange with crunchy millets and nuts. A citrusy millet muesli to wake up to.',
     tagline: 'Bright, zesty and wide awake.',
     intro: draft('Orange lifts this blend of millets and nuts with a clean, citrus brightness: a muesli for mornings that need a little encouragement.'),
     serving: 'With cold milk, or over yoghurt with a drizzle of honey.',
     notes: ['Cold milk', 'Yoghurt and honey', 'A breakfast parfait'],
   },
   'Crunchy Strawberry Millets & Nuts Muesli': {
+    summary: 'Sweet strawberry and a big crunch, over millets and nuts. A colourful millet muesli for milk or yoghurt.',
     tagline: 'A little sweetness, a lot of crunch.',
     intro: draft('Strawberry and a satisfying crunch, with millets and nuts beneath. The breakfast bowl at its most cheerful.'),
     serving: 'With chilled milk, or layered with yoghurt in a glass for a breakfast parfait.',
@@ -201,27 +222,32 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ MIA TORTE · Savoury snacks
   'Peri Peri Vegie Chips': {
+    summary: 'Crunchy vegetable chips with a bold, tangy peri peri kick. A savoury snack with some heat.',
     tagline: 'Bright heat, serious crunch.',
     intro: draft('Vegetable chips with the fiery, tangy warmth of peri peri. For the evening hour, the long drive, and anyone who likes a snack with some personality.'),
     serving: 'Tip into a bowl for the table, with something cold to drink.',
   },
   'Pudina Millet Crunch': {
+    summary: 'Cool mint on crisp, crunchy millet. A savoury millet snack for tea time.',
     tagline: 'Cool mint, crisp millet.',
     intro: draft('Pudina, the mint of Indian chutneys and chaas, brings its cool lift to a crunchy millet snack. A tea-time companion with a clean, green finish.'),
     serving: 'With evening chai, or alongside a glass of chilled chaas.',
     featured: true,
   },
   'Salted Nuts & Bean Crunch': {
+    summary: 'Crunchy nuts and beans, simply salted. A moreish savoury mix for sharing, or not.',
     tagline: 'Simply salted. Seriously moreish.',
     intro: draft('Nuts and crunchy beans, simply salted. The kind of snack that disappears from the bowl before anyone quite notices.'),
     serving: 'Set out a bowl when friends come over, or keep a jar on your desk.',
   },
   'Peri Peri Trail Mix': {
+    summary: 'Bold peri peri seasoning on a crunchy trail mix. Savoury, with a little heat.',
     tagline: 'For the road, the trail and the desk drawer.',
     intro: draft('A trail mix with a spark: crunchy bites tossed in peri peri, for a gentle heat and a tangy finish.'),
     serving: 'Pack a handful for the commute, the trek or the long afternoon.',
   },
   'Masala Protein Bean Mix': {
+    summary: 'Crunchy beans tossed in warm Indian masala. A savoury, spiced bean snack.',
     tagline: 'Masala-spiced and full of crunch.',
     intro: draft('Crunchy beans tossed in a warm Indian masala: a savoury snack for the hours between meals.'),
     serving: 'With a cup of tea, or squeezed with lemon and tossed with chopped onion and coriander for a quick chaat.',
@@ -229,6 +255,8 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ NUTRI SAMPOORNA · Atta & flours
   'Multigrain Superseed Atta (MGA)': {
+    summary: 'Soft rotis with a gentle, nutty depth. A multigrain atta blended with seeds, for everyday rotis and parathas.',
+    taste: 'Mild and gently nutty, a little deeper than plain wheat atta',
     tagline: 'The everyday atta, with a little more to say.',
     intro: draft('Our multigrain atta, blended with seeds. Rotis and parathas take on a deeper colour, a gentle nuttiness and a little more character at the table.'),
     experience: draft('Use it as you would your usual atta. Knead to a soft dough, rest it for fifteen minutes and roll evenly; cook on a hot tawa and finish over the flame.'),
@@ -237,6 +265,8 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Gluten Free Superseed Atta': {
+    summary: 'Earthy, nutty flatbreads. A gluten-free seeded atta for rotis, bhakris and cheelas.',
+    taste: 'Earthy and nutty, with a rustic texture',
     tagline: 'A seeded atta for a different kind of roti.',
     intro: draft('A seeded atta made for kitchens that cook without gluten. Expect a more rustic dough, and flatbreads with an earthy, nutty character.'),
     experience: draft('Doughs without gluten behave differently. Knead with warm water, keep the dough soft, and pat or roll it gently between two sheets of parchment before it goes on the tawa.'),
@@ -244,6 +274,8 @@ export const products: Record<string, ProductContent> = {
     serving: 'Serve hot with ghee, a bowl of dal and something pickled.',
   },
   'Ragi Flour': {
+    summary: 'Earthy and faintly malty. Finger millet flour for mudde, dosas, rotis and porridge.',
+    taste: 'Earthy and faintly malty',
     tagline: 'Earthy, malty and deeply Indian.',
     intro: draft('Ragi, or finger millet, milled into flour. Earthy and faintly malty, it is the grain behind Karnataka’s ragi mudde and countless South Indian breakfasts.'),
     notes: ['Ragi mudde', 'Dosa & idli', 'Rotis', 'Porridge'],
@@ -251,18 +283,24 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Bajra Flour': {
+    summary: 'Robust and nutty. Pearl millet flour for rotlas, theplas and winter flatbreads.',
+    taste: 'Robust and nutty',
     tagline: 'The winter grain of the north-west.',
     intro: draft('Bajra, or pearl millet, milled into flour. Robust and nutty, it is the grain of the Rajasthani and Gujarati winter rotla, eaten warm with white butter and jaggery.'),
     notes: ['Bajra rotla', 'Theplas', 'Thalipeeth'],
     serving: 'Pat rotlas by hand with warm water, cook on a hot tawa, and serve with garlic chutney and a spoon of white butter.',
   },
   'Jowar Flour': {
+    summary: 'Mild and gently sweet. Sorghum flour for soft bhakris, rotis and dosas.',
+    taste: 'Mild and gently sweet',
     tagline: 'Mild, gentle and endlessly useful.',
     intro: draft('Jowar, or sorghum, milled into flour. Mild and gently sweet, it has been the everyday flatbread grain of the Deccan for generations.'),
     notes: ['Jowar bhakri', 'Rotis', 'Thalipeeth', 'Dosa'],
     serving: 'Knead with hot water for soft bhakris, and serve with pitla, thecha or a simple dal.',
   },
   'Sattu (Roasted Gram Flour)': {
+    summary: 'Toasty and versatile. Roasted gram flour for summer sharbat, litti and stuffed parathas.',
+    taste: 'Toasty, like roasted chana',
     tagline: 'Bihar’s quiet pantry hero.',
     intro: draft('Sattu is roasted gram, milled into a fine, toasty flour. In Bihar and eastern Uttar Pradesh it has long been a summer drink, a stuffing and a meal in itself.'),
     notes: ['Sattu sharbat', 'Litti', 'Sattu parathas', 'Laddoos'],
@@ -271,12 +309,16 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ NUTRI SAMPOORNA · Dosa mixes
   'Instant MultiMillet Dosa Mix': {
+    summary: 'Crisp, golden millet dosas without the overnight soak. An instant millet dosa mix: whisk with water and pour.',
+    taste: 'Crisp and lightly earthy',
     tagline: 'Millet dosas, on a weekday.',
     intro: draft('A dosa mix built on millets, ready without the overnight soak and grind. Pour, spread and crisp: a millet breakfast in the time it takes to heat the tawa.'),
     notes: ['Crisp dosas', 'Weekday breakfasts', 'Tiffin boxes'],
     serving: 'With coconut chutney and sambar, or a spoon of podi and a drizzle of ghee.',
   },
   'Instant Pesarattu Dosa Mix': {
+    summary: 'Thin, crisp green gram dosas, the Andhra way. An instant pesarattu mix with no soaking or grinding.',
+    taste: 'Savoury, with the fresh green note of moong',
     tagline: 'Andhra’s green gram dosa, made easy.',
     intro: draft('Pesarattu is the green gram dosa of Andhra Pradesh: thin, crisp and savoury. This mix brings it to the weekday table without the soaking and grinding.'),
     notes: ['Pesarattu', 'MLA pesarattu with upma', 'Weekend brunch'],
@@ -284,6 +326,8 @@ export const products: Record<string, ProductContent> = {
     featured: true,
   },
   'Instant Multigrain Dosa Mix': {
+    summary: 'Golden, crisp dosas with more grains in every one. An instant multigrain dosa mix for busy mornings.',
+    taste: 'Crisp and wholesome, close to a classic dosa',
     tagline: 'A dosa with more grains to its name.',
     intro: draft('A multigrain take on the everyday dosa, ready to pour without the overnight soak. Golden, crisp and made for busy mornings.'),
     notes: ['Crisp dosas', 'Weekday breakfasts', 'Tiffin boxes'],
@@ -292,6 +336,8 @@ export const products: Record<string, ProductContent> = {
 
   // ============================================================ NUTRI SAMPOORNA · Chutney powders
   'Instant Peanut Putana Chutney': {
+    summary: 'Nutty, roasted and savoury. A peanut and roasted gram chutney powder for idli, dosa and hot rice.',
+    taste: 'Nutty and roasted, with a gentle heat',
     tagline: 'The companion every dosa deserves.',
     intro: draft('A chutney powder of peanuts and putana, the roasted gram dal of South Indian kitchens. Keep it by the stove, and the simplest meal has a companion.'),
     experience: draft('Use it dry, sprinkled like a podi, or mix it with a little oil, curd or water for a quick chutney. The pack gives the suggested proportions.'),

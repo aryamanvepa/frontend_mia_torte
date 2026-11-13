@@ -88,27 +88,55 @@ export const storeHome = {
   heroText: 'Cookies and treats, better snacks and everyday staples, made with care in small batches. Find a favourite, or discover a new one.',
   cravingTitle: 'Shop by craving',
   bestsellersTitle: 'Bestsellers',
+  /** The home page's lead category feature: taste leads, ingredients and nutrition reinforce. */
   snacking: {
     eyebrow: 'Better Snacking',
     title: 'Better snacking.\nNothing missing on taste.',
-    text: 'Millet crunches, roasted bean mixes, peri peri trail mix and vegetable chips. Taste comes first; the ingredients make it worth reaching for again.',
+    text: 'Crunchy, bold and full of flavour, because a snack should be a pleasure first. Made with millets, nuts, beans and seeds, so the snack you reach for is one you can feel good about.',
+    pillars: [
+      { title: 'Crunch first', text: 'Millet crunches, bean mixes, trail mix and vegetable chips, made for a proper crunch.' },
+      { title: 'Big, bold flavour', text: 'Peri peri, pudina, masala, or simply salted: flavours you will want to come back to.' },
+      { title: 'Better ingredients behind it', text: 'Built on millets, nuts, beans and seeds, with full nutrition information on every product page.' },
+    ],
+    /** Lifestyle photo for the feature (images.ts id). Until it exists, a product illustration and a note on the shot. */
+    image: undefined as string | undefined,
+    shot: 'Lifestyle photograph to come: a bowl of Peri Peri Trail Mix and Pudina Millet Crunch on a tea table, hands reaching in.',
   },
+  treats: { eyebrow: 'Indulgence & Treats', title: 'Something to savour.', cta: 'Shop treats' },
   nourishment: {
     eyebrow: 'Everyday Nourishment',
     title: 'For the meals you make every day.',
     text: 'Attas, dosa mixes, muesli and chutney powders, with the ingredients, nutrition and preparation set out clearly on every page.',
   },
-  discoveries: { eyebrow: 'New discoveries', title: 'New on the shelf' },
+  discoveries: { eyebrow: 'New & seasonal', title: 'New on the shelf' },
   gifting: {
-    eyebrow: 'Gifting & Discovery',
+    eyebrow: 'Gifting & bundles',
     title: 'Made for sharing.',
     text: 'Hampers, bundles and trial packs that make it easy to try more, or to give something good.',
   },
   company: {
-    eyebrow: 'Torte Living',
-    title: 'Two kitchens, one store.',
-    text: 'Torte Living makes food under two names: Mia Torte, for cookies, treats and snacks inspired by European baking, and Nutri Sampoorna, for everyday staples built on India’s grains, millets and pulses.',
+    eyebrow: 'About Torte Living',
+    title: 'Good food, made with care.',
+    text: 'Torte Living is one food store for every part of the day: cookies and treats worth slowing down for, snacks with real crunch and flavour, and everyday staples made from India’s grains, millets and pulses. We make in small batches and think hard about what goes in, so taste and better ingredients never have to compete.',
   },
+};
+
+// ---------------------------------------------------------------- cross-category recommendations
+/**
+ * "Goes well with": for a product in this ops category, suggest these categories first (in order),
+ * so baskets grow across the store: cookies → brownies and snacks, atta → dosa mixes and breakfast.
+ */
+export const pairings: Record<string, string[]> = {
+  cookies: ['brownies', 'snacks', 'muesli', 'cakes', 'desserts'],
+  biscuits: ['brownies', 'snacks', 'muesli'],
+  brownies: ['cookies', 'snacks', 'desserts'],
+  cakes: ['cookies', 'brownies'],
+  desserts: ['cookies', 'brownies'],
+  snacks: ['cookies', 'nuts & seeds', 'muesli', 'chutney powders'],
+  muesli: ['snacks', 'cookies', 'atta & flours'],
+  'atta & flours': ['dosa & batter mixes', 'muesli', 'chutney powders'],
+  'dosa & batter mixes': ['chutney powders', 'atta & flours', 'muesli'],
+  'chutney powders': ['dosa & batter mixes', 'atta & flours', 'snacks'],
 };
 
 /** Sub-types shown as quick links on the Everyday Nourishment section (ops categories). */

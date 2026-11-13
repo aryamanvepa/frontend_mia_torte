@@ -32,7 +32,7 @@ type Mode = 'all' | 'category' | 'bestsellers';
 
 /** Shop All, a store category, or Bestsellers: filters, sorting, product grid with Quick Add, and related categories. */
 export default function Listing({ mode, category }: { mode: Mode; category?: StoreCategory }) {
-  const { items, status } = useCatalogue();
+  const { items, status, statusOf } = useCatalogue();
   const [params, setParams] = useSearchParams();
   const get = (k: string) => params.get(k) ?? '';
   const set = (k: string, v: string) => {
@@ -96,14 +96,14 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
     }).flatMap(([, ps]) => ps);
     const cards = oneCardPerProduct(keep);
     const rankOf = (i: CatalogueItem) => i.bestseller_rank ?? (itemContent(i).featured ? 1000 : 2000);
-    const sold = (i: CatalogueItem) => (i.availability === 'sold_out' ? 1 : 0);
+    const sold = (i: CatalogueItem) => (statusOf(i) === 'available' ? 0 : 1);
     return cards.sort((a, b) => sold(a) - sold(b) || (
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price
       : sort === 'name' ? a.product.localeCompare(b.product)
       : sort === 'new' && newFlagMeaningful(items) ? Number(Boolean(b.is_new)) - Number(Boolean(a.is_new)) || a.product.localeCompare(b.product)
       : rankOf(a) - rankOf(b) || (a.category ?? '').localeCompare(b.category ?? '') || a.product.localeCompare(b.product)));
-  }, [packsOf, f.type, f.brand, f.price, f.size, f.diet, sort]);
+  }, [packsOf, f.type, f.brand, f.price, f.size, f.diet, sort, statusOf]);
 
   useEffect(() => {
     if (status === 'ready' && shown.length) trackViewItemList(head.title, shown);
