@@ -296,7 +296,7 @@ main:focus { outline: none; }
 .card__mrp { font-weight: 400; font-size: .82rem; color: var(--muted); }
 
 .add-btn {
-  display: inline-flex; align-items: center; gap: 6px; height: 44px; min-width: 44px; padding: 0 14px 0 12px;
+  position: relative; display: inline-flex; align-items: center; gap: 6px; height: 44px; min-width: 44px; padding: 0 14px 0 12px;
   border: 1px solid var(--line-strong); border-radius: var(--pill); background: transparent; font-size: .85rem; font-weight: 500;
   transition: background .3s var(--ease), color .3s, border-color .3s, transform .2s var(--ease);
 }
@@ -1234,3 +1234,23 @@ a.add-btn { text-decoration: none; }
 .footer__contact { list-style: none; padding: 0; }
 
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------------------------------------------------------------- in-bag counts */
+.add-btn__count {
+  position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center;
+  border-radius: 10px; background: var(--espresso); color: var(--cream); font-size: .72rem; font-weight: 700; line-height: 1;
+  box-shadow: 0 0 0 2px var(--paper); pointer-events: none; animation: count-pop .35s var(--ease) both;
+}
+.add-btn.is-added .add-btn__count, .add-btn:hover .add-btn__count { background: var(--gold-soft); color: var(--espresso); }
+.feature-band .add-btn__count { background: var(--cream); color: var(--espresso); box-shadow: 0 0 0 2px var(--espresso); }
+@keyframes count-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.quickadd__inbag { font-weight: 400; color: var(--muted); font-size: .8em; }
+.size { position: relative; }
+.size__count {
+  position: absolute; top: -7px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center;
+  border-radius: 10px; background: var(--espresso); color: var(--cream); font-size: .72rem; font-weight: 700; line-height: 1; box-shadow: 0 0 0 2px var(--paper);
+}
+.size.is-on .size__count { background: var(--gold-soft); color: var(--espresso); }
+.pdp__inbag { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; font-size: .9rem; color: var(--ok); }
+.pdp__inbag .linkbtn { color: var(--cocoa); min-height: 0; padding: 0; }
+@media (prefers-reduced-motion: reduce) { .add-btn__count { animation: none; } }

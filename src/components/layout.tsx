@@ -350,7 +350,7 @@ const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-w
 
 export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boolean }) {
   const { items, comingSoon } = useCatalogue();
-  const { add, openDrawer } = useCart();
+  const { add, openDrawer, lines } = useCart();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState(false);
   const [added, setAdded] = useState(false);
@@ -358,6 +358,9 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
   const sheetRef = useRef<HTMLDivElement>(null);
   const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
   const buyable = packs.filter((p) => p.availability !== 'sold_out' && p.max_qty > 0);
+  // How many of this product (all sizes together) are already in the bag, and of each size.
+  const qtyOf = (code: string) => lines.find((l) => l.code === code)?.qty ?? 0;
+  const inBag = packs.reduce((n, p) => n + qtyOf(p.code), 0);
 
   useEffect(() => {
     if (!added) return;
@@ -388,7 +391,7 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
         return (
           <li key={p.code} role="option" aria-selected={false} aria-disabled={!can}>
             <button type="button" disabled={!can} onClick={() => addPack(p)}>
-              <span>{packFull(p)}</span><span>{can ? rupees(p.price) : 'Sold out'}</span>
+              <span>{packFull(p)}{qtyOf(p.code) > 0 && <small className="quickadd__inbag"> · {qtyOf(p.code)} in bag</small>}</span><span>{can ? rupees(p.price) : 'Sold out'}</span>
             </button>
           </li>
         );
@@ -401,9 +404,10 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
       <button type="button" className={`add-btn ${added ? 'is-added' : ''} ${compact ? 'add-btn--sm' : ''}`}
         onClick={() => (packs.length > 1 ? toggle() : addPack(buyable[0]))}
         aria-haspopup={packs.length > 1 ? 'listbox' : undefined} aria-expanded={packs.length > 1 ? open : undefined}
-        aria-label={packs.length > 1 ? `Choose a size of ${item.product} to add` : `Add ${item.product}, ${packFull(buyable[0])} to bag`}>
+        aria-label={(packs.length > 1 ? `Choose a size of ${item.product} to add` : `Add ${item.product}, ${packFull(buyable[0])} to bag`) + (inBag ? ` (${inBag} in bag)` : '')}>
         <span className="add-btn__icon"><Icon name={added ? 'check' : 'plus'} size={18} /></span>
         <span className="add-btn__label">{added ? 'Added' : 'Add'}</span>
+        {inBag > 0 && <span key={inBag} className="add-btn__count" aria-hidden="true">{inBag}</span>}
       </button>
       {open && !phone && options}
       {open && phone && createPortal(
@@ -418,7 +422,7 @@ export function QuickAdd({ item, compact }: { item: CatalogueItem; compact?: boo
         </div>,
         document.body,
       )}
-      <span className="sr-only" role="status">{added ? `${item.product} added to bag` : ''}</span>
+      <span className="sr-only" role="status">{added ? `${item.product} added to bag, ${inBag} in bag` : ''}</span>
     </div>
   );
 }

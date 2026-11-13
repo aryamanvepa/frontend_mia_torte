@@ -287,6 +287,7 @@ export default function Product() {
                   <Link key={s.code} to={paths.product(s)} className={`size ${s.code === item.code ? 'is-on' : ''} ${s.availability === 'sold_out' && !soon ? 'is-out' : ''}`}
                     aria-current={s.code === item.code ? 'true' : undefined} replace>
                     <span>{packFull(s)}</span><small>{rupees(s.price)}</small>
+                    {(lines.find((l) => l.code === s.code)?.qty ?? 0) > 0 && <span className="size__count" aria-label={`${lines.find((l) => l.code === s.code)!.qty} in bag`}>{lines.find((l) => l.code === s.code)!.qty}</span>}
                   </Link>
                 ))}
               </div>
@@ -301,6 +302,7 @@ export default function Product() {
               {max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag</>}
             </button>
           </div>}
+          {inBag > 0 && <p className="pdp__inbag" role="status"><Icon name="check" size={16} /> {inBag} of this size in your bag · <button type="button" className="linkbtn" onClick={openDrawer}>View bag</button></p>}
           {soon && <p className="pdp__hint">Our first batch is being made. Orders open here as soon as it is ready.</p>}
           {soldOut && !soon && <p className="pdp__hint">Sold out for now. The next batch is on its way.</p>}
           {soldOut && <NotifyMe key={item.code} code={item.code} what={`${titleOf(item)}, ${packFull(item)}`} pack={packKind(item) ? packFull(item) : `${packLabel(item)} pack`} soon={soon} />}
