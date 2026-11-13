@@ -5,6 +5,7 @@ import { site } from '../content/site';
 import { trackOrder, type OrderStatus } from '../lib/api';
 import { rupees } from '../lib/format';
 import { LAST_ORDER_KEY } from '../lib/keys';
+import { useSeo } from '../lib/seo';
 
 interface LastOrder {
   code: string; status: string | null; stock_reserved: boolean; total: number; test?: boolean;
@@ -20,7 +21,8 @@ export function OrderConfirmed() {
     const raw = JSON.parse(sessionStorage.getItem(LAST_ORDER_KEY) || 'null');
     if (raw?.code === code) last = raw;
   } catch { /* ignore */ }
-  useEffect(() => { document.title = `Order ${code} · ${site.name}`; window.scrollTo(0, 0); }, [code]);
+  useSeo({ title: `Order ${code} · ${site.name}`, noindex: true });
+  useEffect(() => { window.scrollTo(0, 0); }, [code]);
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ }
@@ -97,7 +99,7 @@ export function Track() {
   });
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [result, setResult] = useState<OrderStatus | null>(null);
-  useEffect(() => { document.title = `Track your order · ${site.name}`; }, []);
+  useSeo({ title: `Track your order · ${site.name}`, description: 'Check the status of your Mia Torte or Nutri Sampoorna order with your order number and phone number.', noindex: true });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

@@ -6,7 +6,7 @@
   "description": "Online shop for Mia Torte & Nutri Sampoorna (Torte Living Pvt Limited) on the Torte Living Supabase back end",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "images": "node scripts/optimise-images.mjs"
   },
@@ -21,6 +21,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.7.0",
+    "puppeteer-core": "^23.11.1",
     "sharp": "^0.33.5",
     "typescript": "^5.9.3",
     "vite": "^5.4.21"

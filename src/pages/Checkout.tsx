@@ -15,6 +15,7 @@ const FORM_KEY = 'mia-torte-checkout-form';
 const ATTEMPT_KEY = 'mia-torte-checkout-attempt';
 import { LAST_ORDER_KEY } from '../lib/keys';
 import { testCustomer, testMode } from '../lib/testmode';
+import { useSeo } from '../lib/seo';
 
 // Mirrors the Edge Function's checks so shoppers get instant feedback (the server re-checks everything).
 function normalisePhone(raw: string) {
@@ -60,7 +61,7 @@ export default function Checkout() {
   const bannerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => { document.title = `Checkout · ${site.name}`; }, []);
+  useSeo({ title: `Checkout · ${site.name}`, noindex: true });
   useEffect(() => {
     const { website: _w, ...keep } = form; // never persist the honeypot
     try { sessionStorage.setItem(FORM_KEY, JSON.stringify(keep)); } catch { /* ignore */ }

@@ -122,6 +122,28 @@ placeholders** from Unsplash (free under the Unsplash Licence), credited in
    and list a product's photo ids in its `images` in `src/content/products.ts`; they replace
    the illustration automatically.
 
+## SEO
+
+* **Every page is pre-rendered.** After `vite build`, `scripts/prerender.mjs` opens each page in
+  headless Chrome with the live catalogue and saves it as real HTML (`dist/<path>/index.html`), so
+  search engines and link previews get the full page with a 200 status. The app then starts as
+  normal and shows live prices and stock. It finds pages by following links, so new products and
+  collections are included automatically. The deploy runs nightly to keep them fresh.
+* **Per-page tags** (`src/lib/seo.ts`, `useSeo`): title, description, canonical address, Open
+  Graph/Twitter preview tags. Checkout, order, tracking and 404 pages are `noindex`.
+* **Structured data**: organisation (home pages), breadcrumbs (collections, story, products) and
+  Product with one Offer per pack size (live website price, availability). Every pack size has its
+  own page, but all point at one canonical page per product. No barcodes, no GST, no strategic
+  prices. Google shows product rich results only once real photos are added.
+* **`sitemap.xml` and `robots.txt`** are written by the pre-render step. On GitHub Pages the
+  robots.txt isn't at the domain root, so search engines ignore it until there's a custom domain;
+  submit the sitemap in Google Search Console instead.
+* **Moving to a domain:** set the repository variable `VITE_SITE_URL` (e.g.
+  `https://torteliving.in`) and `BASE_PATH` to `/`, then add the domain to `STOREFRONT_ORIGINS`
+  in Supabase.
+* Locally, `npm run build` pre-renders when Chrome is installed (`CHROME_PATH` to point at it,
+  `PRERENDER=0` to skip).
+
 ## Test orders (before there is stock)
 
 Open any page with `?test=1` to turn on **test mode** in that browser (`?test=0` or the banner's

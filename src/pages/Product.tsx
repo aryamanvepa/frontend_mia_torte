@@ -5,7 +5,9 @@ import { PackArt } from '../components/PackArt';
 import { Icon, Img, PlaceholderTag, Price, Reveal, StockNote, Stepper, Text } from '../components/ui';
 import type { Brand } from '../content/brands';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
-import { site, type Copy } from '../content/site';
+import { copyText, site, type Copy } from '../content/site';
+import type { CatalogueItem } from '../lib/api';
+import { absUrl, breadcrumbLd, imageUrl, snippet, useSeo, type Seo } from '../lib/seo';
 import { brandOf, collectionOf, itemContent, oneCardPerProduct, paths } from '../lib/brand';
 import { packFull, packKind, packLabel, rupees, titleOf } from '../lib/format';
 import { useCart, useCatalogue } from '../state/store';
@@ -45,6 +47,59 @@ function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
   return <span className="is-ph">Vegetarian / non-vegetarian mark to be confirmed. <PlaceholderTag /></span>;
 }
 
+/**
+ * Search and link-preview data for a product page. Every pack size has its own address, but they
+ * all point search engines at one canonical page (the pack shown on the shop card), which lists
+ * every pack as an offer. Prices are the live website prices; no barcodes, no GST.
+ */
+function productSeo(item: CatalogueItem, items: CatalogueItem[], brand: Brand): Seo {
+  const c = itemContent(item);
+  const collection = collectionOf(item);
+  const packs = items.filter((i) => i.product === item.product && i.brand_code === item.brand_code).sort((a, b) => a.pack_grams - b.pack_grams);
+  const canonical = oneCardPerProduct(packs)[0] ?? item;
+  const intro = c.intro ? copyText(c.intro) : '';
+  const description = snippet([c.tagline, intro].filter(Boolean).join(' ') || `${item.product} from ${brand.name}. ${collection?.intro ?? brand.blurb}`);
+  const availability = (i: CatalogueItem) => (i.availability === 'sold_out' || i.test_stock ? 'https://schema.org/OutOfStock'
+    : i.availability === 'low' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock');
+  const photo = c.images[0] ? imageUrl(c.images[0]) : undefined;
+  return {
+    title: `${titleOf(item)} ${packFull(item)} · ${brand.name}`,
+    description,
+    canonical: paths.product(canonical),
+    image: c.images[0],
+    type: 'product',
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: item.product,
+        description,
+        brand: { '@type': 'Brand', name: brand.name },
+        manufacturer: { '@type': 'Organization', name: site.legalEntity },
+        ...(collection ? { category: collection.title } : {}),
+        ...(photo ? { image: [photo] } : {}),
+        url: absUrl(paths.product(canonical)),
+        offers: packs.map((p) => ({
+          '@type': 'Offer',
+          sku: p.code,
+          name: packFull(p),
+          url: absUrl(paths.product(p)),
+          price: p.price.toFixed(2),
+          priceCurrency: 'INR',
+          availability: availability(p),
+          itemCondition: 'https://schema.org/NewCondition',
+          seller: { '@type': 'Organization', name: site.legalEntity },
+        })),
+      },
+      breadcrumbLd([
+        { name: brand.name, path: paths.home(brand) },
+        ...(collection ? [{ name: collection.title, path: paths.collection(brand, collection) }] : [{ name: brand.shop.title, path: paths.shop(brand) }]),
+        { name: item.product, path: paths.product(canonical) },
+      ]),
+    ],
+  };
+}
+
 export default function Product({ brand }: { brand: Brand }) {
   const { code = '' } = useParams();
   const { items, byCode, status, comingSoon } = useCatalogue();
@@ -56,7 +111,7 @@ export default function Product({ brand }: { brand: Brand }) {
   const track = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setQty(1); setActive(0); track.current?.scrollTo({ left: 0 }); }, [code]);
-  useEffect(() => { if (item) document.title = `${titleOf(item)} ${packFull(item)} · ${item.brand}`; }, [item]);
+  useSeo(item && item.brand_code === brand.code ? productSeo(item, items, brand) : null);
 
   if (status === 'loading') return <div className="pdp wrap"><div className="pdp__grid"><div className="sk sk--pdp" /><div><div className="sk sk--line" /><div className="sk sk--line sk--short" /></div></div></div>;
   if (status === 'error' && !item) return <div className="wrap section"><CatalogueStatus /></div>;

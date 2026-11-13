@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal, Text } from '../components/ui';
 import { miaTorte, mtHome, nsHome, nutriSampoorna, type Brand } from '../content/brands';
 import { house, site } from '../content/site';
 import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
+import { organisationLd, snippet, useSeo } from '../lib/seo';
 import { rupees, titleOf } from '../lib/format';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
@@ -48,7 +49,7 @@ const countIn = (items: CatalogueItem[], brand: Brand) => (slug: string) =>
 
 // ================================================================ Torte Living landing
 export function Landing() {
-  useEffect(() => { document.title = 'Torte Living · Mia Torte & Nutri Sampoorna'; }, []);
+  useSeo({ title: 'Torte Living · Mia Torte & Nutri Sampoorna', description: snippet(house.intro), image: 'craft-flour-hands', jsonLd: organisationLd });
   return (
     <>
       <h1 className="sr-only">Torte Living: Mia Torte and Nutri Sampoorna</h1>
@@ -111,7 +112,7 @@ export function MtHome() {
   const count = countIn(items, brand);
   const hero = useFeatured(brand, 1)[0];
   const productCount = new Set(items.filter((i) => i.brand_code === brand.code).map((i) => i.product)).size;
-  useEffect(() => { document.title = `${brand.name} · ${brand.tagline}`; }, [brand]);
+  useSeo({ title: `${brand.name} · ${brand.tagline}`, description: snippet(brand.blurb), image: brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl', jsonLd: organisationLd });
 
   return (
     <>
@@ -221,7 +222,7 @@ export function NsHome() {
   const brand = nutriSampoorna;
   const { items } = useCatalogue();
   const count = countIn(items, brand);
-  useEffect(() => { document.title = `${brand.name} · ${brand.tagline}`; }, [brand]);
+  useSeo({ title: `${brand.name} · ${brand.tagline}`, description: snippet(brand.blurb), image: brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl', jsonLd: organisationLd });
 
   return (
     <>

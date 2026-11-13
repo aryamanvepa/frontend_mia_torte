@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link, NavLink, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal } from '../components/ui';
 import type { Brand, Collection } from '../content/brands';
 import { inCollection, itemContent, oneCardPerProduct, paths } from '../lib/brand';
 import { useCatalogue } from '../state/store';
+import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 
 const SORTS = { featured: 'Featured', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name' } as const;
 type Sort = keyof typeof SORTS;
@@ -21,7 +22,16 @@ export default function BrandShop({ brand, collection }: { brand: Brand; collect
   };
 
   const title = collection?.title ?? brand.shop.title;
-  useEffect(() => { document.title = `${title} · ${brand.name}`; }, [title, brand.name]);
+  useSeo({
+    title: `${title} · ${brand.name}`,
+    description: snippet(collection?.intro ?? `${brand.shop.intro} ${brand.blurb}`),
+    image: collection?.image ?? (brand.code === 'MT' ? 'craft-flour-hands' : 'ns-atta-bowl'),
+    jsonLd: breadcrumbLd([
+      { name: brand.name, path: paths.home(brand) },
+      { name: brand.shop.title, path: paths.shop(brand) },
+      ...(collection ? [{ name: collection.title, path: paths.collection(brand, collection) }] : []),
+    ]),
+  });
 
   const brandItems = useMemo(() => items.filter((i) => i.brand_code === brand.code), [items, brand.code]);
   const shown = useMemo(() => {

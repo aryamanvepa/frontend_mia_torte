@@ -2,11 +2,17 @@
 # Repository variables (Settings → Secrets and variables → Actions → Variables):
 #   VITE_SUPABASE_URL              https://<project-ref>.supabase.co
 #   VITE_SUPABASE_PUBLISHABLE_KEY  the publishable (anon) key — never the service_role key
+#   VITE_SITE_URL                  optional: the public address once there is a domain
+#                                  (e.g. https://torteliving.in); defaults to the GitHub Pages address
+# The build pre-renders every page with the live catalogue (scripts/prerender.mjs, using the
+# runner's Chrome), so it also runs nightly to keep prices and stock in the saved pages fresh.
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '30 20 * * *'   # 02:00 IST every night: refresh pre-rendered pages and sitemap
   workflow_dispatch:
 
 permissions:
@@ -34,6 +40,8 @@ jobs:
           BASE_PATH: /${{ github.event.repository.name }}/
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          CHROME_PATH: /usr/bin/google-chrome
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

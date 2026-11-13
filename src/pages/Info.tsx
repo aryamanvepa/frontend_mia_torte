@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
 import { brandList, type Brand } from '../content/brands';
 import { images } from '../content/images';
 import { SHOW_PLACEHOLDER_FLAGS, pages, site } from '../content/site';
 import { paths, useBrand } from '../lib/brand';
+import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
+import { copyText } from '../content/site';
 
 // ---------------------------------------------------------------- brand: story / philosophy
 export function BrandStory({ brand }: { brand: Brand }) {
   const s = brand.story;
   const other = brandList.find((b) => b.code !== brand.code)!;
-  useEffect(() => { document.title = `${s.label} · ${brand.name}`; }, [s.label, brand.name]);
+  useSeo({ title: `${s.label} · ${brand.name}`, description: snippet(s.intro), image: s.image, type: 'article', jsonLd: breadcrumbLd([{ name: brand.name, path: paths.home(brand) }, { name: s.label, path: paths.story(brand) }]) });
   return (
     <article className="info info--story">
       <header className="page-head page-head--narrow wrap">
@@ -39,7 +40,7 @@ export function BrandStory({ brand }: { brand: Brand }) {
 // ---------------------------------------------------------------- brand: contact
 export function BrandContact({ brand }: { brand: Brand }) {
   const c = brand.contact;
-  useEffect(() => { document.title = `Contact · ${brand.name}`; }, [brand.name]);
+  useSeo({ title: `Contact · ${brand.name}`, description: snippet(c.intro) });
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">
@@ -77,7 +78,7 @@ export function BrandContact({ brand }: { brand: Brand }) {
 // ---------------------------------------------------------------- policy pages
 export function InfoPage({ slug }: { slug: keyof typeof pages }) {
   const p = pages[slug];
-  useEffect(() => { document.title = `${p.title} · ${site.name}`; }, [p.title]);
+  useSeo({ title: `${p.title} · ${site.name}`, description: snippet(copyText(p.intro)) });
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">
@@ -108,7 +109,7 @@ export function InfoPage({ slug }: { slug: keyof typeof pages }) {
 }
 
 export function Credits() {
-  useEffect(() => { document.title = `Photo credits · ${site.name}`; }, []);
+  useSeo({ title: `Photo credits · ${site.name}`, description: 'Credits for the photographs used on the Torte Living website.' });
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">
@@ -132,7 +133,7 @@ export function Credits() {
 
 export function NotFound({ what = 'page' }: { what?: string }) {
   const brand = useBrand();
-  useEffect(() => { document.title = `Not found · ${brand?.name ?? site.name}`; }, [brand]);
+  useSeo({ title: `Not found · ${brand?.name ?? site.name}`, noindex: true });
   return (
     <div className="wrap section notfound">
       <p className="eyebrow">404</p>
