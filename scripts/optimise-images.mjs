@@ -30,7 +30,8 @@ for (const file of readdirSync(src).sort()) {
   const img = sharp(join(src, file)).rotate();
   const { width, height } = await img.metadata();
   const widths = WIDTHS.filter((w) => w <= width);
-  if (!widths.length) widths.push(width);
+  // Keep the full original width too, so photos narrower than the next step still look sharp on big screens.
+  if (!widths.length || widths[widths.length - 1] < width) widths.push(width);
   for (const w of widths) {
     await img.clone().resize({ width: w }).webp({ quality: w > 1000 ? 72 : 76, effort: 5 }).toFile(join(outDir, `${id}-${w}.webp`));
   }

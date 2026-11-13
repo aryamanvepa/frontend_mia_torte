@@ -1,9 +1,10 @@
 // =====================================================================
 // IMAGE REGISTRY — alt text and credits for every photo on the site.
 //
-// All current photos are PLACEHOLDER stock photography used for mood and
-// ingredients only (never presented as a product), from Unsplash (free to use under the Unsplash Licence:
-// https://unsplash.com/license). Products have no photos yet and show an
+// Product photos (mt-…-1 etc.) are Torte Living's own (credit null). The other
+// photos are PLACEHOLDER stock photography used for mood and ingredients only
+// (never presented as a product), from Unsplash (free to use under the Unsplash Licence:
+// https://unsplash.com/license). Products without a photo show an
 // illustration instead (src/components/PackArt.tsx). To add or replace one:
 //   1. put the real photo in a folder, named <id>.jpg (e.g. mt-classic-choc-chip-1.jpg)
 //   2. npm run images -- <that folder>
@@ -35,6 +36,10 @@ export const images: Record<string, ImageInfo> = {
   'mt-seasonal-tarts': { alt: 'Small fruit tarts with berries, kiwi and glazed fruit on a dark surface', credit: unsplash('Caramel', 'caramel_works', 'K8z5FJUay74') },
   'ns-muesli-bowl': { alt: 'A white bowl of toasted granola with a spoon on a linen cloth', credit: unsplash('Elena Leya', 'foodistika', 'pqpW5wHweQo') },
   'ns-seeds-spoons': { alt: 'Spoons of seeds and ground grains laid on a sage-green surface', credit: unsplash('lucia tognacci', 'luciatognacci99', 'y3w8WZ6uJWI') },
+  // Torte Living's own product photos
+  'mt-fruit-nut-muesli-1': { alt: 'Mia Torte Fruit & Nut Muesli in a kraft pouch, beside a bowl of muesli and a glass of milk', credit: null },
+  'mt-mango-muesli-1': { alt: 'Mia Torte Nutty Mango Millet Muesli in a kraft pouch, beside a bowl of muesli and fresh mango', credit: null },
+  'mt-strawberry-muesli-1': { alt: 'Mia Torte Crunchy Strawberry Millet Muesli in a kraft pouch and a jar, beside a bowl of muesli and fresh strawberries', credit: null },
   'ns-grain-texture': { alt: 'A close view of mixed whole grains, seeds and husks', credit: unsplash('Tahamie Farooqui', 'tami171091', 'GN3rHKNSMmc') },
 };
 

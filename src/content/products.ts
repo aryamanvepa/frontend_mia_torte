@@ -176,12 +176,14 @@ export const products: Record<string, ProductContent> = {
     serving: 'With cold milk or yoghurt, a few slices of seasonal fruit, and a little time to enjoy it.',
     notes: ['Cold milk', 'Thick curd or yoghurt', 'Fresh seasonal fruit'],
     featured: true,
+    images: ['mt-fruit-nut-muesli-1'],
   },
   'Nutty Mango Millets & Nuts Muesli': {
     tagline: 'Summer, in a breakfast bowl.',
     intro: draft('Mango, the fruit India waits for all year, brings its sunny sweetness to a muesli of millets and nuts. A breakfast with a sense of occasion.'),
     serving: 'Spoon over thick curd or Greek yoghurt; mango loves something a little tangy.',
     notes: ['Thick curd', 'Greek yoghurt', 'Cold milk'],
+    images: ['mt-mango-muesli-1'],
   },
   'Nutty Orange Millets & Nuts Muesli': {
     tagline: 'Bright, zesty and wide awake.',
@@ -194,6 +196,7 @@ export const products: Record<string, ProductContent> = {
     intro: draft('Strawberry and a satisfying crunch, with millets and nuts beneath. The breakfast bowl at its most cheerful.'),
     serving: 'With chilled milk, or layered with yoghurt in a glass for a breakfast parfait.',
     notes: ['Chilled milk', 'Layered with yoghurt', 'Straight from the jar'],
+    images: ['mt-strawberry-muesli-1'],
   },
 
   // ============================================================ MIA TORTE · Savoury snacks
