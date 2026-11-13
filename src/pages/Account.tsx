@@ -1,3 +1,5 @@
+// NOT WIRED IN: waits on backend task B8 (customer accounts), not approved yet (2026-11-13).
+// Re-enable by adding the /account route in App.tsx and the account links in layout.tsx.
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, Spinner } from '../components/ui';

@@ -14,7 +14,8 @@ import { About, BrandPage, Contact, Credits, InfoPage, NotFound } from './pages/
 import { OrderConfirmed, Track } from './pages/Order';
 
 const Checkout = lazy(() => import('./pages/Checkout'));
-const Account = lazy(() => import('./pages/Account'));
+// Customer accounts (src/pages/Account.tsx, src/lib/auth.ts) wait on backend task B8, which is not approved yet.
+// They stay in the repo but unwired, so supabase-js stays out of the bundle. /account falls through to Not found.
 
 /** Scroll to top on navigation; one visual theme for the whole store; analytics page views. */
 function RouteEffects() {
@@ -67,7 +68,6 @@ export default function App() {
             {storeCategories.map((c) => <Route key={c.slug} path={`/${c.slug}`} element={<Listing key={c.slug} mode="category" category={c} />} />)}
             <Route path="/product/:code" element={<Product />} />
             <Route path="/search" element={<SearchPage />} />
-            <Route path="/account" element={<Account />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/checkout" element={<Checkout />} />

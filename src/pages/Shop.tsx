@@ -6,7 +6,7 @@ import { brands, type BrandCode } from '../content/brands';
 import { bestsellersPage, shopAllPage, storeCategories, typeLabel, type StoreCategory } from '../content/store';
 import type { CatalogueItem } from '../lib/api';
 import { trackViewItemList } from '../lib/analytics';
-import { bestsellers, inStoreCategory, itemContent, oneCardPerProduct, paths } from '../lib/brand';
+import { bestsellers, inStoreCategory, itemContent, newFlagMeaningful, oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { useCatalogue } from '../state/store';
 
@@ -101,7 +101,7 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price
       : sort === 'name' ? a.product.localeCompare(b.product)
-      : sort === 'new' ? Number(Boolean(b.is_new)) - Number(Boolean(a.is_new)) || a.product.localeCompare(b.product)
+      : sort === 'new' && newFlagMeaningful(items) ? Number(Boolean(b.is_new)) - Number(Boolean(a.is_new)) || a.product.localeCompare(b.product)
       : rankOf(a) - rankOf(b) || (a.category ?? '').localeCompare(b.category ?? '') || a.product.localeCompare(b.product)));
   }, [packsOf, f.type, f.brand, f.price, f.size, f.diet, sort]);
 
@@ -144,7 +144,7 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
           <label className="filter filter--sort">
             <span className="filter__label">Sort</span>
             <select value={sort} onChange={(e) => set('sort', e.target.value === 'featured' ? '' : e.target.value)}>
-              {Object.entries(SORTS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+              {Object.entries(SORTS).filter(([k]) => k !== 'new' || newFlagMeaningful(items) || sort === 'new').map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
           </label>
           {active && (

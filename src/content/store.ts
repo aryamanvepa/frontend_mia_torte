@@ -1,3 +1,4 @@
+import type { Delivery } from '../lib/api';
 // =====================================================================
 // THE STORE — one food store, organised around how people buy
 // (Website Design Brief §3–5). Mia Torte and Nutri Sampoorna appear as
@@ -8,7 +9,6 @@
 // category (it still exists once in the catalogue): list it under `alsoIncludes`
 // by its exact product name.
 // =====================================================================
-import { draft, type Copy } from './site';
 
 export type BuyingKind = 'sensory' | 'considered';
 
@@ -119,11 +119,26 @@ export const typeLabel = (category: string | null | undefined) => category?.trim
 
 // ---------------------------------------------------------------- delivery (§9)
 /**
- * Shown until the backend's delivery check (PIN serviceability and estimated delivery) is live;
- * after that the server's answer is used. The figures are placeholders for Torte Living to confirm.
+ * Used only until the server's `delivery` answer is on the quote; the server always decides.
+ * Mirrors the backend rules (B5, 2026-11-13): 500001–500100 local by Rapido, 0–1 days;
+ * the rest of 500xxx–509xxx by iCarry, 2–4 days; the rest of India by iCarry, 3–7 days;
+ * 99xxxx and invalid PINs are not serviceable.
  */
-export const deliveryFallback = {
-  local: { label: 'Hyderabad', test: (pin: string) => /^50[0-2]\d{3}$/.test(pin), eta: '1–2 days', carrier: 'local delivery' },
-  national: { eta: '3–7 days', carrier: 'courier' },
-  note: draft('Estimated delivery: Hyderabad 1–2 days, rest of India 3–7 days, from dispatch. To be confirmed by Torte Living.') as Copy,
-};
+export function deliveryFallback(pin: string): Delivery {
+  const p = pin.trim();
+  if (!/^[1-9]\d{5}$/.test(p) || p.startsWith('99')) return { serviceable: false };
+  const n = Number(p);
+  if (n >= 500001 && n <= 500100) return { serviceable: true, zone: 'local', carrier: 'Rapido', eta_min_days: 0, eta_max_days: 1 };
+  if (n >= 500000 && n <= 509999) return { serviceable: true, zone: 'national', carrier: 'iCarry', eta_min_days: 2, eta_max_days: 4 };
+  return { serviceable: true, zone: 'national', carrier: 'iCarry', eta_min_days: 3, eta_max_days: 7 };
+}
+
+/** One sentence for a delivery answer (server or fallback). */
+export function deliveryText(d: Delivery, pin: string): string {
+  if (!d.serviceable) return d.message || `Sorry, we don’t deliver to ${pin} yet.`;
+  if (d.message) return d.message;
+  const eta = d.eta_min_days == null ? ''
+    : d.eta_min_days === 0 && (d.eta_max_days ?? 0) <= 1 ? ' same or next day'
+    : ` in ${d.eta_min_days}–${d.eta_max_days ?? d.eta_min_days} days`;
+  return `Delivers to ${pin}${eta}${d.carrier ? ` by ${d.carrier}` : ''} (estimate, from dispatch).`;
+}

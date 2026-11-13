@@ -48,8 +48,17 @@ export function bestsellers<T extends CatalogueItem>(items: T[], n = 8): T[] {
   const featured = cards.filter((i) => itemContent(i).featured);
   return [...ranked, ...featured.filter((f) => !ranked.includes(f))].slice(0, n);
 }
-/** New products (backend's is_new flag). */
-export const newProducts = <T extends CatalogueItem>(items: T[]) => oneCardPerProduct(items).filter((i) => i.is_new);
+/**
+ * The backend's is_new flag only means something when it singles out a few products. When about
+ * half or more carry it (e.g. every product was created on the same day), it is ignored.
+ */
+export function newFlagMeaningful(items: CatalogueItem[]) {
+  const products = new Set(items.map((i) => i.product)), flagged = new Set(items.filter((i) => i.is_new).map((i) => i.product));
+  return flagged.size > 0 && flagged.size < products.size / 2;
+}
+export const isNew = (item: CatalogueItem, items: CatalogueItem[]) => Boolean(item.is_new) && newFlagMeaningful(items);
+/** New products (backend's is_new flag), or none while the flag isn't meaningful. */
+export const newProducts = <T extends CatalogueItem>(items: T[]) => (newFlagMeaningful(items) ? oneCardPerProduct(items).filter((i) => i.is_new) : []);
 
 const DIET: Record<string, Dietary> = { veg: 'veg', vegan: 'vegan', egg: 'egg', non_veg: 'non-veg' };
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, ''));

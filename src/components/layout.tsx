@@ -5,7 +5,7 @@ import { site } from '../content/site';
 import { storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
-import { bestsellers, itemContent, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
+import { bestsellers, isNew, itemContent, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
 import { rupees, packFull, packLabel, titleOf } from '../lib/format';
 import { search } from '../lib/search';
 import { useBag, useCart, useCatalogue } from '../state/store';
@@ -119,7 +119,7 @@ export function Header() {
             <button className="icon-btn header__search-btn" onClick={() => setSearching((s) => !s)} aria-expanded={searching} aria-controls="search-panel" aria-label="Search">
               <Icon name="search" size={22} />
             </button>
-            <Link to="/account" className="icon-btn" aria-label="Your account"><Icon name="user" size={22} /></Link>
+            {/* Account icon hidden until customer accounts (backend B8) are approved. */}
             <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
               <Icon name="bag" size={24} />
               <span className={`bag-btn__count ${count ? '' : 'is-empty'}`} aria-hidden="true">{count}</span>
@@ -137,7 +137,6 @@ export function Header() {
           <nav aria-label="Shop (menu)">
             <ul>{NAV.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}</ul>
             <ul className="mobile-menu__minor">
-              <li><Link to="/account">Your account</Link></li>
               <li><Link to="/track">Track an order</Link></li>
               {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>About {b.name}</Link></li>)}
               <li><Link to="/contact">Contact</Link></li>
@@ -172,7 +171,6 @@ export function Footer() {
           <h2 className="footer__h">Help</h2>
           <ul>
             <li><Link to="/track">Track an order</Link></li>
-            <li><Link to="/account">Your account</Link></li>
             <li><Link to="/shipping">Shipping &amp; delivery</Link></li>
             <li><Link to="/refunds">Returns &amp; refunds</Link></li>
             <li><Link to="/contact">Contact us</Link></li>
@@ -427,7 +425,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
           ? <Img id={c.images[0]} sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" eager={priority} />
           : <PackArt product={item.product} category={item.category} brandCode={item.brand_code} />}
         {c.images[1] && <Img id={c.images[1]} className="card__alt" sizes="(min-width: 1100px) 25vw, (min-width: 700px) 33vw, 50vw" />}
-        {item.is_new && <span className="card__badge card__badge--new">New</span>}
+        {isNew(item, items) && <span className="card__badge card__badge--new">New</span>}
         {!soldOutAll && item.only_left && <span className="card__badge card__badge--low">Only {item.only_left} left</span>}
       </Link>
       <div className="card__body">

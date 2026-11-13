@@ -4,8 +4,7 @@ import { Icon, Spinner, Stepper } from '../components/ui';
 import { ProductThumb } from '../components/layout';
 import { site } from '../content/site';
 import { getQuote, placeOrder, type Problem, type Quote, type QuoteExtras } from '../lib/api';
-import { deliveryFallback } from '../content/store';
-import { myProfile, useSession } from '../lib/auth';
+import { deliveryFallback, deliveryText } from '../content/store';
 import { trackBeginCheckout, trackPurchase } from '../lib/analytics';
 import { packFull, rupees, titleOf, uuid } from '../lib/format';
 import { INDIAN_STATES } from '../lib/states';
@@ -68,7 +67,6 @@ export default function Checkout() {
   const [promoInput, setPromoInput] = useState('');
   const [promo, setPromo] = useState(''); // the code sent to the server ('' = none)
   const bannerRef = useRef<HTMLDivElement>(null);
-  const { session } = useSession();
   const formRef = useRef<HTMLFormElement>(null);
 
   useSeo({ title: `Checkout · ${site.name}`, noindex: true });
@@ -76,23 +74,6 @@ export default function Checkout() {
     const { website: _w, ...keep } = form; // never persist the honeypot
     try { sessionStorage.setItem(FORM_KEY, JSON.stringify(keep)); } catch { /* ignore */ }
   }, [form]);
-
-  // Signed-in shoppers: fill empty fields from their account (backend task B8; skipped until it exists).
-  useEffect(() => {
-    if (!session) return;
-    let live = true;
-    const email = session.user.email ?? '';
-    myProfile().then((r) => {
-      if (!live) return;
-      const p = r.ok ? r.data ?? {} : {};
-      setForm((f) => ({
-        ...f,
-        name: f.name || p.full_name || '', phone: f.phone || p.phone || '', email: f.email || p.email || email,
-        city: f.city || p.city || '', state: f.state || (p.state && INDIAN_STATES.includes(p.state) ? p.state : ''), pincode: f.pincode || p.pincode || '',
-      }));
-    });
-    return () => { live = false; };
-  }, [session]);
 
   // The PIN goes to the server once it looks complete, for serviceability + delivery estimate (B5).
   const pin = /^[1-9]\d{5}$/.test(form.pincode.trim()) ? form.pincode.trim() : '';
@@ -138,9 +119,8 @@ export default function Checkout() {
     address: { address1: form.address1.trim(), address2: form.address2.trim(), city: form.city.trim(), state: form.state, pincode: form.pincode.trim() },
     notes: form.notes.trim(),
     expected_total: quote?.total ?? 0,
-    ...(pin ? { pincode: pin } : {}),
     ...(promo ? { promo_code: promo } : {}),
-  }), [lines, form, quote, pin, promo]);
+  }), [lines, form, quote, promo]);
 
   // One id per distinct order attempt: a retry of the same details reuses it (no duplicate order);
   // any change to bag, details or total starts a new attempt.
@@ -250,12 +230,8 @@ export default function Checkout() {
   );
 
   // Delivery estimate: the server's answer (B5) when it gives one, otherwise the placeholder rules.
-  const d = quote?.delivery;
-  const delivery = !pin ? null
-    : d ? { ok: d.serviceable, text: d.message || (d.serviceable && d.eta_min_days != null ? `Estimated delivery in ${d.eta_min_days}–${d.eta_max_days ?? d.eta_min_days} days${d.carrier ? ` by ${d.carrier}` : ''}.` : d.serviceable ? 'We deliver to this PIN code.' : 'We don’t deliver to this PIN code yet.') }
-    : deliveryFallback.local.test(pin)
-      ? { ok: true, text: `Delivering to ${deliveryFallback.local.label}: usually ${deliveryFallback.local.eta} after dispatch (estimate).` }
-      : { ok: true, text: `Delivering across India by ${deliveryFallback.national.carrier}: usually ${deliveryFallback.national.eta} after dispatch (estimate).` };
+  const d = pin ? quote?.delivery ?? deliveryFallback(pin) : null;
+  const delivery = d ? { ok: d.serviceable, text: deliveryText(d, pin) } : null;
 
   const promoNote = !promo || quoteState !== 'ready' ? null
     : quote?.promo ? { ok: quote.promo.valid, text: quote.promo.message || (quote.promo.valid ? `Code ${quote.promo.code} applied.` : 'This code can’t be used.') }

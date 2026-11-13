@@ -1,3 +1,5 @@
+// NOT WIRED IN: waits on backend task B8 (customer accounts), not approved yet (2026-11-13).
+// Re-enable by adding the /account route in App.tsx and the account links in layout.tsx.
 // =====================================================================
 // CUSTOMER ACCOUNTS — sign in with a one-time code sent by email
 // (Supabase Auth, publishable key only). Guest checkout stays the default.

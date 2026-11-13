@@ -5,7 +5,7 @@ import { PackArt } from '../components/PackArt';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { copyText, site, type Copy } from '../content/site';
-import { deliveryFallback } from '../content/store';
+import { deliveryFallback, deliveryText } from '../content/store';
 import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
 import { trackViewItem } from '../lib/analytics';
 import { absUrl, breadcrumbLd, imageUrl, snippet, useSeo, type Seo } from '../lib/seo';
@@ -67,7 +67,7 @@ function DeliveryCheck({ item }: { item: CatalogueItem }) {
     const q = await getQuote([{ sku_code: item.code, qty: 1 }], p ? { pincode: p } : undefined);
     if (!q.ok) { setState('error'); return; }
     setRule(q.shipping_rule);
-    setDelivery(p ? q.delivery ?? null : null);
+    setDelivery(p ? q.delivery ?? deliveryFallback(p) : null);
     setState('done');
   }
   useEffect(() => { check(valid ? pin : undefined); }, [item.code]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,7 +77,6 @@ function DeliveryCheck({ item }: { item: CatalogueItem }) {
     try { localStorage.setItem('torte-pin', pin); } catch { /* ignore */ }
     check(pin);
   };
-  const local = valid && deliveryFallback.local.test(pin);
 
   return (
     <section className="delivery" aria-labelledby="delivery-h">
@@ -92,11 +91,8 @@ function DeliveryCheck({ item }: { item: CatalogueItem }) {
         {state === 'error' && <p className="delivery__msg">We couldn’t check delivery just now.</p>}
         {state === 'done' && valid && delivery && (
           delivery.serviceable
-            ? <p className="delivery__msg delivery__msg--ok">Delivers to {pin}{delivery.eta_min_days != null ? ` in ${delivery.eta_min_days}–${delivery.eta_max_days} days` : ''}{delivery.carrier ? ` (${delivery.carrier})` : ''}.{delivery.message ? ` ${delivery.message}` : ''}</p>
-            : <p className="delivery__msg delivery__msg--no">{delivery.message || `Sorry, we don’t deliver to ${pin} yet.`}</p>
-        )}
-        {state === 'done' && valid && !delivery && (
-          <p className="delivery__msg">Estimated delivery to {pin}: {local ? deliveryFallback.local.eta : deliveryFallback.national.eta} after dispatch. <PlaceholderTag kind="draft" /></p>
+            ? <p className="delivery__msg delivery__msg--ok">{deliveryText(delivery, pin)}</p>
+            : <p className="delivery__msg delivery__msg--no">{deliveryText(delivery, pin)}</p>
         )}
       </div>
     </section>
