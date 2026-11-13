@@ -299,7 +299,7 @@ export function CartDrawer() {
                       <div className="line__body">
                         <p className="line__brand">{r.item?.brand ?? ' '}</p>
                         <p className="line__name"><Link to={href}>{r.item ? titleOf(r.item) : r.code}</Link></p>
-                        {r.item && <p className="line__meta">{packFull(r.item)} · {rupees(r.item.price)}</p>}
+                        {r.item && <p className="line__meta">{packFull(r.item)}{statusOf(r.item) !== 'discontinued' && ` · ${rupees(r.item.price)}`}</p>}
                         {r.short && (
                           <p className="line__warn" role="status">
                             {!r.item || statusOf(r.item) === 'discontinued' ? 'No longer available. Please remove it to continue.'
@@ -315,7 +315,7 @@ export function CartDrawer() {
                           <button className="linkbtn" onClick={() => remove(r.code)}>Remove</button>
                         </div>
                       </div>
-                      <p className="line__total">{r.item ? rupees(r.item.price * r.qty) : ''}</p>
+                      <p className="line__total">{r.item && statusOf(r.item) !== 'discontinued' ? rupees(r.item.price * r.qty) : ''}</p>
                     </li>
                   );
                 })}

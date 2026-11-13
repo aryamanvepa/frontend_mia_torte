@@ -194,7 +194,7 @@ export function useBag() {
       const max = item && !gone ? item.max_qty : 0;
       return { ...l, item, max, short: status === 'ready' && (!item || l.qty > max) };
     });
-    const subtotal = rows.reduce((s, r) => s + (r.item ? r.item.price * r.qty : 0), 0);
+    const subtotal = rows.reduce((s, r) => s + (r.item && r.item.status !== 'discontinued' ? r.item.price * r.qty : 0), 0);
     return { rows, subtotal, hasProblems: rows.some((r) => r.short) };
   }, [lines, byCode, status]);
 }

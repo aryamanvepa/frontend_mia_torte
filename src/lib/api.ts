@@ -137,7 +137,8 @@ export async function fetchCatalogue(): Promise<CatalogueItem[]> {
   return rows.map((r) => ({
     ...r,
     pack_size: Number(r.pack_size), pack_grams: Number(r.pack_grams),
-    mrp: r.mrp == null ? null : Number(r.mrp), price: Number(r.price),
+    // Discontinued rows may have no price (B15): 0 here, and the site never shows a price for them.
+    mrp: r.mrp == null ? null : Number(r.mrp), price: r.price == null ? 0 : Number(r.price),
   }));
 }
 

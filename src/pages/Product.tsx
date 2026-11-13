@@ -214,7 +214,7 @@ export default function Product() {
   const pairs = complements.filter((x) => !related.some((r) => r.product === x.product)).slice(0, 4);
   const inBag = lines.find((l) => l.code === item.code)?.qty ?? 0;
   const max = st === 'available' ? Math.max(0, item.max_qty - inBag) : 0;
-  const unit = unitPrice(item);
+  const unit = item.price > 0 ? unitPrice(item) : null;
   const value = considered ? bestValue(siblings.filter((s) => statusOf(s) !== 'discontinued')) : null;
   const firstStep = c.experience ? copyText(c.experience).split(/(?<=\.)\s/)[0] : undefined;
 
@@ -264,7 +264,7 @@ export default function Product() {
         <Fact label="Brand">{brand ? <Link to={paths.brand(brand)}>{item.brand}</Link> : item.brand}</Fact>
         <Fact label="Food type"><DietMark d={c.dietary} isDraft={c.dietaryDraft} /></Fact>
         <Fact label="Net quantity">{packLabel(item)}</Fact>
-        <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>
+        {st !== 'discontinued' && <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>}
         {unit && <Fact label="Unit price">{unit}</Fact>}
         <Fact label="Ingredients" copy={c.ingredientsList} need="Ingredients list" />
         <Fact label="Allergens" copy={c.allergens} need="Allergen information" />
@@ -346,8 +346,10 @@ export default function Product() {
 
           {!considered && c.notes?.length ? <ul className="notes notes--top" aria-label={c.notesLabel ?? 'Tasting notes'}>{c.notes.map((n) => <li key={n}>{n}</li>)}</ul> : null}
 
-          <div className="pdp__price"><Price item={item} size="lg" /></div>
-          <p className="pdp__tax">Inclusive of all taxes · {packFull(item)}{unit ? ` · ${unit}` : ''}</p>
+          {st !== 'discontinued' && <>
+            <div className="pdp__price"><Price item={item} size="lg" /></div>
+            <p className="pdp__tax">Inclusive of all taxes · {packFull(item)}{unit ? ` · ${unit}` : ''}</p>
+          </>}
 
           {siblings.length > 1 && (
             <fieldset className="sizes">
