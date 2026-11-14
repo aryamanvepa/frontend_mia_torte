@@ -64,7 +64,7 @@ export const storeCategories: StoreCategory[] = [
     craving: 'Discover & Gift',
     kind: 'sensory',
     intro: 'Hampers, bundles, trial packs and seasonal collections: easy ways to try more, and to share it.',
-    image: 'mt-gifting-box',
+    image: 'mt-cookie-box-1',
     categories: ['Gifting', 'Gift boxes', 'Hampers', 'Bundles', 'Trial packs', 'Seasonal'],
     empty: 'Our first hampers and trial packs are being put together. For gifting or corporate orders in the meantime, write to us and we will help.',
   },
@@ -74,7 +74,7 @@ export const bestsellersPage = {
   slug: 'bestsellers',
   title: 'Bestsellers',
   intro: 'The products our customers come back for.',
-  image: 'mt-gifting-box',
+  image: 'mt-cookie-box-1',
 };
 
 export const shopAllPage = {

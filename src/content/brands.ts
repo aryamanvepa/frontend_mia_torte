@@ -92,7 +92,7 @@ export const miaTorte: Brand = {
       slug: 'gifting',
       title: 'Gifting',
       categories: ['Gifting', 'Gift boxes', 'Hampers'],
-      image: 'mt-gifting-box',
+      image: 'mt-cookie-box-1',
       intro: 'Curated boxes for people who appreciate the small pleasures. Thoughtfully assembled, beautifully presented, and made to be given.',
       comingSoon: 'Our gifting boxes are in preparation. For a gift in the meantime, or for occasion and corporate orders, write to us and we will help.',
     },

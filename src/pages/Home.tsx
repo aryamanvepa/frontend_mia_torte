@@ -175,7 +175,7 @@ export function StoreHome() {
       {/* 8 · Gifting & bundles */}
       <section className="gifting" aria-labelledby="gift-h">
         <div className="wrap gifting__grid">
-          <Reveal className="gifting__media"><Img id="mt-gifting-box" sizes="(min-width: 900px) 40vw, 100vw" /></Reveal>
+          <Reveal className="gifting__media"><Img id="mt-cookie-box-1" sizes="(min-width: 900px) 40vw, 100vw" /></Reveal>
           <Reveal className="gifting__text" delay={80}>
             <p className="eyebrow">{storeHome.gifting.eyebrow}</p>
             <h2 id="gift-h" className="display display--md">{storeHome.gifting.title}</h2>

@@ -201,6 +201,25 @@ export const products: Record<string, ProductContent> = {
     serving: 'Made for a gift box, or for the moment you finally sit down.',
     images: ['mt-pista-1'],
   },
+  // Not in the catalogue yet: these appear on the site as soon as the ops app has a product with this exact name.
+  'Oreo Cookies n Cream': {
+    experience: draft('A soft, golden cookie packed with chunks of chocolate sandwich biscuit and white chocolate: cookies and cream in every bite.'),
+    notes: ['Cookies & cream', 'White chocolate', 'Soft centre'],
+    summary: 'Chunks of chocolate sandwich biscuit and creamy white chocolate in a soft, golden cookie.',
+    tagline: 'Cookies and cream, baked into a cookie.',
+    intro: draft('Everything people love about cookies and cream, folded into a soft, golden cookie: dark biscuit crunch, pockets of white chocolate and a buttery, chewy middle.'),
+    serving: 'With a cold glass of milk. Dunking is encouraged.',
+    images: ['mt-oreo-cream-1'],
+  },
+  'Assorted Cookie Gift Box': {
+    experience: draft('A box of our favourite cookies, packed for giving: Red Velvet Melt, Classic Chocolate Chip and Triple Choco Bliss, all eggless.'),
+    notes: ['Ready to gift', 'Assorted cookies', 'Eggless'],
+    summary: 'Our favourite cookies, boxed and ready to give. Red velvet, chocolate chip and triple chocolate.',
+    tagline: 'A box of good things, ready to give.',
+    intro: draft('For Diwali, birthdays, thank-yous and every occasion in between: an assortment of our best-loved cookies, baked eggless and packed in a gift box.'),
+    serving: 'For festivals, hosts and anyone who deserves a treat.',
+    images: ['mt-cookie-box-1'],
+  },
   'Jowar Jeera Delight (8 nos.)': {
     experience: draft('Crisp and lightly savoury, with the warm, toasted note of cumin. Not too sweet, which is what makes it so good with tea.'),
     notes: ['Crisp', 'Toasted cumin', 'Lightly savoury'],
@@ -268,7 +287,7 @@ export const products: Record<string, ProductContent> = {
     intro: draft('Pudina, the mint of Indian chutneys and chaas, brings its cool lift to a crunchy millet snack. A tea-time companion with a clean, green finish.'),
     serving: 'With evening chai, or alongside a glass of chilled chaas.',
     featured: true,
-    images: ['mt-pudina-crunch-1'],
+    images: ['mt-pudina-crunch-2', 'mt-pudina-crunch-1'],
   },
   'Salted Nuts & Bean Crunch': {
     experience: draft('Crunchy nuts and beans with just enough salt to bring out their toasty flavour.'),
@@ -277,7 +296,7 @@ export const products: Record<string, ProductContent> = {
     tagline: 'Simply salted. Seriously moreish.',
     intro: draft('Nuts and crunchy beans, simply salted. The kind of snack that disappears from the bowl before anyone quite notices.'),
     serving: 'Set out a bowl when friends come over, or keep a jar on your desk.',
-    images: ['test-salted-nuts'],
+    images: ['mt-salted-nuts-1', 'mt-salted-nuts-2'],
   },
   'Peri Peri Trail Mix': {
     experience: draft('A crunchy mix with a tangy, smoky peri peri coating and a little heat on the finish.'),
@@ -286,7 +305,7 @@ export const products: Record<string, ProductContent> = {
     tagline: 'For the road, the trail and the desk drawer.',
     intro: draft('A trail mix with a spark: crunchy bites tossed in peri peri, for a gentle heat and a tangy finish.'),
     serving: 'Pack a handful for the commute, the trek or the long afternoon.',
-    images: ['test-trail-mix'],
+    images: ['mt-trail-mix-1'],
   },
   'Masala Protein Bean Mix': {
     experience: draft('Crunchy beans with a warm, savoury masala: chatpata, a little spicy and very hard to stop eating.'),
@@ -295,7 +314,7 @@ export const products: Record<string, ProductContent> = {
     tagline: 'Masala-spiced and full of crunch.',
     intro: draft('Crunchy beans tossed in a warm Indian masala: a savoury snack for the hours between meals.'),
     serving: 'With a cup of tea, or squeezed with lemon and tossed with chopped onion and coriander for a quick chaat.',
-    images: ['test-masala-bean'],
+    images: ['mt-masala-bean-1'],
   },
 
   // ============================================================ NUTRI SAMPOORN · Atta & flours

@@ -13,7 +13,7 @@ Source file: `src/content/test-labels.ts`. To switch it off before launch, set `
 
 FSSAI requires the label information on the website to match the printed pack. None of this can go live.
 
-27 products.
+29 products (two of them, Oreo Cookies n Cream and Assorted Cookie Gift Box, not in the catalogue yet).
 
 ## Nutrition per 100 g
 
@@ -26,6 +26,8 @@ FSSAI requires the label information on the website to match the printed pack. N
 | Carrot Crème Melt | 468 | 5.2 | 62 | 31 | 29 | 2.0 | 22 | 13 | 0 | 34 | 240 |
 | Biscoff Indulgence | 498 | 5.0 | 64 | 33 | 31 | 1.5 | 25 | 13 | 0 | 32 | 310 |
 | Berry Nutty About Pista | 484 | 7.1 | 59 | 28 | 26 | 2.9 | 24 | 12 | 0 | 33 | 230 |
+| Oreo Cookies n Cream | 494 | 5.4 | 64 | 33 | 31 | 1.8 | 24 | 14 | 0 | 34 | 300 |
+| Assorted Cookie Gift Box | 492 | 5.7 | 63 | 33 | 31 | 2.2 | 24 | 14 | 0 | 35 | 270 |
 | Jowar Jeera Delight (8 nos.) | 468 | 8.1 | 63 | 14 | 12 | 5.2 | 20 | 11 | 0 | 26 | 380 |
 | Fruit & Nut Muesli | 402 | 10.8 | 63 | 17 | 9 | 8.2 | 12 | 2.1 | 0 | 0 | 95 |
 | Nutty Mango Millets & Nuts Muesli | 398 | 10.2 | 64 | 16 | 8 | 8.6 | 11 | 1.9 | 0 | 0 | 60 |
@@ -90,6 +92,18 @@ FSSAI requires the label information on the website to match the printed pack. N
 - **Allergens:** Contains wheat (gluten), milk, pistachios and soy. May contain other nuts and peanuts.
 - **Diet:** Vegetarian
 - **Best before:** 60 days from packing
+
+### Oreo Cookies n Cream
+- **Ingredients:** Refined wheat flour, butter, brown sugar, chocolate sandwich biscuit pieces (15%) (wheat flour, sugar, palm oil, cocoa, raising agents, salt, emulsifier (soy lecithin), vanillin), white chocolate (sugar, cocoa butter, milk solids, emulsifier (soy lecithin)), sugar, milk solids, raising agent (sodium bicarbonate), vanilla, salt.
+- **Allergens:** Contains wheat (gluten) and milk. May contain nuts, peanuts and soy.
+- **Diet:** Vegetarian
+- **Best before:** 60 days from packing
+
+### Assorted Cookie Gift Box
+- **Ingredients:** Assorted eggless cookies: Red Velvet Melt, Classic Chocolate Chip and Triple Choco Bliss. Refined wheat flour, butter, sugar, brown sugar, dark and white chocolate (sugar, cocoa solids, cocoa butter, milk solids, emulsifier (soy lecithin)), cocoa powder, milk solids, beetroot powder (for colour), raising agent (sodium bicarbonate), vanilla, salt.
+- **Allergens:** Contains wheat (gluten) and milk. May contain nuts, peanuts and soy.
+- **Diet:** Vegetarian
+- **Best before:** 45 days from packing
 
 ### Jowar Jeera Delight (8 nos.)
 - **Ingredients:** Jowar (sorghum) flour (45%), whole wheat flour, butter, sugar, cumin seeds (2%), milk solids, raising agent (sodium bicarbonate), salt, ajwain.
