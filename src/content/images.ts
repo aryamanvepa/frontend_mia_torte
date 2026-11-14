@@ -28,13 +28,9 @@ const stock = (handle: string, image: string): Credit => ({ photographer: `@${ha
 
 export const images: Record<string, ImageInfo> = {
   // ---- TEST stock photos standing in for product photography (docs/test-images.md)
-  'test-classic-choc-chip': { alt: 'Chocolate chip cookies with chunks of dark chocolate', credit: stock('foodess', 'photo-1499636136210-6f4ee915583e') },
   'test-mocha': { alt: 'Chocolate cookies on a plate beside a cup of coffee', credit: stock('bycindys', 'photo-1559594323-25090515ee2f') },
   'test-red-velvet': { alt: 'Red velvet cookies cooling on a rack', credit: stock('fghaessani', 'photo-1673412810103-27c233f77da6') },
   'test-nutella-brownie': { alt: 'Cookies topped with chocolate hazelnut spread', credit: stock('vdphotography', 'photo-1642942000413-d967010dea4b') },
-  'test-carrot-creme': { alt: 'Carrot-shaped iced cookies on a cooling rack', credit: stock('supardisign', 'photo-1708850090520-eafc36a926fa') },
-  'test-biscoff': { alt: 'Biscoff cookies cooling on a rack', credit: stock('thefrostedcakestudio', 'photo-1777401845650-318b6fd65041') },
-  'test-pista': { alt: 'Pistachio cookies on a cooling rack', credit: stock('sahandbabali', 'photo-1603889386524-2dc2867a32b4') },
   'test-jowar-jeera': { alt: 'Crisp savoury biscuits with seeds', credit: stock('bohdans', 'photo-1615294209152-571969a7fbfe') },
   'test-orange-muesli': { alt: 'A white bowl of crunchy granola', credit: stock('fallonmichaeltx', 'photo-1578687595055-d15759a04151') },
   'test-veg-chips': { alt: 'Colourful vegetable chips on a plate', credit: stock('khlebnikovayulia', 'photo-1579384264577-79580c9d3a36') },
@@ -71,6 +67,11 @@ export const images: Record<string, ImageInfo> = {
   'mt-fruit-nut-muesli-1': { alt: 'Mia Torte Fruit & Nut Muesli in a kraft pouch, beside a bowl of muesli and a glass of milk', credit: null },
   'mt-mango-muesli-1': { alt: 'Mia Torte Nutty Mango Millet Muesli in a kraft pouch, beside a bowl of muesli and fresh mango', credit: null },
   'mt-strawberry-muesli-1': { alt: 'Mia Torte Crunchy Strawberry Millet Muesli in a kraft pouch and a jar, beside a bowl of muesli and fresh strawberries', credit: null },
+  'mt-classic-choc-chip-1': { alt: 'Rich chocolate cookies studded with dark and milk chocolate chunks on baking paper', credit: null },
+  'mt-carrot-creme-1': { alt: 'A Carrot Crème Melt cookie drizzled with white icing, beside carrots, walnuts and cinnamon', credit: null },
+  'mt-biscoff-1': { alt: 'A Biscoff Indulgence cookie with a caramel-spread drizzle and flakes of sea salt', credit: null },
+  'mt-pista-1': { alt: 'A Berry Nutty About Pista cookie with a pistachio drizzle, cranberries and chopped pistachios', credit: null },
+  'mt-oreo-cream-1': { alt: 'A cookies-and-cream cookie with chocolate sandwich-biscuit pieces and white chocolate chunks', credit: null },
   'ns-grain-texture': { alt: 'A close view of mixed whole grains, seeds and husks', credit: unsplash('Tahamie Farooqui', 'tami171091', 'GN3rHKNSMmc') },
 };
 

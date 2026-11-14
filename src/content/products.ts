@@ -144,7 +144,7 @@ export const products: Record<string, ProductContent> = {
     intro: draft('Our take on the cookie everyone knows by heart: golden, generous and studded with chocolate. Simple to describe, and the hardest thing in the world to get exactly right.'),
     serving: 'With a glass of cold milk, or a strong coffee at four o’clock.',
     featured: true,
-    images: ['test-classic-choc-chip'],
+    images: ['mt-classic-choc-chip-1'],
   },
   'Mocha Me Happy': {
     experience: draft('Roasted, slightly bitter coffee up front, then rounded off by dark chocolate. Rich rather than sweet.'),
@@ -180,7 +180,7 @@ export const products: Record<string, ProductContent> = {
     tagline: 'The comfort of carrot cake, in your hand.',
     intro: draft('Inspired by the carrot cake and its creamy finish, and reimagined as a cookie. Comforting, a little nostalgic, and made for afternoon tea.'),
     serving: 'With a pot of Darjeeling, or a milky cup of chai.',
-    images: ['test-carrot-creme'],
+    images: ['mt-carrot-creme-1'],
   },
   'Biscoff Indulgence': {
     experience: draft('Caramelised, toasty Biscoff flavour, with a buttery richness that makes one never quite enough.'),
@@ -190,7 +190,7 @@ export const products: Record<string, ProductContent> = {
     intro: draft('Built around the much-loved caramelised flavour of Biscoff, this is a cookie for those who believe a little more is always the right amount.'),
     serving: 'With a flat white, or crumbled over a bowl of vanilla ice cream.',
     featured: true,
-    images: ['test-biscoff'],
+    images: ['mt-biscoff-1'],
   },
   'Berry Nutty About Pista': {
     experience: draft('Tart, bright berries against the rounded, nutty richness of pistachio, with a crumbly bite.'),
@@ -199,7 +199,7 @@ export const products: Record<string, ProductContent> = {
     tagline: 'Bright berries, green pistachio, good company.',
     intro: draft('A cookie of contrasts: the brightness of berries against the rounded richness of pistachio. As pretty to look at as it is to eat.'),
     serving: 'Made for a gift box, or for the moment you finally sit down.',
-    images: ['test-pista'],
+    images: ['mt-pista-1'],
   },
   'Jowar Jeera Delight (8 nos.)': {
     experience: draft('Crisp and lightly savoury, with the warm, toasted note of cumin. Not too sweet, which is what makes it so good with tea.'),

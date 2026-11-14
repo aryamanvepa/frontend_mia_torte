@@ -12,17 +12,16 @@ How to remove them:
 
 Every image also appears with its credit on the site's Photo credits page.
 
-Real product photos already on the site, kept: Fruit & Nut, Nutty Mango and Crunchy Strawberry muesli (`mt-*-muesli-1`). Those were supplied by Torte Living; they may be AI-generated, see the photography brief.
+Real product photos already on the site, kept (supplied by Torte Living, not stock):
+- Fruit & Nut, Nutty Mango and Crunchy Strawberry muesli (`mt-*-muesli-1`). These may be AI-generated; see the photography brief.
+- Classic Chocolate Chip (`mt-classic-choc-chip-1`), Carrot Crème Melt (`mt-carrot-creme-1`), Biscoff Indulgence (`mt-biscoff-1`) and Berry Nutty About Pista (`mt-pista-1`), added 2026-11-14.
+- `mt-oreo-cream-1` (Oreo Cookies n Cream) is ready but not shown: there is no such product in the catalogue yet. Once it is added in the ops app, add an entry for it in `src/content/products.ts` with `images: ['mt-oreo-cream-1']`.
 
 | Image id | Used for | Shows | Photographer | Source |
 |---|---|---|---|---|
-| `test-classic-choc-chip` | Classic Chocolate Chip | Chocolate chip cookies with chunks of dark chocolate | [@foodess](https://unsplash.com/@foodess) | [Unsplash](https://images.unsplash.com/photo-1499636136210-6f4ee915583e) |
 | `test-mocha` | Mocha Me Happy | Chocolate cookies on a plate beside a cup of coffee | [@bycindys](https://unsplash.com/@bycindys) | [Unsplash](https://images.unsplash.com/photo-1559594323-25090515ee2f) |
 | `test-red-velvet` | Red Velvet Melt | Red velvet cookies cooling on a rack | [@fghaessani](https://unsplash.com/@fghaessani) | [Unsplash](https://images.unsplash.com/photo-1673412810103-27c233f77da6) |
 | `test-nutella-brownie` | Nutella Brownie Bliss | Cookies topped with chocolate hazelnut spread | [@vdphotography](https://unsplash.com/@vdphotography) | [Unsplash](https://images.unsplash.com/photo-1642942000413-d967010dea4b) |
-| `test-carrot-creme` | Carrot Crème Melt | Carrot-shaped iced cookies on a cooling rack | [@supardisign](https://unsplash.com/@supardisign) | [Unsplash](https://images.unsplash.com/photo-1708850090520-eafc36a926fa) |
-| `test-biscoff` | Biscoff Indulgence | Biscoff cookies cooling on a rack | [@thefrostedcakestudio](https://unsplash.com/@thefrostedcakestudio) | [Unsplash](https://images.unsplash.com/photo-1777401845650-318b6fd65041) |
-| `test-pista` | Berry Nutty About Pista | Pistachio cookies on a cooling rack | [@sahandbabali](https://unsplash.com/@sahandbabali) | [Unsplash](https://images.unsplash.com/photo-1603889386524-2dc2867a32b4) |
 | `test-jowar-jeera` | Jowar Jeera Delight (8 nos.) | Crisp savoury biscuits with seeds | [@bohdans](https://unsplash.com/@bohdans) | [Unsplash](https://images.unsplash.com/photo-1615294209152-571969a7fbfe) |
 | `test-orange-muesli` | Nutty Orange Millets & Nuts Muesli | A white bowl of crunchy granola | [@fallonmichaeltx](https://unsplash.com/@fallonmichaeltx) | [Unsplash](https://images.unsplash.com/photo-1578687595055-d15759a04151) |
 | `test-veg-chips` | Peri Peri Vegie Chips | Colourful vegetable chips on a plate | [@khlebnikovayulia](https://unsplash.com/@khlebnikovayulia) | [Unsplash](https://images.unsplash.com/photo-1579384264577-79580c9d3a36) |
@@ -44,7 +43,6 @@ Real product photos already on the site, kept: Fruit & Nut, Nutty Mango and Crun
 | `test-snack-feature` | Home page · Better Snacking feature | A bowl of crunchy savoury snack mix with peanuts | [@haberdoedas](https://unsplash.com/@haberdoedas) | [Unsplash](https://images.unsplash.com/photo-1788180074988-3332f56d625a) |
 
 **Mismatches to be aware of:** these are stand-ins, so the food will not match each product exactly.
-- Carrot Crème Melt shows iced carrot-shaped cookies.
 - Bajra Flour shows the millet plant.
 - Sattu shows roasted chana, the gram it is milled from.
 - Pudina Millet Crunch shows a generic savoury snack mix.
