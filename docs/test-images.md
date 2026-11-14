@@ -8,13 +8,13 @@ How to remove them:
 1. Delete the `test-…` ids from `images` in `src/content/products.ts`.
 2. Delete the `test-…` entries in `src/content/images.ts`.
 3. Delete `public/images/test-*`.
-4. Reset `storeHome.snacking.image` in `src/content/store.ts`.
 
 Every image also appears with its credit on the site's Photo credits page.
 
 Real product photos already on the site, kept (supplied by Torte Living, not stock):
 - Fruit & Nut, Nutty Mango and Crunchy Strawberry muesli (`mt-*-muesli-1`). These may be AI-generated; see the photography brief.
 - Classic Chocolate Chip (`mt-classic-choc-chip-1`), Carrot Crème Melt (`mt-carrot-creme-1`), Biscoff Indulgence (`mt-biscoff-1`) and Berry Nutty About Pista (`mt-pista-1`), added 2026-11-14.
+- Pudina Millet Crunch and the home page's Better Snacking feature (`mt-pudina-crunch-1`), added 2026-11-14. Likely AI-generated (supplied as "Rustic Millet Bowl with Fresh Greens.png").
 - `mt-oreo-cream-1` (Oreo Cookies n Cream) is ready but not shown: there is no such product in the catalogue yet. Once it is added in the ops app, add an entry for it in `src/content/products.ts` with `images: ['mt-oreo-cream-1']`.
 
 | Image id | Used for | Shows | Photographer | Source |
@@ -25,7 +25,6 @@ Real product photos already on the site, kept (supplied by Torte Living, not sto
 | `test-jowar-jeera` | Jowar Jeera Delight (8 nos.) | Crisp savoury biscuits with seeds | [@bohdans](https://unsplash.com/@bohdans) | [Unsplash](https://images.unsplash.com/photo-1615294209152-571969a7fbfe) |
 | `test-orange-muesli` | Nutty Orange Millets & Nuts Muesli | A white bowl of crunchy granola | [@fallonmichaeltx](https://unsplash.com/@fallonmichaeltx) | [Unsplash](https://images.unsplash.com/photo-1578687595055-d15759a04151) |
 | `test-veg-chips` | Peri Peri Vegie Chips | Colourful vegetable chips on a plate | [@khlebnikovayulia](https://unsplash.com/@khlebnikovayulia) | [Unsplash](https://images.unsplash.com/photo-1579384264577-79580c9d3a36) |
-| `test-pudina-crunch` | Pudina Millet Crunch | A close view of a crunchy savoury snack mix | [@haberdoedas](https://unsplash.com/@haberdoedas) | [Unsplash](https://images.unsplash.com/photo-1788180074861-40b65b841057) |
 | `test-salted-nuts` | Salted Nuts & Bean Crunch | Mixed salted nuts | [@anniespratt](https://unsplash.com/@anniespratt) | [Unsplash](https://images.unsplash.com/photo-1693812879904-b8161644ce5a) |
 | `test-trail-mix` | Peri Peri Trail Mix | A trail mix of nuts and dried fruit | [@monazme](https://unsplash.com/@monazme) | [Unsplash](https://images.unsplash.com/photo-1767877609689-beff32b9c0ac) |
 | `test-masala-bean` | Masala Protein Bean Mix | Roasted, spiced chickpeas | [@zoshuacolah](https://unsplash.com/@zoshuacolah) | [Unsplash](https://images.unsplash.com/photo-1788629378918-17f7818104ee) |
@@ -40,10 +39,8 @@ Real product photos already on the site, kept (supplied by Torte Living, not sto
 | `test-multigrain-dosa` | Instant Multigrain Dosa Mix | A crisp dosa with sambar and chutneys | [@paul19977](https://unsplash.com/@paul19977) | [Unsplash](https://images.unsplash.com/photo-1668236543090-82eba5ee5976) |
 | `test-pesarattu` | Instant Pesarattu Dosa Mix | A thin, crisp dosa with chutneys | [@pavan_09](https://unsplash.com/@pavan_09) | [Unsplash](https://images.unsplash.com/photo-1751560455942-f859f1215826) |
 | `test-peanut-chutney` | Instant Peanut Putana Chutney | Idli covered in chutney powder with sambar | [@zoshuacolah](https://unsplash.com/@zoshuacolah) | [Unsplash](https://images.unsplash.com/photo-1788621879512-0aefb7a774ff) |
-| `test-snack-feature` | Home page · Better Snacking feature | A bowl of crunchy savoury snack mix with peanuts | [@haberdoedas](https://unsplash.com/@haberdoedas) | [Unsplash](https://images.unsplash.com/photo-1788180074988-3332f56d625a) |
 
 **Mismatches to be aware of:** these are stand-ins, so the food will not match each product exactly.
 - Bajra Flour shows the millet plant.
 - Sattu shows roasted chana, the gram it is milled from.
-- Pudina Millet Crunch shows a generic savoury snack mix.
 - The dosa mixes show restaurant dosas.

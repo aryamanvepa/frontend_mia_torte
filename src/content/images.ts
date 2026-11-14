@@ -34,7 +34,6 @@ export const images: Record<string, ImageInfo> = {
   'test-jowar-jeera': { alt: 'Crisp savoury biscuits with seeds', credit: stock('bohdans', 'photo-1615294209152-571969a7fbfe') },
   'test-orange-muesli': { alt: 'A white bowl of crunchy granola', credit: stock('fallonmichaeltx', 'photo-1578687595055-d15759a04151') },
   'test-veg-chips': { alt: 'Colourful vegetable chips on a plate', credit: stock('khlebnikovayulia', 'photo-1579384264577-79580c9d3a36') },
-  'test-pudina-crunch': { alt: 'A close view of a crunchy savoury snack mix', credit: stock('haberdoedas', 'photo-1788180074861-40b65b841057') },
   'test-salted-nuts': { alt: 'Mixed salted nuts', credit: stock('anniespratt', 'photo-1693812879904-b8161644ce5a') },
   'test-trail-mix': { alt: 'A trail mix of nuts and dried fruit', credit: stock('monazme', 'photo-1767877609689-beff32b9c0ac') },
   'test-masala-bean': { alt: 'Roasted, spiced chickpeas', credit: stock('zoshuacolah', 'photo-1788629378918-17f7818104ee') },
@@ -49,7 +48,6 @@ export const images: Record<string, ImageInfo> = {
   'test-multigrain-dosa': { alt: 'A crisp dosa with sambar and chutneys', credit: stock('paul19977', 'photo-1668236543090-82eba5ee5976') },
   'test-pesarattu': { alt: 'A thin, crisp dosa with chutneys', credit: stock('pavan_09', 'photo-1751560455942-f859f1215826') },
   'test-peanut-chutney': { alt: 'Idli covered in chutney powder with sambar', credit: stock('zoshuacolah', 'photo-1788621879512-0aefb7a774ff') },
-  'test-snack-feature': { alt: 'A bowl of crunchy savoury snack mix with peanuts', credit: stock('haberdoedas', 'photo-1788180074988-3332f56d625a') },
 
   'craft-flour-hands': { alt: 'A baker\'s hands dusting flour over a dark work table', credit: unsplash('Mae Mu', 'picoftasty', 'rgRbqFweGF0') },
   'craft-kneading': { alt: 'Hands kneading a ball of dough on a floured table', credit: unsplash('Skyler Ewing', 'skylerewing', '2uiZDQYTHBM') },
@@ -71,6 +69,7 @@ export const images: Record<string, ImageInfo> = {
   'mt-carrot-creme-1': { alt: 'A Carrot Crème Melt cookie drizzled with white icing, beside carrots, walnuts and cinnamon', credit: null },
   'mt-biscoff-1': { alt: 'A Biscoff Indulgence cookie with a caramel-spread drizzle and flakes of sea salt', credit: null },
   'mt-pista-1': { alt: 'A Berry Nutty About Pista cookie with a pistachio drizzle, cranberries and chopped pistachios', credit: null },
+  'mt-pudina-crunch-1': { alt: 'Pudina Millet Crunch in a wooden bowl with fresh mint and a millet stalk', credit: null },
   'mt-oreo-cream-1': { alt: 'A cookies-and-cream cookie with chocolate sandwich-biscuit pieces and white chocolate chunks', credit: null },
   'ns-grain-texture': { alt: 'A close view of mixed whole grains, seeds and husks', credit: unsplash('Tahamie Farooqui', 'tami171091', 'GN3rHKNSMmc') },
 };

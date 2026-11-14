@@ -99,7 +99,7 @@ export const storeHome = {
       { title: 'Better ingredients behind it', text: 'Built on millets, nuts, beans and seeds, with full nutrition information on every product page.' },
     ],
     /** Lifestyle photo for the feature (images.ts id). Until it exists, a product illustration and a note on the shot. */
-    image: 'test-snack-feature' as string | undefined, // TEST stock photo (docs/test-images.md)
+    image: 'mt-pudina-crunch-1' as string | undefined,
     shot: 'Lifestyle photograph to come: a bowl of Peri Peri Trail Mix and Pudina Millet Crunch on a tea table, hands reaching in.',
   },
   treats: { eyebrow: 'Indulgence & Treats', title: 'Something to savour.', cta: 'Shop treats' },

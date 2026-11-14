@@ -268,7 +268,7 @@ export const products: Record<string, ProductContent> = {
     intro: draft('Pudina, the mint of Indian chutneys and chaas, brings its cool lift to a crunchy millet snack. A tea-time companion with a clean, green finish.'),
     serving: 'With evening chai, or alongside a glass of chilled chaas.',
     featured: true,
-    images: ['test-pudina-crunch'],
+    images: ['mt-pudina-crunch-1'],
   },
   'Salted Nuts & Bean Crunch': {
     experience: draft('Crunchy nuts and beans with just enough salt to bring out their toasty flavour.'),
