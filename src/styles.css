@@ -702,7 +702,7 @@ main:focus { outline: none; }
 .bespoke__text .hero__cta { margin-top: 8px; }
 @media (min-width: 900px) { .bespoke__grid { grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 96px); } }
 
-/* ---------------------------------------------------------------- Nutri Sampoorna home */
+/* ---------------------------------------------------------------- Nutri Sampoorn home */
 .ns-hero { display: grid; gap: 36px; padding-top: clamp(32px, 6vw, 80px); padding-bottom: clamp(48px, 7vw, 96px); }
 .ns-hero__text { display: flex; flex-direction: column; justify-content: flex-end; }
 .ns-hero__title { font-size: clamp(2.7rem, 7vw, 6.2rem); margin-bottom: 24px; }
@@ -853,7 +853,7 @@ main:focus { outline: none; }
 .pack--mt-2 { --pack-bg: #ecdcd2; --pack-ink: #6a2f27; }
 .pack--mt-3 { --pack-bg: #f1e6c9; --pack-ink: #5a4120; }
 .pack--mt-4 { --pack-bg: #3a2419; --pack-ink: #e9d3a6; }
-/* Nutri Sampoorna tones: rice paper, clay, sage, millet */
+/* Nutri Sampoorn tones: rice paper, clay, sage, millet */
 .pack--ns-1 { --pack-bg: #e9e6dc; --pack-ink: #22261f; }
 .pack--ns-2 { --pack-bg: #ead9c7; --pack-ink: #6e3c17; }
 .pack--ns-3 { --pack-bg: #dfe2d5; --pack-ink: #33402d; }

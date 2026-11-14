@@ -1,7 +1,7 @@
 # Torte Living — online shop
 
 Customer-facing shop for Torte Living Pvt. Ltd., selling two brands in one store:
-**Mia Torte** (boutique bakery in the European pâtisserie tradition) and **Nutri Sampoorna**
+**Mia Torte** (boutique bakery in the European pâtisserie tradition) and **Nutri Sampoorn**
 (contemporary pantry of Indian grains, millets and pulses). React + Vite + TypeScript, hosted on GitHub Pages, running on the
 Torte Living Supabase back end (the same database as the
 [operations app](https://github.com/aryamanvepa/Inventory-front-end)).
@@ -23,7 +23,7 @@ Each checkout attempt carries a client-generated id, so a retried submit never c
 
 ## Site structure
 
-One food store organised by **buying behaviour**; Mia Torte and Nutri Sampoorna appear only as
+One food store organised by **buying behaviour**; Mia Torte and Nutri Sampoorn appear only as
 labels on products (and on their own brand-story pages). One visual theme for the whole store.
 
 | Address | Page |
@@ -34,7 +34,7 @@ labels on products (and on their own brand-story pages). One visual theme for th
 | `/bestsellers` | Bestsellers (backend `bestseller_rank`; until then a fixed order) |
 | `/search?q=` | Search with synonyms (`src/lib/search.ts`); the header box suggests as you type |
 | `/product/<SKU>` | Product page (canonical = first pack of the product) |
-| `/mia-torte`, `/nutri-sampoorna` | Brand story + that brand's products |
+| `/mia-torte`, `/nutri-sampoorn` | Brand story + that brand's products |
 | `/about`, `/contact`, `/account`, `/track` | Company, contact, account (email code sign-in), order tracking + cancellation request |
 | `/checkout`, `/shipping`, `/refunds`, `/privacy`, `/terms` | Shared |
 
@@ -60,9 +60,9 @@ with no products shows a "coming soon" note written in the brand's voice.
 | Cookies | Mia Torte | Cookies & Biscuits |
 | Muesli | Mia Torte | Muesli |
 | Snacks | Mia Torte | Savoury Snacks |
-| Atta & flours | Nutri Sampoorna | Atta & Grain Blends |
-| Dosa & batter mixes | Nutri Sampoorna | Breakfast & Dosa Mixes |
-| Chutney powders | Nutri Sampoorna | Pantry & Snacks |
+| Atta & flours | Nutri Sampoorn | Atta & Grain Blends |
+| Dosa & batter mixes | Nutri Sampoorn | Breakfast & Dosa Mixes |
+| Chutney powders | Nutri Sampoorn | Pantry & Snacks |
 
 A product belongs to the brand of its `brand_code` (MT / NS) in the ops app.
 

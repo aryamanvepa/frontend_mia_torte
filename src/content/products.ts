@@ -74,10 +74,10 @@ export interface ProductContent {
   intro?: Copy;
   /** What goes into it and why. */
   ingredientStory?: Copy;
-  /** Mia Torte: flavour & texture. Nutri Sampoorna: preparation. */
+  /** Mia Torte: flavour & texture. Nutri Sampoorn: preparation. */
   experience?: Copy;
   experienceLabel?: string;
-  /** Short tasting notes (Mia Torte) or "good for" uses (Nutri Sampoorna). */
+  /** Short tasting notes (Mia Torte) or "good for" uses (Nutri Sampoorn). */
   notes?: string[];
   notesLabel?: string;
   serving?: Copy;
@@ -298,7 +298,7 @@ export const products: Record<string, ProductContent> = {
     images: ['test-masala-bean'],
   },
 
-  // ============================================================ NUTRI SAMPOORNA · Atta & flours
+  // ============================================================ NUTRI SAMPOORN · Atta & flours
   'Multigrain Superseed Atta (MGA)': {
     summary: 'Soft rotis with a gentle, nutty depth. A multigrain atta blended with seeds, for everyday rotis and parathas.',
     taste: 'Mild and gently nutty, a little deeper than plain wheat atta',
@@ -362,7 +362,7 @@ export const products: Record<string, ProductContent> = {
     images: ['test-sattu'],
   },
 
-  // ============================================================ NUTRI SAMPOORNA · Dosa mixes
+  // ============================================================ NUTRI SAMPOORN · Dosa mixes
   'Instant MultiMillet Dosa Mix': {
     summary: 'Crisp, golden millet dosas without the overnight soak. An instant millet dosa mix: whisk with water and pour.',
     taste: 'Crisp and lightly earthy',
@@ -392,7 +392,7 @@ export const products: Record<string, ProductContent> = {
     images: ['test-multigrain-dosa'],
   },
 
-  // ============================================================ NUTRI SAMPOORNA · Chutney powders
+  // ============================================================ NUTRI SAMPOORN · Chutney powders
   'Instant Peanut Putana Chutney': {
     summary: 'Nutty, roasted and savoury. A peanut and roasted gram chutney powder for idli, dosa and hot rice.',
     taste: 'Nutty and roasted, with a gentle heat',

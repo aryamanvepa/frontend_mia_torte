@@ -99,7 +99,7 @@ export function Track() {
   });
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [result, setResult] = useState<OrderStatus | null>(null);
-  useSeo({ title: `Track your order · ${site.name}`, description: 'Check the status of your Mia Torte or Nutri Sampoorna order with your order number and phone number.', noindex: true });
+  useSeo({ title: `Track your order · ${site.name}`, description: 'Check the status of your Mia Torte or Nutri Sampoorn order with your order number and phone number.', noindex: true });
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

@@ -1,5 +1,5 @@
 // =====================================================================
-// BRAND CONTENT — Mia Torte and Nutri Sampoorna.
+// BRAND CONTENT — Mia Torte and Nutri Sampoorn.
 //
 // Written to the "Website Language & Brand Positioning Brief". Each brand has
 // its own voice, sections and collections. Edit the words freely; see
@@ -143,11 +143,11 @@ export const miaTorte: Brand = {
   },
 };
 
-// ------------------------------------------------------------ NUTRI SAMPOORNA
-export const nutriSampoorna: Brand = {
+// ------------------------------------------------------------ NUTRI SAMPOORN
+export const nutriSampoorn: Brand = {
   code: 'NS',
-  slug: 'nutri-sampoorna',
-  name: 'Nutri Sampoorna',
+  slug: 'nutri-sampoorn',
+  name: 'Nutri Sampoorn',
   theme: 'ns',
   descriptor: 'Contemporary pantry',
   tagline: 'Everyday nourishment, with a little more thought.',
@@ -194,14 +194,14 @@ export const nutriSampoorna: Brand = {
   story: {
     slug: 'philosophy',
     label: 'Our Philosophy',
-    eyebrow: 'Nutri Sampoorna',
+    eyebrow: 'Nutri Sampoorn',
     title: 'Good food begins with good ingredients.',
-    intro: 'Nutri Sampoorna is a food brand first. We believe taste, ingredient integrity and good nutrition belong together, and that everyday eating can be far more interesting than it often is.',
+    intro: 'Nutri Sampoorn is a food brand first. We believe taste, ingredient integrity and good nutrition belong together, and that everyday eating can be far more interesting than it often is.',
     image: 'ns-grain-texture',
     sections: [
       {
         heading: 'The name',
-        body: 'Sampoorna means complete, whole. For us it describes a way of eating rather than a promise: whole grains, honest ingredients, and meals that feel complete.',
+        body: 'Sampoorn means complete, whole. For us it describes a way of eating rather than a promise: whole grains, honest ingredients, and meals that feel complete.',
       },
       {
         heading: 'An Indian pantry, rediscovered',
@@ -232,8 +232,8 @@ export const nutriSampoorna: Brand = {
   },
 };
 
-export const brands: Record<BrandCode, Brand> = { MT: miaTorte, NS: nutriSampoorna };
-export const brandList: Brand[] = [miaTorte, nutriSampoorna];
+export const brands: Record<BrandCode, Brand> = { MT: miaTorte, NS: nutriSampoorn };
+export const brandList: Brand[] = [miaTorte, nutriSampoorn];
 
 // ------------------------------------------------------------ home page copy
 export const mtHome = {
@@ -259,7 +259,7 @@ export const mtHome = {
 };
 
 export const nsHome = {
-  heroEyebrow: 'Nutri Sampoorna',
+  heroEyebrow: 'Nutri Sampoorn',
   heroTitle: 'A more interesting\nway to eat well.',
   heroText: 'India has one of the richest grain heritages in the world: millets, pulses, seeds and heirloom staples, each with its own flavour and its own place in the kitchen. We bring them together in thoughtfully developed recipes and simple formats for the way we cook today.',
   shelfEyebrow: 'The shelf',

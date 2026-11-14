@@ -7,7 +7,7 @@ import type { CatalogueItem } from './api';
 
 export const brandOf = (code: string | null | undefined): Brand | null => (code ? brands[code as BrandCode] ?? null : null);
 
-/** Brand page for a URL (/mia-torte, /nutri-sampoorna), else null. Kept for the brand pages only: the store is not split by brand. */
+/** Brand page for a URL (/mia-torte, /nutri-sampoorn), else null. Kept for the brand pages only: the store is not split by brand. */
 export function brandFromPath(pathname: string): Brand | null {
   const seg = pathname.split('/')[1];
   return brandList.find((b) => b.slug === seg) ?? null;

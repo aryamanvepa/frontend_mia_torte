@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { useCatalogue } from '../state/store';
 import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
-import { brandList, miaTorte, nutriSampoorna, type Brand } from '../content/brands';
+import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
 import { images } from '../content/images';
 import { SHOW_PLACEHOLDER_FLAGS, house, pages, site } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
@@ -86,10 +86,10 @@ export function About() {
 
 // ---------------------------------------------------------------- contact (one for the whole store)
 export function Contact() {
-  useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of Mia Torte and Nutri Sampoorna.' });
+  useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of Mia Torte and Nutri Sampoorn.' });
   const blocks = [
     ...miaTorte.contact.blocks.filter((b) => b.heading !== 'The kitchen'),
-    ...nutriSampoorna.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),
+    ...nutriSampoorn.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),
   ];
   return (
     <article className="info">

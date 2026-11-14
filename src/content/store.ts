@@ -1,7 +1,7 @@
 import type { Delivery } from '../lib/api';
 // =====================================================================
 // THE STORE — one food store, organised around how people buy
-// (Website Design Brief §3–5). Mia Torte and Nutri Sampoorna appear as
+// (Website Design Brief §3–5). Mia Torte and Nutri Sampoorn appear as
 // labels on products, never as separate shops.
 //
 // CATEGORIES map from the product "category" set in the ops app
@@ -79,7 +79,7 @@ export const bestsellersPage = {
 
 export const shopAllPage = {
   title: 'Shop all',
-  intro: 'Everything in the store: treats, better snacks and everyday staples, from Mia Torte and Nutri Sampoorna.',
+  intro: 'Everything in the store: treats, better snacks and everyday staples, from Mia Torte and Nutri Sampoorn.',
 };
 
 // ---------------------------------------------------------------- home page (§5)

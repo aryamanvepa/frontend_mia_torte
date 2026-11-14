@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Online shop for Mia Torte & Nutri Sampoorna (Torte Living Pvt Limited) on the Torte Living Supabase back end",
+  "description": "Online shop for Mia Torte & Nutri Sampoorn (Torte Living Pvt Limited) on the Torte Living Supabase back end",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/prerender.mjs",

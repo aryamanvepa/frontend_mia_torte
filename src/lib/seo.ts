@@ -103,7 +103,7 @@ export const organisationLd = {
   url: `${SITE_URL}/`,
   brand: [
     { '@type': 'Brand', name: 'Mia Torte' },
-    { '@type': 'Brand', name: 'Nutri Sampoorna' },
+    { '@type': 'Brand', name: 'Nutri Sampoorn' },
   ],
 };
 

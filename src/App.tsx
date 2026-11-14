@@ -34,8 +34,11 @@ const OLD_COLLECTION: Record<string, string> = {
   'breakfast-dosa-mixes': 'everyday-nourishment', 'pantry-snacks': 'everyday-nourishment',
   gifting: 'gifting-discovery', seasonal: 'gifting-discovery',
 };
+/** Brand slugs that were renamed: old → new (2026-11-14: the brand is "Nutri Sampoorn"). */
+const OLD_BRAND_SLUG: Record<string, string> = { 'nutri-sampoorna': 'nutri-sampoorn' };
 function OldBrandPath() {
   const { slug = '', '*': rest = '' } = useParams();
+  if (OLD_BRAND_SLUG[slug]) return <Navigate to={`/${OLD_BRAND_SLUG[slug]}${rest ? `/${rest}` : ''}`} replace />;
   const brand = brandList.find((b) => b.slug === slug);
   const [first, second] = rest.split('/');
   if (first === 'product' && second) return <Navigate to={`/product/${second}`} replace />;

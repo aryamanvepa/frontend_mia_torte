@@ -20,7 +20,7 @@ const NAV = [
 ];
 
 export function Wordmark({ as: Tag = 'span' }: { as?: 'span' | 'p' }) {
-  return <Tag className="wordmark wordmark--house"><span className="wordmark__name">Torte Living</span><span className="wordmark__sub">Mia Torte · Nutri Sampoorna</span></Tag>;
+  return <Tag className="wordmark wordmark--house"><span className="wordmark__name">Torte Living</span><span className="wordmark__sub">Mia Torte · Nutri Sampoorn</span></Tag>;
 }
 
 // ---------------------------------------------------------------- search box (header)
@@ -188,7 +188,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="wrap footer__legal">
-        <p>Mia Torte and Nutri Sampoorna are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
+        <p>Mia Torte and Nutri Sampoorn are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
         <p>© {year} {site.legalEntity}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>
