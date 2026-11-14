@@ -1383,3 +1383,36 @@ a.add-btn { text-decoration: none; }
 .pack__accent { position: absolute; top: 9%; right: 9%; width: clamp(22px, 14%, 54px); height: auto; opacity: .9; transform: rotate(-12deg); }
 .pack--hero .pack__accent { width: clamp(32px, 11%, 72px); }
 .ph-tag--test { border-color: #c47a1c; color: #8a4f0c; background: rgba(196, 122, 28, .1); }
+
+/* ---------------------------------------------------------------- in-bag quantity (− qty +) */
+.bagstep {
+  display: inline-flex; align-items: center; height: 44px; border: 1px solid var(--line-strong); border-radius: var(--pill);
+  background: var(--paper); color: var(--cocoa); animation: bagstep-in .25s var(--ease);
+}
+.bagstep button { width: 40px; height: 100%; border: 0; background: none; color: inherit; display: grid; place-items: center; border-radius: var(--pill); cursor: pointer; }
+.bagstep button:hover:not(:disabled) { background: rgba(58, 36, 25, .07); }
+.bagstep button:active:not(:disabled) { transform: scale(.9); }
+.bagstep button:disabled { opacity: .3; cursor: not-allowed; }
+.bagstep button:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: -2px; }
+.bagstep output { min-width: 22px; text-align: center; font-weight: 600; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.bagstep--sm { height: 38px; }
+.bagstep--sm button { width: 34px; }
+.bagstep--sm output { min-width: 18px; font-size: .9rem; }
+.bagstep--lg { height: 50px; }
+.bagstep--lg button { width: 48px; }
+.bagstep--lg output { min-width: 28px; font-size: 1.05rem; }
+@keyframes bagstep-in { from { transform: scale(.92); opacity: .4; } }
+@media (prefers-reduced-motion: reduce) { .bagstep { animation: none; } }
+
+/* Product cards: brand, size and price/add sit at the bottom, so size menus line up across a row */
+.card__buy { margin-top: auto; }
+.card__buy .card__foot { margin-top: 0; }
+
+/* Home banner: frame the photo on the baker's hands (they sit in its upper third).
+   Wide screens: the photo sits to the right of the text card, fading into the dark background on its left. */
+.store-hero__img img { object-position: 50% 28%; }
+@media (min-width: 900px) {
+  .store-hero__media { background: #0c0b0a; overflow: hidden; }
+  .store-hero__img { left: 38%; -webkit-mask-image: linear-gradient(to right, transparent, #000 20%); mask-image: linear-gradient(to right, transparent, #000 20%); }
+  .store-hero__img img { object-position: 50% 24%; }
+}

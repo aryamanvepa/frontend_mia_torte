@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ProductCard, useComplements } from '../components/layout';
+import { BagStepper, ProductCard, useComplements } from '../components/layout';
 import { PackArt } from '../components/PackArt';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
@@ -374,17 +374,27 @@ export default function Product() {
           {st === 'available' ? (
             <>
               <div className="pdp__stock"><StockNote item={item} /></div>
-              <div className="pdp__buy">
-                {max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
-                <button className={`btn btn--dark btn--grow ${adding ? 'is-adding' : ''}`} disabled={max === 0 || adding} onClick={onAdd}>
-                  {max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag · {rupees(item.price * Math.max(1, Math.min(qty, max)))}</>}
-                </button>
-              </div>
+              {inBag > 0 && !adding ? (
+                // In the bag already: change the quantity right here, the same control as on the cards.
+                <div className="pdp__buy">
+                  <BagStepper item={item} size="lg" />
+                  <button type="button" className="btn btn--line btn--grow" onClick={openDrawer}>
+                    View bag · {rupees(item.price * inBag)}
+                  </button>
+                </div>
+              ) : (
+                <div className="pdp__buy">
+                  {max > 0 && <Stepper value={Math.min(qty, max)} max={max} onChange={setQty} label={titleOf(item)} />}
+                  <button className={`btn btn--dark btn--grow ${adding ? 'is-adding' : ''}`} disabled={max === 0 || adding} onClick={onAdd}>
+                    {max === 0 ? 'All available units are in your bag' : adding ? <><Icon name="check" size={18} /> Added</> : <>Add to bag · {rupees(item.price * Math.max(1, Math.min(qty, max)))}</>}
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <p className={`pdp__status pdp__status--${st}`} role="status">{STATUS_TEXT[st]}</p>
           )}
-          {inBag > 0 && <p className="pdp__inbag" role="status"><Icon name="check" size={16} /> {inBag} of this size in your bag · <button type="button" className="linkbtn" onClick={openDrawer}>View bag</button></p>}
+          {inBag > 0 && st !== 'available' && <p className="pdp__inbag" role="status"><Icon name="check" size={16} /> {inBag} of this size in your bag · <button type="button" className="linkbtn" onClick={openDrawer}>View bag</button></p>}
           {(st === 'out_of_stock' || st === 'coming_soon') && <NotifyMe key={item.code} code={item.code} what={`${titleOf(item)}, ${packFull(item)}`} pack={packKind(item) ? packFull(item) : `${packLabel(item)} pack`} soon={st === 'coming_soon'} />}
 
           {considered && (

@@ -372,6 +372,28 @@ const isPhone = () => typeof window !== 'undefined' && window.matchMedia('(max-w
 const STATUS_LABEL = { out_of_stock: 'Out of stock', coming_soon: 'Coming soon', discontinued: 'No longer available' } as const;
 
 /**
+ * − qty + for a pack that is already in the bag, shown in place of "Add" wherever the product appears
+ * (cards, suggestions, product page). − at 1 takes it out of the bag; + stops at what the server allows.
+ */
+export function BagStepper({ item, size = 'md' }: { item: CatalogueItem; size?: 'sm' | 'md' | 'lg' }) {
+  const { lines, add, setQty } = useCart();
+  const n = lines.find((l) => l.code === item.code)?.qty ?? 0;
+  const max = Math.min(item.max_qty, 20);
+  const name = `${item.product}, ${packFull(item)}`;
+  return (
+    <div className={`bagstep bagstep--${size}`} role="group" aria-label={`${name} in your bag`}>
+      <button type="button" onClick={() => setQty(item.code, n - 1)} aria-label={n <= 1 ? `Remove ${name} from bag` : `One less ${name}`}>
+        <Icon name="minus" size={18} />
+      </button>
+      <output aria-live="polite">{n}<span className="sr-only"> in bag</span></output>
+      <button type="button" onClick={() => add(item.code)} disabled={n >= max} aria-label={`One more ${name}`} title={n >= max ? 'That’s all we can send of this one' : undefined}>
+        <Icon name="plus" size={18} />
+      </button>
+    </div>
+  );
+}
+
+/**
  * Add to bag without leaving the page. With `pack`, adds that exact size (product cards pick the size
  * themselves); without, a product with several sizes opens a size picker (dropdown, or a bottom sheet on phones).
  * Only available packs can be added: anything else shows its status instead.
@@ -408,6 +430,11 @@ export function QuickAdd({ item, pack, compact }: { item: CatalogueItem; pack?: 
 
   const target = pack ?? (packs.length === 1 ? packs[0] : undefined);
   const targetStatus = target ? statusOf(target) : buyable.length ? 'available' : statusOf(packs[0] ?? item);
+  // Already in the bag: − qty + instead of "Add". With no size chosen, only when exactly one size is in the bag.
+  const inBagPacks = packs.filter((p) => qtyOf(p.code) > 0 && statusOf(p) === 'available');
+  const stepPack = target ? (qtyOf(target.code) > 0 && targetStatus === 'available' ? target : undefined)
+    : inBagPacks.length === 1 ? inBagPacks[0] : undefined;
+  if (stepPack) return <div className="quickadd"><BagStepper item={stepPack} size={compact ? 'sm' : 'md'} /></div>;
   if (targetStatus !== 'available') {
     // Not buyable: say why. Out of stock links to the product page, where "Notify me" lives.
     return targetStatus === 'out_of_stock'
@@ -503,6 +530,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
       <div className="card__body">
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
         {(c.summary || c.tagline) && <p className="card__summary">{c.summary ?? c.tagline}</p>}
+        <div className="card__buy">
         {many && <p className="card__brand">{item.brand}</p>}
         {many ? (
           <label className="card__size">
@@ -523,6 +551,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
             {save > 0 && <s className="card__mrp"><span className="sr-only">MRP </span>{rupees(pack.mrp!)}</s>}
           </span>
           <QuickAdd item={item} pack={pack} />
+        </div>
         </div>
       </div>
     </article>
