@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { brandList } from '../content/brands';
+import { brandList, miaTorte } from '../content/brands';
 import { BrandLogo } from './BrandLogo';
 import { site } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
@@ -117,7 +117,7 @@ export function Header() {
             </button>
             <div className="header__search-inline"><SearchBox /></div>
           </div>
-          <Link to="/" className="header__mark" aria-label={`${site.name}, home`}><Wordmark /></Link>
+          <Link to="/" className="header__mark" aria-label={`${site.name}, home of ${miaTorte.name}`}><BrandLogo brand={miaTorte} width={66} eager className="header__logo" /><Wordmark /></Link>
           <div className="header__right">
             {/* Account icon hidden until customer accounts (backend B8) are approved. */}
             <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>

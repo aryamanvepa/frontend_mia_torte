@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon, Spinner } from '../components/ui';
+import { BrandLogo } from '../components/BrandLogo';
+import { miaTorte } from '../content/brands';
 import { site } from '../content/site';
 import { requestCancellation, trackOrder, type OrderStatus } from '../lib/api';
 import { rupees } from '../lib/format';
@@ -31,7 +33,10 @@ export function OrderConfirmed() {
   return (
     <div className="confirm wrap">
       <div className="confirm__card">
-        <div className="confirm__seal" aria-hidden="true"><Icon name="check" size={34} /></div>
+        <div className="confirm__brand">
+          <BrandLogo brand={miaTorte} width={128} eager />
+          <span className="confirm__check" aria-hidden="true"><Icon name="check" size={22} /></span>
+        </div>
         <p className="eyebrow">Order received</p>
         <h1 className="display display--lg">Thank you{last?.name ? `, ${last.name}` : ''}.</h1>
         <p className="lede">Your order is confirmed and is now with our kitchen to pack.</p>
@@ -116,6 +121,7 @@ export function Track() {
   return (
     <div className="track wrap">
       <header className="page-head page-head--narrow">
+        <BrandLogo brand={miaTorte} width={88} className="brand-logo--track" />
         <p className="eyebrow">Order tracking</p>
         <h1 className="display display--lg">Where is my order?</h1>
         <p className="lede">Enter your order number (it starts with ORD) and the mobile number you ordered with.</p>

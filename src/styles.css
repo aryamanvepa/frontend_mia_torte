@@ -1434,3 +1434,20 @@ a.add-btn { text-decoration: none; }
 .footer__range { font: 420 1.05rem/1.2 var(--serif); color: var(--cream); text-decoration: none; border-bottom: 1px solid rgba(233, 211, 166, .35); }
 .pdp__by--logo { display: flex; align-items: center; gap: 10px; }
 .pdp__by-logo .brand-logo { width: 44px; filter: none; }
+
+/* Header: La Mia Torte logo beside the Torte Living name, on every page */
+.header__mark { display: flex; align-items: center; gap: 10px; color: inherit; }
+.header__logo { width: 66px; filter: none; flex: none; }
+.header__mark .wordmark { justify-items: start; text-align: left; padding-inline: 0; }
+@media (max-width: 899px) {
+  .header__logo { width: 50px; }
+  .header__mark { gap: 8px; }
+}
+@media (max-width: 360px) { .header__mark .wordmark__sub { display: none; } }
+/* Order confirmation: the logo as the seal, with a check */
+.confirm__brand { position: relative; margin-bottom: 6px; animation: pop .8s var(--ease) both; }
+.confirm__brand .brand-logo { width: 128px; }
+.confirm__check { position: absolute; right: -6px; bottom: 4px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--cocoa); color: var(--gold-soft); box-shadow: 0 0 0 3px var(--cream); }
+.confirm__check .icon path { stroke-dasharray: 30; animation: draw .7s var(--ease) .35s both; }
+.brand-logo--track { width: 88px; margin-bottom: 14px; }
+.page-head--narrow:has(.brand-logo--track) { text-align: center; display: grid; justify-items: center; }

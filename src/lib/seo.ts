@@ -12,7 +12,9 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { imageSet } from '../content/images';
 
+export const SHARE_CARD_PATH = 'brand/share-card.jpg';
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://aryamanvepa.github.io/frontend_mia_torte').replace(/\/$/, '');
+const SHARE_CARD = `${SITE_URL}/${SHARE_CARD_PATH}`;
 export const SITE_NAME = 'Torte Living';
 
 /**
@@ -78,7 +80,8 @@ export function useSeo(seo: Seo | null) {
   useEffect(() => {
     if (!seo) return;
     const url = absUrl(seo.canonical ?? pathname);
-    const img = seo.image ? imageUrl(seo.image) : undefined;
+    // Pages without their own photo share the brand card (logo, name, what we sell).
+    const img = seo.image ? imageUrl(seo.image) : SHARE_CARD;
     document.title = seo.title;
     setMeta('name', 'description', seo.description);
     setMeta('name', 'robots', seo.noindex ? 'noindex, follow' : undefined);

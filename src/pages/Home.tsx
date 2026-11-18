@@ -46,7 +46,7 @@ export function StoreHome() {
   useSeo({
     title: 'Torte Living · Cookies, better snacks and everyday staples',
     description: snippet(`${storeHome.heroTitle.replace('\n', ' ')} ${storeHome.heroText}`),
-    image: 'craft-flour-hands',
+    // No image: shares use the brand card (La Mia Torte logo + Torte Living), see SHARE_CARD in lib/seo.
     jsonLd: organisationLd,
   });
 
