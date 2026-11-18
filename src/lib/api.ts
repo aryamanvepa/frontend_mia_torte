@@ -1,4 +1,5 @@
 import { testMode } from './testmode';
+import { brands, type BrandCode } from '../content/brands';
 // Talks to the Torte Living back end with the publishable key only.
 //   reads:  storefront_catalogue, storefront_order_status (database functions)
 //   writes: the storefront-order Edge Function (quote + place)
@@ -136,6 +137,8 @@ export async function fetchCatalogue(): Promise<CatalogueItem[]> {
   const rows = await rpc<CatalogueItem[]>('storefront_catalogue');
   return rows.map((r) => ({
     ...r,
+    // Show the shop's own brand name (e.g. "La Mia Torte"), so a rename shows at once even before the catalogue catches up.
+    brand: brands[r.brand_code as BrandCode]?.name ?? r.brand,
     pack_size: Number(r.pack_size), pack_grams: Number(r.pack_grams),
     // Discontinued rows may have no price (B15): 0 here, and the site never shows a price for them.
     mrp: r.mrp == null ? null : Number(r.mrp), price: r.price == null ? 0 : Number(r.price),

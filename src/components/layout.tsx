@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList } from '../content/brands';
+import { BrandLogo } from './BrandLogo';
 import { site } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
@@ -20,7 +21,7 @@ const NAV = [
 ];
 
 export function Wordmark({ as: Tag = 'span' }: { as?: 'span' | 'p' }) {
-  return <Tag className="wordmark wordmark--house"><span className="wordmark__name">Torte Living</span><span className="wordmark__sub">Mia Torte · Nutri Sampoorn</span></Tag>;
+  return <Tag className="wordmark wordmark--house"><span className="wordmark__name">Torte Living</span><span className="wordmark__sub">La Mia Torte · Nutri Sampoorn</span></Tag>;
 }
 
 // ---------------------------------------------------------------- search box (header)
@@ -157,6 +158,13 @@ export function Footer() {
         <div className="footer__brand">
           <Wordmark as="p" />
           <p className="footer__line">Something delicious is waiting.</p>
+          <p className="footer__ranges">
+            {brandList.map((b) => (
+              <Link key={b.code} to={paths.brand(b)} className={b.logo ? 'footer__range-logo' : 'footer__range'}>
+                {b.logo ? <BrandLogo brand={b} width={76} /> : b.name}
+              </Link>
+            ))}
+          </p>
           <ul className="footer__contact">
             <li><Text copy={site.email} /></li>
             <li><Text copy={site.phone} /></li>
@@ -188,7 +196,7 @@ export function Footer() {
         </nav>
       </div>
       <div className="wrap footer__legal">
-        <p>Mia Torte and Nutri Sampoorn are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
+        <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
         <p>© {year} {site.legalEntity}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>
@@ -400,7 +408,7 @@ export function BagStepper({ item, size = 'md' }: { item: CatalogueItem; size?: 
  */
 export function QuickAdd({ item, pack, compact }: { item: CatalogueItem; pack?: CatalogueItem; compact?: boolean }) {
   const { items, statusOf } = useCatalogue();
-  const { add, openDrawer, lines } = useCart();
+  const { add, lines } = useCart();
   const [open, setOpen] = useState(false);
   const [phone, setPhone] = useState(false);
   const [added, setAdded] = useState(false);
@@ -441,8 +449,8 @@ export function QuickAdd({ item, pack, compact }: { item: CatalogueItem; pack?: 
       ? <Link to={paths.product(target ?? item)} className="card__notify">Notify me</Link>
       : <span className="card__soon">{STATUS_LABEL[targetStatus]}</span>;
   }
-  // On phones the bag opens after adding, so it's obvious the item went in.
-  const addPack = (p: CatalogueItem) => { add(p.code); setAdded(true); setOpen(false); if (compact || isPhone()) openDrawer(); };
+  // Adding never opens the bag by itself: the button turns into − qty + and the bag count in the header bumps.
+  const addPack = (p: CatalogueItem) => { add(p.code); setAdded(true); setOpen(false); };
   const toggle = () => { setPhone(isPhone()); setOpen((o) => !o); };
   const options = (
     <ul className="quickadd__menu" role="listbox" aria-label={`Sizes of ${item.product}`}>

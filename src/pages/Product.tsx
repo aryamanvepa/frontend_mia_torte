@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BagStepper, ProductCard, useComplements } from '../components/layout';
 import { PackArt } from '../components/PackArt';
+import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { copyText, draft, site, type Copy } from '../content/site';
@@ -221,7 +222,7 @@ export default function Product() {
   const onAdd = () => {
     setAdding(true);
     add(item.code, Math.min(qty, max));
-    setTimeout(() => { setAdding(false); openDrawer(); setQty(1); }, 380);
+    setTimeout(() => { setAdding(false); setQty(1); }, 380); // the bag stays closed; "View bag" opens it
   };
   const onScroll = () => {
     const el = track.current;
@@ -343,7 +344,10 @@ export default function Product() {
             </a>
           ) : null}
           {(c.summary || c.tagline) && <p className="pdp__summary">{c.summary ?? c.tagline}</p>}
-          <p className="pdp__by">{brand ? <>From the <Link to={paths.brand(brand)}>{item.brand}</Link> range</> : item.brand}</p>
+          <p className={`pdp__by ${brand?.logo ? 'pdp__by--logo' : ''}`}>
+            {brand?.logo && <Link to={paths.brand(brand)} className="pdp__by-logo" tabIndex={-1} aria-hidden="true"><BrandLogo brand={brand} width={44} /></Link>}
+            <span>{brand ? <>From the <Link to={paths.brand(brand)}>{item.brand}</Link> range</> : item.brand}</span>
+          </p>
 
           {!considered && c.notes?.length ? <ul className="notes notes--top" aria-label={c.notesLabel ?? 'Tasting notes'}>{c.notes.map((n) => <li key={n}>{n}</li>)}</ul> : null}
 

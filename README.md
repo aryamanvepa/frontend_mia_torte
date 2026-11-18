@@ -1,7 +1,7 @@
 # Torte Living — online shop
 
 Customer-facing shop for Torte Living Pvt. Ltd., selling two brands in one store:
-**Mia Torte** (boutique bakery in the European pâtisserie tradition) and **Nutri Sampoorn**
+**La Mia Torte** (boutique bakery in the European pâtisserie tradition) and **Nutri Sampoorn**
 (contemporary pantry of Indian grains, millets and pulses). React + Vite + TypeScript, hosted on GitHub Pages, running on the
 Torte Living Supabase back end (the same database as the
 [operations app](https://github.com/aryamanvepa/Inventory-front-end)).
@@ -23,7 +23,7 @@ Each checkout attempt carries a client-generated id, so a retried submit never c
 
 ## Site structure
 
-One food store organised by **buying behaviour**; Mia Torte and Nutri Sampoorn appear only as
+One food store organised by **buying behaviour**; La Mia Torte and Nutri Sampoorn appear only as
 labels on products (and on their own brand-story pages). One visual theme for the whole store.
 
 | Address | Page |
@@ -57,9 +57,9 @@ with no products shows a "coming soon" note written in the brand's voice.
 
 | Ops-app category | Brand | Collection |
 |---|---|---|
-| Cookies | Mia Torte | Cookies & Biscuits |
-| Muesli | Mia Torte | Muesli |
-| Snacks | Mia Torte | Savoury Snacks |
+| Cookies | La Mia Torte | Cookies & Biscuits |
+| Muesli | La Mia Torte | Muesli |
+| Snacks | La Mia Torte | Savoury Snacks |
 | Atta & flours | Nutri Sampoorn | Atta & Grain Blends |
 | Dosa & batter mixes | Nutri Sampoorn | Breakfast & Dosa Mixes |
 | Chutney powders | Nutri Sampoorn | Pantry & Snacks |

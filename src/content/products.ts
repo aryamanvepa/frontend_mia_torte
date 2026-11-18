@@ -74,10 +74,10 @@ export interface ProductContent {
   intro?: Copy;
   /** What goes into it and why. */
   ingredientStory?: Copy;
-  /** Mia Torte: flavour & texture. Nutri Sampoorn: preparation. */
+  /** La Mia Torte: flavour & texture. Nutri Sampoorn: preparation. */
   experience?: Copy;
   experienceLabel?: string;
-  /** Short tasting notes (Mia Torte) or "good for" uses (Nutri Sampoorn). */
+  /** Short tasting notes (La Mia Torte) or "good for" uses (Nutri Sampoorn). */
   notes?: string[];
   notesLabel?: string;
   serving?: Copy;
@@ -135,7 +135,7 @@ const BY_CATEGORY: Record<string, ProductContent> = {
 
 // ---------------------------------------------------------------- products
 export const products: Record<string, ProductContent> = {
-  // ============================================================ MIA TORTE · Cookies
+  // ============================================================ LA MIA TORTE · Cookies
   'Classic Chocolate Chip': {
     experience: draft('Crisp at the edge, soft towards the middle, with pools of chocolate through every bite.'),
     notes: ['Golden edges', 'Soft centre', 'Chocolate chunks'],
@@ -230,7 +230,7 @@ export const products: Record<string, ProductContent> = {
     images: ['test-jowar-jeera'],
   },
 
-  // ============================================================ MIA TORTE · Muesli
+  // ============================================================ LA MIA TORTE · Muesli
   'Fruit & Nut Muesli': {
     experience: draft('Crunchy toasted grains, the bite of nuts and little bursts of chewy dried fruit. It stays crunchy in milk for longer than you would expect.'),
     summary: 'Toasted grains, nuts and dried fruit with a satisfying crunch. A classic muesli for milk or yoghurt.',
@@ -269,7 +269,7 @@ export const products: Record<string, ProductContent> = {
     images: ['mt-strawberry-muesli-1'],
   },
 
-  // ============================================================ MIA TORTE · Savoury snacks
+  // ============================================================ LA MIA TORTE · Savoury snacks
   'Peri Peri Vegie Chips': {
     experience: draft('Thin, crisp vegetable chips with a tangy peri peri heat that builds as you go.'),
     notes: ['Crisp', 'Tangy heat', 'Moreish'],

@@ -1,5 +1,5 @@
 // =====================================================================
-// BRAND CONTENT — Mia Torte and Nutri Sampoorn.
+// BRAND CONTENT — La Mia Torte and Nutri Sampoorn.
 //
 // Written to the "Website Language & Brand Positioning Brief". Each brand has
 // its own voice, sections and collections. Edit the words freely; see
@@ -38,17 +38,20 @@ export interface Brand {
   contact: { title: string; intro: string; blocks: ContactBlock[] };
   collections: Collection[];
   shop: { title: string; intro: string };
+  /** Logo files in public/brand/<file>-240|480|960.webp (transparent), with width ÷ height. */
+  logo?: { file: string; ratio: number };
   emptyBag: string;
 }
 
-// ------------------------------------------------------------------ MIA TORTE
+// ------------------------------------------------------------------ LA MIA TORTE
 export const miaTorte: Brand = {
   code: 'MT',
-  slug: 'mia-torte',
-  name: 'Mia Torte',
+  slug: 'la-mia-torte',
+  name: 'La Mia Torte',
+  logo: { file: 'la-mia-torte-logo', ratio: 1226 / 1147 },
   theme: 'mt',
   descriptor: 'Boutique bakery',
-  tagline: 'Little indulgences. Beautifully made.',
+  tagline: 'Sweet & savoury indulgences.',
   blurb: 'A boutique bakery in the tradition of European pâtisserie: distinctive cookies and biscuits, mueslis and savoury snacks, with brownies, cakes and desserts to follow. Made with care, and meant to be savoured.',
   shop: {
     title: 'The counter',
@@ -108,18 +111,18 @@ export const miaTorte: Brand = {
   story: {
     slug: 'story',
     label: 'Our Story',
-    eyebrow: 'Mia Torte',
+    eyebrow: 'La Mia Torte',
     title: 'A thoughtful take on the art of baking.',
     intro: 'A boutique bakery for people who appreciate good ingredients, beautiful flavours and the small pleasures of exceptional food.',
     image: 'craft-kneading',
     sections: [
       {
         heading: 'Where it began',
-        body: placeholder('The founder’s story: who bakes, where the kitchen is, and the moment Mia Torte began. To be written with Torte Living.'),
+        body: placeholder('The founder’s story: who bakes, where the kitchen is, and the moment La Mia Torte began. To be written with Torte Living.'),
       },
       {
         heading: 'Two traditions',
-        body: 'From the French pâtisserie we take precision and restraint: the clean line of a well-made biscuit, the balance of sweetness and salt, the discipline of doing a few things properly. From the Italian bakery we take warmth and generosity: honest richness, the pleasure of sharing, the sense that food is made for the table rather than the display case. Mia Torte lives somewhere between the two.',
+        body: 'From the French pâtisserie we take precision and restraint: the clean line of a well-made biscuit, the balance of sweetness and salt, the discipline of doing a few things properly. From the Italian bakery we take warmth and generosity: honest richness, the pleasure of sharing, the sense that food is made for the table rather than the display case. La Mia Torte lives somewhere between the two.',
       },
       {
         heading: 'How we bake',
@@ -180,7 +183,7 @@ export const nutriSampoorn: Brand = {
       categories: ['Muesli', 'Nuts & seeds', 'Nuts', 'Seeds'],
       image: 'ns-muesli-bowl',
       intro: 'Considered blends of nuts and seeds, for breakfast bowls, yoghurt and quiet snacking.',
-      comingSoon: 'Our nut and seed blends are in development. Until they arrive, the muesli in the Mia Torte collection is a good place to start.',
+      comingSoon: 'Our nut and seed blends are in development. Until they arrive, the muesli in the La Mia Torte collection is a good place to start.',
     },
     {
       slug: 'pantry-snacks',
@@ -237,9 +240,9 @@ export const brandList: Brand[] = [miaTorte, nutriSampoorn];
 
 // ------------------------------------------------------------ home page copy
 export const mtHome = {
-  heroEyebrow: 'Mia Torte · Boutique bakery',
+  heroEyebrow: 'La Mia Torte · Boutique bakery',
   heroTitle: 'Baked with care.\nMade to be savoured.',
-  heroText: 'Inspired by the quiet elegance of the French pâtisserie and the warmth of the Italian bakery, Mia Torte makes a small repertoire of distinctive treats, each one developed with patience and made for the pleasure of something truly delicious.',
+  heroText: 'Inspired by the quiet elegance of the French pâtisserie and the warmth of the Italian bakery, La Mia Torte makes a small repertoire of distinctive treats, each one developed with patience and made for the pleasure of something truly delicious.',
   manifesto: 'We would rather make a few things exceptionally well than many things adequately.',
   featuredEyebrow: 'From the counter',
   featuredTitle: 'Distinctive flavours, carefully crafted.',
@@ -252,7 +255,7 @@ export const mtHome = {
   ],
   storyEyebrow: 'Our story',
   storyTitle: 'Between Paris and Naples, a kitchen of our own.',
-  storyText: 'From the French pâtisserie, precision and restraint. From the Italian bakery, warmth and generosity. Mia Torte brings both sensibilities to Indian tables, with a character entirely its own.',
+  storyText: 'From the French pâtisserie, precision and restraint. From the Italian bakery, warmth and generosity. La Mia Torte brings both sensibilities to Indian tables, with a character entirely its own.',
   bespokeEyebrow: 'Bespoke',
   bespokeTitle: 'Something made only for you.',
   bespokeText: placeholder('For a celebration, a gift or a table of your own, we create to order where the kitchen allows. Tell us what you have in mind.'),

@@ -1,6 +1,6 @@
 // =====================================================================
 // HOUSE CONTENT — Torte Living details, legal lines and policy pages.
-// Brand copy (Mia Torte, Nutri Sampoorn) lives in ./brands.ts,
+// Brand copy (La Mia Torte, Nutri Sampoorn) lives in ./brands.ts,
 // product copy in ./products.ts.
 //
 // Two kinds of flag are shown on the site while SHOW_PLACEHOLDER_FLAGS is true:
@@ -44,7 +44,7 @@ export const site = {
 export const house = {
   eyebrow: 'Torte Living',
   title: 'Two houses.\nOne way of eating well.',
-  intro: 'Mia Torte and Nutri Sampoorn are very different brands that share a conviction: food deserves thought and attention. Good ingredients, carefully developed recipes, and an appreciation of the finer things in everyday living.',
+  intro: 'La Mia Torte and Nutri Sampoorn are very different brands that share a conviction: food deserves thought and attention. Good ingredients, carefully developed recipes, and an appreciation of the finer things in everyday living.',
   beliefTitle: 'Food deserves thought.',
   beliefs: [
     { title: 'Ingredients first', text: 'Every recipe begins with the question of what goes into it, and why.' },
@@ -52,7 +52,7 @@ export const house = {
     { title: 'A point of view', text: 'A small, considered range, rather than a little of everything.' },
   ],
   doors: {
-    MT: { kicker: 'The boutique bakery', line: 'Little indulgences, beautifully made.', cta: 'Enter Mia Torte' },
+    MT: { kicker: 'The boutique bakery', line: 'Little indulgences, beautifully made.', cta: 'Enter La Mia Torte' },
     NS: { kicker: 'The contemporary pantry', line: 'Tradition, thoughtfully reimagined.', cta: 'Enter Nutri Sampoorn' },
   },
 };

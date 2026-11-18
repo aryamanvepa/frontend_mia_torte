@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
+import { BrandLogo } from '../components/BrandLogo';
 import { useCatalogue } from '../state/store';
 import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
 import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
@@ -20,6 +21,7 @@ export function BrandPage({ brand }: { brand: Brand }) {
   return (
     <article className="info info--story">
       <header className="page-head page-head--narrow wrap">
+        <BrandLogo brand={brand} width={200} eager className="brand-logo--page" />
         <p className="eyebrow">{brand.name} · {brand.descriptor}</p>
         <h1 className="display display--lg">{s.title}</h1>
         <p className="lede">{s.intro}</p>
@@ -86,7 +88,7 @@ export function About() {
 
 // ---------------------------------------------------------------- contact (one for the whole store)
 export function Contact() {
-  useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of Mia Torte and Nutri Sampoorn.' });
+  useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of La Mia Torte and Nutri Sampoorn.' });
   const blocks = [
     ...miaTorte.contact.blocks.filter((b) => b.heading !== 'The kitchen'),
     ...nutriSampoorn.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),

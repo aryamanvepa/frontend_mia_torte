@@ -102,7 +102,7 @@ export const organisationLd = {
   name: 'Torte Living Pvt. Ltd.',
   url: `${SITE_URL}/`,
   brand: [
-    { '@type': 'Brand', name: 'Mia Torte' },
+    { '@type': 'Brand', name: 'La Mia Torte', logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp` },
     { '@type': 'Brand', name: 'Nutri Sampoorn' },
   ],
 };

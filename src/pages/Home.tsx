@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { PackArt } from '../components/PackArt';
+import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Reveal } from '../components/ui';
 import { brandList } from '../content/brands';
 import { nourishmentTypes, storeCategories, storeHome } from '../content/store';
@@ -196,8 +197,20 @@ export function StoreHome() {
           <p className="lede">{storeHome.company.text}</p>
           <p className="company__links">
             <Link to="/about" className="arrow-link">Our story <Icon name="arrow" size={18} /></Link>
-            <span className="company__brands-note">Our ranges: {brandList.map((b, n) => <span key={b.code}>{n > 0 && ' · '}<Link to={paths.brand(b)}>{b.name}</Link></span>)}</span>
           </p>
+          <div className="company__ranges">
+            <p className="company__brands-note">Our ranges</p>
+            <ul>
+              {brandList.map((b) => (
+                <li key={b.code}>
+                  <Link to={paths.brand(b)} className={`range ${b.logo ? 'range--logo' : ''}`}>
+                    {b.logo ? <BrandLogo brand={b} width={132} /> : <span className="range__name">{b.name}</span>}
+                    <span className={b.logo ? 'sr-only' : 'range__tag'}>{b.logo ? b.name : b.tagline}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Reveal>
       </section>
     </>
