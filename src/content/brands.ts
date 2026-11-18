@@ -26,6 +26,8 @@ export interface Collection {
 export interface Section { heading: string; body: Copy }
 export interface ContactBlock { heading: string; body: Copy; showContacts?: boolean }
 
+export interface LogoSet { file: string; ratio: number; widths: number[] }
+
 export interface Brand {
   code: BrandCode;
   slug: string;
@@ -38,8 +40,11 @@ export interface Brand {
   contact: { title: string; intro: string; blocks: ContactBlock[] };
   collections: Collection[];
   shop: { title: string; intro: string };
-  /** Logo files in public/brand/<file>-240|480|960.webp (transparent), with width ÷ height. */
-  logo?: { file: string; ratio: number };
+  /**
+   * Logo files in public/brand/<file>-<width>.webp (transparent), with width ÷ height and the widths saved.
+   * `dark`: a version for dark backgrounds. `mark`: the symbol alone, for small spaces (defaults to the logo).
+   */
+  logo?: LogoSet & { dark?: string; mark?: LogoSet };
   emptyBag: string;
 }
 
@@ -48,7 +53,7 @@ export const miaTorte: Brand = {
   code: 'MT',
   slug: 'la-mia-torte',
   name: 'La Mia Torte',
-  logo: { file: 'la-mia-torte-logo', ratio: 1226 / 1147 },
+  logo: { file: 'la-mia-torte-logo', ratio: 1226 / 1147, widths: [240, 480, 960] },
   theme: 'mt',
   descriptor: 'Boutique bakery',
   tagline: 'Sweet & savoury indulgences.',
@@ -151,6 +156,10 @@ export const nutriSampoorn: Brand = {
   code: 'NS',
   slug: 'nutri-sampoorn',
   name: 'Nutri Sampoorn',
+  logo: {
+    file: 'nutri-sampoorn-logo', ratio: 947 / 341, widths: [320, 640, 947], dark: 'nutri-sampoorn-logo-dark',
+    mark: { file: 'nutri-sampoorn-mark', ratio: 203 / 172, widths: [64, 128, 203] },
+  },
   theme: 'ns',
   descriptor: 'Contemporary pantry',
   tagline: 'Everyday nourishment, with a little more thought.',

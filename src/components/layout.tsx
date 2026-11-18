@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { brandList, miaTorte } from '../content/brands';
+import { brandList, brands, miaTorte } from '../content/brands';
+import { useBrandContext } from '../state/brandContext';
 import { BrandLogo } from './BrandLogo';
 import { site } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
-import { bestsellers, isNew, itemContent, oneCardPerProduct, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
+import { bestsellers, brandOf, isNew, itemContent, oneCardPerProduct, paths, primaryCategoryOf, storeCategoriesOf } from '../lib/brand';
 import { rupees, packFull, savingPct, titleOf } from '../lib/format';
 import { search } from '../lib/search';
 import { useBag, useCart, useCatalogue } from '../state/store';
@@ -96,10 +97,21 @@ export function Header() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menu]);
 
+  const ctx = useBrandContext();
+  const headerBrand = ctx === 'NS' ? brands.NS : miaTorte;
+
   return (
     <>
       <div className="topbar">
         <div className="wrap topbar__inner">
+          {/* The two collections: always visible, the current one highlighted, so moving between them is obvious. */}
+          <nav className="topbar__brands" aria-label="Our collections">
+            {brandList.map((b) => (
+              <Link key={b.code} to={paths.brand(b)} className={`topbar__brand ${ctx === b.code ? 'is-current' : ''}`} aria-current={ctx === b.code ? 'true' : undefined}>
+                <BrandLogo brand={b} variant="mark" height={16} decorative />{b.name}
+              </Link>
+            ))}
+          </nav>
           {/* Service promise, not payment: payment options are shown at checkout and in the footer. */}
           <p className="topbar__note"><Icon name="truck" size={15} /> {shipping ? `Free delivery on orders over ${rupees(shipping.free_above)}` : 'Delivering across India'}<span className="topbar__extra"> · One basket for the whole store</span></p>
           <div className="topbar__right">
@@ -117,8 +129,10 @@ export function Header() {
             </button>
             <div className="header__search-inline"><SearchBox /></div>
           </div>
-          {/* The emblem alone, centred, as luxury houses do: no wordmark beside it. */}
-          <Link to="/" className="header__mark" aria-label={`${miaTorte.name} · ${site.name}, home`}><BrandLogo brand={miaTorte} width={104} eager className="header__logo" /></Link>
+          {/* The emblem alone, centred, as luxury houses do. It follows the collection: Nutri Sampoorn pages show its logo. */}
+          <Link to={ctx === 'NS' ? paths.brand(headerBrand) : '/'} className={`header__mark header__mark--${headerBrand.theme}`} aria-label={`${headerBrand.name} · ${site.name}, ${ctx === 'NS' ? headerBrand.name : 'home'}`}>
+            <BrandLogo key={headerBrand.code} brand={headerBrand} eager className={`header__logo header__logo--${headerBrand.theme}`} {...(headerBrand.code === 'NS' ? { height: 76 } : { width: 104 })} />
+          </Link>
           <div className="header__right">
             {/* Account icon hidden until customer accounts (backend B8) are approved. */}
             <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
@@ -162,7 +176,7 @@ export function Footer() {
           <p className="footer__ranges">
             {brandList.map((b) => (
               <Link key={b.code} to={paths.brand(b)} className={b.logo ? 'footer__range-logo' : 'footer__range'}>
-                {b.logo ? <BrandLogo brand={b} width={76} /> : b.name}
+                {b.logo ? <BrandLogo brand={b} tone="dark" {...(b.code === 'NS' ? { height: 46 } : { width: 76 })} /> : b.name}
               </Link>
             ))}
           </p>
@@ -540,7 +554,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
         {(c.summary || c.tagline) && <p className="card__summary">{c.summary ?? c.tagline}</p>}
         <div className="card__buy">
-        {many && <p className="card__brand">{item.brand}</p>}
+        {many && <p className="card__brand"><BrandLogo brand={brandOf(item.brand_code)} variant="mark" height={16} decorative className="card__brand-mark" />{item.brand}</p>}
         {many ? (
           <label className="card__size">
             <span className="sr-only">Pack size of {item.product}</span>
@@ -553,7 +567,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
             </select>
             <Icon name="chevron" size={16} className="card__size-icon" />
           </label>
-        ) : <p className="card__pack">{nb(packFull(item))} <span className="card__brand card__brand--inline">· {item.brand}</span></p>}
+        ) : <p className="card__pack">{nb(packFull(item))} <span className="card__brand card__brand--inline">· <BrandLogo brand={brandOf(item.brand_code)} variant="mark" height={15} decorative className="card__brand-mark" />{item.brand}</span></p>}
         <div className="card__foot">
           <span className="card__price">
             {rupees(pack.price)}

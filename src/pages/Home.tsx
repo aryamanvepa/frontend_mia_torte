@@ -204,7 +204,7 @@ export function StoreHome() {
               {brandList.map((b) => (
                 <li key={b.code}>
                   <Link to={paths.brand(b)} className={`range ${b.logo ? 'range--logo' : ''}`}>
-                    {b.logo ? <BrandLogo brand={b} width={132} /> : <span className="range__name">{b.name}</span>}
+                    {b.logo ? <BrandLogo brand={b} {...(b.code === 'NS' ? { width: 230 } : { width: 132 })} /> : <span className="range__name">{b.name}</span>}
                     <span className={b.logo ? 'sr-only' : 'range__tag'}>{b.logo ? b.name : b.tagline}</span>
                   </Link>
                 </li>

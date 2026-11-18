@@ -1455,3 +1455,46 @@ a.add-btn { text-decoration: none; }
 .confirm__check .icon path { stroke-dasharray: 30; animation: draw .7s var(--ease) .35s both; }
 .brand-logo--track { width: 88px; margin-bottom: 14px; }
 .page-head--narrow:has(.brand-logo--track) { text-align: center; display: grid; justify-items: center; }
+
+/* ================================================================ two collections
+   The page's collection (see state/brandContext) sets <html data-brand>. The whole store stays one basket,
+   but moving between La Mia Torte and Nutri Sampoorn is obvious: header logo, colours and the switcher change. */
+[data-brand='mt'] {
+  --gold: #2f4f8f; --gold-ink: #24407a; --gold-soft: #f1d77e;
+  --espresso: #1d3463; --cream-muted: #d3d9e6;
+}
+[data-brand='ns'] {
+  --cream: #f2f0e4; --paper: #f8f7ef; --linen: #e6e4d2;
+  --gold: #7d8a5e; --gold-ink: #566338; --gold-soft: #d6dcb4;
+  --espresso: #3a4a2c; --cream-muted: #d9ddc8; --muted: #5c5f4c;
+}
+body, .topbar, .footer, .header { transition: background-color .5s var(--ease-soft), color .5s var(--ease-soft); }
+
+/* Collection switcher in the top bar */
+.topbar__brands { display: flex; align-items: center; gap: 18px; }
+.topbar__brand { display: inline-flex; align-items: center; gap: 7px; color: inherit; text-decoration: none; padding: 9px 0; opacity: .72; white-space: nowrap; transition: opacity .25s, color .25s; }
+.topbar__brand:hover { opacity: 1; color: var(--cream); }
+.topbar__brand.is-current { opacity: 1; color: var(--gold-soft); box-shadow: inset 0 -1px 0 currentColor; }
+.topbar__brand .brand-logo { height: 16px; width: auto; filter: none; }
+@media (max-width: 699px) {
+  .topbar__inner { justify-content: center; }
+  .topbar__note { display: none; }
+}
+@media (min-width: 900px) { .topbar__brands { gap: 28px; } }
+
+/* Header logo follows the collection, with a soft fade when it changes */
+.header__logo { animation: logo-in .5s var(--ease) both; }
+.header__logo--ns { width: auto; height: 76px; }
+@media (max-width: 899px) { .header__logo--ns { height: 48px; } }
+@keyframes logo-in { from { opacity: 0; transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .header__logo { animation: none; } }
+
+/* Brand marks beside the brand name on product cards */
+.card__brand-mark { display: inline-block; height: 16px; width: auto; vertical-align: -3px; margin-right: 5px; filter: none; }
+.card__brand--inline .card__brand-mark { height: 15px; }
+
+/* Wide Nutri Sampoorn logo where the emblem was sized by width */
+.brand-logo--page.brand-logo--ns { width: clamp(240px, 42vw, 320px); }
+.range--logo .brand-logo--ns { width: 230px; filter: none; }
+.footer__range-logo .brand-logo--ns { width: auto; height: 46px; }
+.pdp__by-logo .brand-logo--ns { width: 44px; }

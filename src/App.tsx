@@ -12,15 +12,18 @@ import Product from './pages/Product';
 import SearchPage from './pages/Search';
 import { About, BrandPage, Contact, Credits, InfoPage, NotFound } from './pages/Info';
 import { OrderConfirmed, Track } from './pages/Order';
+import { useBrandContext } from './state/brandContext';
 
 const Checkout = lazy(() => import('./pages/Checkout'));
 // Customer accounts (src/pages/Account.tsx, src/lib/auth.ts) wait on backend task B8, which is not approved yet.
 // They stay in the repo but unwired, so supabase-js stays out of the bundle. /account falls through to Not found.
 
-/** Scroll to top on navigation; one visual theme for the whole store; analytics page views. */
+/** Scroll to top on navigation; the collection's colour theme; analytics page views. */
 function RouteEffects() {
   const { pathname, search } = useLocation();
-  useLayoutEffect(() => { document.documentElement.dataset.brand = 'house'; }, []);
+  // The page's collection sets the colour theme: La Mia Torte (navy & lemon), Nutri Sampoorn (sage & millet), or the house.
+  const ctx = useBrandContext();
+  useLayoutEffect(() => { document.documentElement.dataset.brand = ctx === 'NS' ? 'ns' : ctx === 'MT' ? 'mt' : 'house'; }, [ctx]);
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   useEffect(() => { trackPageView(); }, [pathname, search]);
   return null;
