@@ -1435,15 +1435,19 @@ a.add-btn { text-decoration: none; }
 .pdp__by--logo { display: flex; align-items: center; gap: 10px; }
 .pdp__by-logo .brand-logo { width: 44px; filter: none; }
 
-/* Header: La Mia Torte logo beside the Torte Living name, on every page */
-.header__mark { display: flex; align-items: center; gap: 10px; color: inherit; }
-.header__logo { width: 66px; filter: none; flex: none; }
-.header__mark .wordmark { justify-items: start; text-align: left; padding-inline: 0; }
-@media (max-width: 899px) {
-  .header__logo { width: 50px; }
-  .header__mark { gap: 8px; }
-}
-@media (max-width: 360px) { .header__mark .wordmark__sub { display: none; } }
+/* Header: the La Mia Torte emblem alone, centred, on every page (no wordmark beside it) */
+:root { --header-h: 70px; }
+@media (min-width: 900px) { :root { --header-h: 108px; --header-total: calc(var(--header-h) + 45px); } }
+.header__mark { display: flex; align-items: center; justify-content: center; color: inherit; line-height: 0; transition: transform .35s var(--ease), opacity .25s; }
+.header__mark:hover { transform: scale(1.03); }
+.header__mark:focus-visible { outline-offset: 4px; border-radius: 12px; }
+.header__logo { width: 104px; filter: none; }
+@media (max-width: 899px) { .header__logo { width: 60px; } }
+/* Menu under the emblem: spaced small capitals and a hairline, in the manner of luxury houses */
+.header__nav .navlink { font-size: .72rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; padding: 15px 0; }
+.header__nav .navlink::after { bottom: 10px; }
+.header__nav ul { column-gap: clamp(22px, 2.8vw, 46px); }
+.bag-btn__label { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
 /* Order confirmation: the logo as the seal, with a check */
 .confirm__brand { position: relative; margin-bottom: 6px; animation: pop .8s var(--ease) both; }
 .confirm__brand .brand-logo { width: 128px; }
