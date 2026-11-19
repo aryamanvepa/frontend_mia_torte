@@ -1464,3 +1464,13 @@ a.add-btn { text-decoration: none; }
 .rail .card { flex: 1; height: auto; }
 /* Phones: the small labels can wrap too; give them a two-line slot with the text at its foot, so every tile lines up */
 @media (max-width: 699px) { .cat__brand { min-height: 2.6em; display: flex; align-items: flex-end; } }
+
+/* Single-size cards: a box styled like the size menu (no arrow), so sizes line up across a row */
+.card__size--single {
+  display: flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius);
+  background: var(--paper); font-size: .84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 520px) { .card__size--single { font-size: .78rem; padding-inline: 8px; } }
+.snack-feature .card__size--single { background: transparent; color: var(--cream); border-color: rgba(246, 239, 229, .35); }
+/* Price row is always as tall as the Add button, whether a card shows Add, − qty +, Coming soon or Notify me */
+.card__foot { min-height: 56px; }

@@ -552,7 +552,10 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
             </select>
             <Icon name="chevron" size={16} className="card__size-icon" />
           </label>
-        ) : <p className="card__pack">{nb(packFull(item))}</p>}
+        ) : (
+          // One size only: the same box as the size menu (not a menu), so every card's size line sits in the same place.
+          <p className="card__size card__size--single"><span className="sr-only">Pack size: </span>{nb(packFull(item))} · {rupees(item.price)}</p>
+        )}
         <div className="card__foot">
           <span className="card__price">
             {rupees(pack.price)}
