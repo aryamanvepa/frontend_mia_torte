@@ -49,7 +49,7 @@ function SearchBox({ onDone, autoFocus }: { onDone?: () => void; autoFocus?: boo
             <li key={h.code}>
               <Link to={paths.product(h)} onClick={() => { setQ(''); onDone?.(); }}>
                 <span className="searchbox__thumb"><ProductThumb code={h.code} item={h} sizes="48px" /></span>
-                <span><strong>{h.product}</strong><small>{h.brand} · {primaryCategoryOf(h)?.title ?? h.category}</small></span>
+                <span><strong>{h.product}</strong><small>{primaryCategoryOf(h)?.title ?? h.category}</small></span>
               </Link>
             </li>
           ))}
@@ -359,7 +359,7 @@ export function MiniCard({ item }: { item: CatalogueItem }) {
       <Link to={paths.product(item)} className="mini__img"><ProductThumb code={item.code} item={item} sizes="64px" /></Link>
       <div className="mini__body">
         <Link to={paths.product(item)} className="mini__name">{item.product}</Link>
-        <span className="mini__meta">{item.brand} · from {rupees(item.price)}</span>
+        <span className="mini__meta">from {rupees(item.price)}</span>
       </div>
       <QuickAdd item={item} compact />
     </div>
@@ -540,7 +540,6 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
         <h3 className="card__title"><Link to={href}>{titleOf(item)}</Link></h3>
         {(c.summary || c.tagline) && <p className="card__summary">{c.summary ?? c.tagline}</p>}
         <div className="card__buy">
-        {many && <p className="card__brand">{item.brand}</p>}
         {many ? (
           <label className="card__size">
             <span className="sr-only">Pack size of {item.product}</span>
@@ -553,7 +552,7 @@ export function ProductCard({ code, priority }: { code: string; priority?: boole
             </select>
             <Icon name="chevron" size={16} className="card__size-icon" />
           </label>
-        ) : <p className="card__pack">{nb(packFull(item))} <span className="card__brand card__brand--inline">· {item.brand}</span></p>}
+        ) : <p className="card__pack">{nb(packFull(item))}</p>}
         <div className="card__foot">
           <span className="card__price">
             {rupees(pack.price)}

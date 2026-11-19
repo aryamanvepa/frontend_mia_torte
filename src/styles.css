@@ -1455,3 +1455,12 @@ a.add-btn { text-decoration: none; }
 .confirm__check .icon path { stroke-dasharray: 30; animation: draw .7s var(--ease) .35s both; }
 .brand-logo--track { width: 88px; margin-bottom: 14px; }
 .page-head--narrow:has(.brand-logo--track) { text-align: center; display: grid; justify-items: center; }
+
+/* Craving tiles: every title gets two lines of room, so the small label and the title sit on the same lines in every tile */
+.cat__name { min-height: 2.2em; }
+/* Product rows (Better Snacking, bestsellers): cards stretch to the row height, so size menus and prices line up */
+.rail > li, .rail > li > .reveal { display: flex; flex-direction: column; }
+.rail > li > .reveal { flex: 1; }
+.rail .card { flex: 1; height: auto; }
+/* Phones: the small labels can wrap too; give them a two-line slot with the text at its foot, so every tile lines up */
+@media (max-width: 699px) { .cat__brand { min-height: 2.6em; display: flex; align-items: flex-end; } }
