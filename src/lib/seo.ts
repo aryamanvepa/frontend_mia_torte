@@ -106,7 +106,7 @@ export const organisationLd = {
   url: `${SITE_URL}/`,
   brand: [
     { '@type': 'Brand', name: 'La Mia Torte', logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp` },
-    { '@type': 'Brand', name: 'Nutri Sampoorn', logo: `${SITE_URL}/brand/nutri-sampoorn-logo-640.webp` },
+    { '@type': 'Brand', name: 'Nutri Sampoorn' },
   ],
 };
 

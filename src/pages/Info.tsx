@@ -21,7 +21,7 @@ export function BrandPage({ brand }: { brand: Brand }) {
   return (
     <article className="info info--story">
       <header className="page-head page-head--narrow wrap">
-        <BrandLogo brand={brand} eager className="brand-logo--page" {...(brand.code === 'NS' ? { width: 320 } : { width: 200 })} />
+        <BrandLogo brand={brand} width={200} eager className="brand-logo--page" />
         <p className="eyebrow">{brand.name} · {brand.descriptor}</p>
         <h1 className="display display--lg">{s.title}</h1>
         <p className="lede">{s.intro}</p>

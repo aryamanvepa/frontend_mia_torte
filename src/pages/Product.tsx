@@ -345,7 +345,7 @@ export default function Product() {
           ) : null}
           {(c.summary || c.tagline) && <p className="pdp__summary">{c.summary ?? c.tagline}</p>}
           <p className={`pdp__by ${brand?.logo ? 'pdp__by--logo' : ''}`}>
-            {brand?.logo && <Link to={paths.brand(brand)} className="pdp__by-logo" tabIndex={-1} aria-hidden="true"><BrandLogo brand={brand} variant="mark" height={40} /></Link>}
+            {brand?.logo && <Link to={paths.brand(brand)} className="pdp__by-logo" tabIndex={-1} aria-hidden="true"><BrandLogo brand={brand} width={44} /></Link>}
             <span>{brand ? <>From the <Link to={paths.brand(brand)}>{item.brand}</Link> range</> : item.brand}</span>
           </p>
 
