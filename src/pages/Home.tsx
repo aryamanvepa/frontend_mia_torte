@@ -11,7 +11,7 @@ import { organisationLd, snippet, useSeo } from '../lib/seo';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
 import { CatalogueStatus, GridSkeleton } from './Shop';
-import { HAS_CONTACT } from '../content/site';
+import { HAS_CONTACT, SHOW_PLACEHOLDER_FLAGS } from '../content/site';
 
 const cat = (slug: string) => storeCategories.find((c) => c.slug === slug)!;
 const lines = (t: string) => t.split('\n').map((l, i) => <span key={i} className="hero__line">{l}</span>);
@@ -120,7 +120,7 @@ export function StoreHome() {
               ? <Img id={sn.image} sizes="(min-width: 900px) 50vw, 100vw" alt="" />
               : <>
                   {hero && <PackArt variant="hero" product={hero.product} category={hero.category} brandCode={hero.brand_code} />}
-                  <p className="snack-feature__shot">{sn.shot} <PlaceholderTag label="Photo needed" /></p>
+                  {SHOW_PLACEHOLDER_FLAGS && <p className="snack-feature__shot">{sn.shot} <PlaceholderTag label="Photo needed" /></p>}
                 </>}
           </Reveal>
           <Reveal className="snack-feature__text" delay={80}>

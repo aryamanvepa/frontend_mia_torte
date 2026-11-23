@@ -9,11 +9,12 @@
 //   draft('…')        copy written to the brand brief that states a fact about
 //                     recipes, ingredients or methods, so Torte Living must
 //                     confirm or correct it → tagged "Draft · confirm"
-// Replace either with a plain string once confirmed, and set
-// SHOW_PLACEHOLDER_FLAGS = false before launch.
+// Replace either with a plain string once confirmed. The tags (and every other
+// internal marker) are hidden whenever VITE_HIDE_TEST_DATA=1, i.e. on the live
+// site; they show only in testing builds.
 // =====================================================================
 
-export const SHOW_PLACEHOLDER_FLAGS = true;
+export const SHOW_PLACEHOLDER_FLAGS = import.meta.env.VITE_HIDE_TEST_DATA !== '1';
 
 export interface Placeholder { text: string; placeholder: true; kind: 'missing' | 'draft' | 'test' }
 export type Copy = string | Placeholder;

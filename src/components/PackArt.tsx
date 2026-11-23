@@ -150,7 +150,7 @@ export function PackArt({ product, category, brandCode, variant = 'card' }: {
   const motif = MOTIF_BY_CATEGORY[(category ?? '').trim().toLowerCase()] ?? (isMT ? 'cookie' : 'ear');
   const tones = isMT ? TONES.MT : TONES.NS;
   const tone = tones[hash(product ?? brandCode) % tones.length];
-  const label = product ? `${product}: illustration, product photograph to follow` : 'Product illustration';
+  const label = product ? `${product}: illustration${HIDE_TEST_DATA ? '' : ', product photograph to follow'}` : 'Product illustration';
   const art = product ? PRODUCT_ART[product] : undefined;
   const style = art ? ({ '--pack-bg': art[0], '--pack-ink': art[1] } as CSSProperties) : undefined;
 

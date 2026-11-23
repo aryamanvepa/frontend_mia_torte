@@ -6,7 +6,7 @@ import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { HIDE_TEST_DATA } from '../content/test-labels';
-import { HAS_CONTACT, copyText, draft, site, type Copy } from '../content/site';
+import { HAS_CONTACT, SHOW_PLACEHOLDER_FLAGS, copyText, draft, site, type Copy } from '../content/site';
 import { deliveryFallback, deliveryText } from '../content/store';
 import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
 import { trackViewItem } from '../lib/analytics';
@@ -49,7 +49,7 @@ function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
     const veg = d === 'veg' || d === 'vegan';
     const label = d === 'vegan' ? 'Vegetarian (vegan)' : d === 'egg' ? 'Non-vegetarian (contains egg)' : veg ? 'Vegetarian' : 'Non-vegetarian';
     return (
-      <span className={`diet ${isDraft ? 'is-ph' : ''}`}>
+      <span className={`diet ${isDraft && SHOW_PLACEHOLDER_FLAGS ? 'is-ph' : ''}`}>
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
           <rect x="1" y="1" width="16" height="16" rx="1.5" fill="none" stroke={veg ? '#1f7a3a' : '#7a3b1f'} strokeWidth="1.6" />
           {veg ? <circle cx="9" cy="9" r="4.2" fill="#1f7a3a" /> : <path d="M9 4.6 13.6 12.8H4.4Z" fill="#7a3b1f" />}
@@ -302,8 +302,8 @@ export default function Product() {
         </tbody>
       </table>}
       {!c.nutrition && !HIDE_TEST_DATA && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
-      {c.nutrition?.test && <p className="facts__note is-ph">Made-up values for testing only, not from the pack label. <PlaceholderTag kind="test" /></p>}
-      {c.nutrition?.draft && <p className="facts__note is-ph">Values entered by Torte Living, to be confirmed against the pack label. <PlaceholderTag kind="draft" /></p>}
+      {c.nutrition?.test && SHOW_PLACEHOLDER_FLAGS && <p className="facts__note is-ph">Made-up values for testing only, not from the pack label. <PlaceholderTag kind="test" /></p>}
+      {c.nutrition?.draft && SHOW_PLACEHOLDER_FLAGS && <p className="facts__note is-ph">Values entered by Torte Living, to be confirmed against the pack label. <PlaceholderTag kind="draft" /></p>}
       <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
     </Reveal>
   );
