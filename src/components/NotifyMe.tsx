@@ -10,6 +10,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { notifyMe } from '../lib/api';
 import { Icon, Spinner } from './ui';
+import { SHOW_POLICY_PAGES } from '../content/site';
 
 const MESSAGES: Record<string, string> = {
   consent_required: 'Please tick the box so we can email you.',
@@ -69,8 +70,8 @@ export function NotifyMe({ code, what, pack, soon }: { code: string; what: strin
       <label className="notify__consent">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
         <span>
-          Email me once when this is available. We’ll use your email only for this.{' '}
-          <Link to="/privacy">Privacy policy</Link>
+          Email me once when this is available. We’ll use your email only for this.
+          {SHOW_POLICY_PAGES && <>{' '}<Link to="/privacy">Privacy policy</Link></>}
         </span>
       </label>
       {error && <p className="notify__error" role="alert">{error}</p>}

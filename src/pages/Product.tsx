@@ -6,7 +6,7 @@ import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { HIDE_TEST_DATA } from '../content/test-labels';
-import { copyText, draft, site, type Copy } from '../content/site';
+import { HAS_CONTACT, copyText, draft, site, type Copy } from '../content/site';
 import { deliveryFallback, deliveryText } from '../content/store';
 import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
 import { trackViewItem } from '../lib/analytics';
@@ -18,21 +18,32 @@ import { CatalogueStatus } from './Shop';
 import { NotFound } from './Info';
 import { NotifyMe } from '../components/NotifyMe';
 
+/** "To be added" marker while testing. With test data hidden (launch) nothing is shown: callers leave the row out. */
 function Needed({ what }: { what: string }) {
-  if (HIDE_TEST_DATA) return <span>Coming soon.</span>;
+  if (HIDE_TEST_DATA) return null;
   return <span className="is-ph">{what} to be added. <PlaceholderTag label="Content needed" /></span>;
 }
 
-function Fact({ label, copy, children, need }: { label: string; copy?: Copy; children?: React.ReactNode; need?: string }) {
+function Fact({ label, copy, children, need }: { label: string; copy?: Copy | null; children?: React.ReactNode; need?: string }) {
+  if (children == null && copy == null && HIDE_TEST_DATA) return null; // no empty labels at launch
   return (
     <div className="facts__row">
       <dt>{label}</dt>
-      <dd>{children ?? (copy !== undefined ? <Text copy={copy} /> : <Needed what={need ?? label} />)}</dd>
+      <dd>{children ?? (copy != null ? <Text copy={copy} /> : <Needed what={need ?? label} />)}</dd>
     </div>
   );
 }
 
 /** FSSAI veg / non-veg mark, only from the ops app's `diet` (egg counts as non-vegetarian). */
+/** Shown on every product page at launch, in place of the label details that aren't in yet. */
+function AllergyLine() {
+  return (
+    <p className="facts__allergy">
+      Have an allergy or dietary question? Please {HAS_CONTACT ? <Link to="/contact">contact us</Link> : 'contact us'} before ordering.
+    </p>
+  );
+}
+
 function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
   if (d && d !== 'unconfirmed') {
     const veg = d === 'veg' || d === 'vegan';
@@ -48,7 +59,7 @@ function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
       </span>
     );
   }
-  if (HIDE_TEST_DATA) return <span>Details coming soon.</span>;
+  if (HIDE_TEST_DATA) return null;
   return <span className="is-ph">Vegetarian / non-vegetarian mark to be confirmed. <PlaceholderTag /></span>;
 }
 
@@ -240,10 +251,10 @@ export default function Product() {
     if (el) el.scrollTo({ left: n * el.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
 
-  const experience = (
+  const experience = Boolean(c.experience || !HIDE_TEST_DATA || (considered && c.notes?.length)) && (
     <Reveal as="section" className="pdp-block" key="exp">
       <h2 className="pdp-block__h">{considered ? 'How to use' : c.experienceLabel ?? 'Flavour & texture'}</h2>
-      {c.experience ? <Text as="p" copy={c.experience} /> : <p><Needed what={considered ? 'Preparation notes' : 'Flavour and texture notes'} /></p>}
+      {c.experience ? <Text as="p" copy={c.experience} /> : !HIDE_TEST_DATA && <p><Needed what={considered ? 'Preparation notes' : 'Flavour and texture notes'} /></p>}
       {considered && c.notes?.length ? (
         <>
           <h3 className="pdp-block__sub">{c.notesLabel ?? 'Good for'}</h3>
@@ -252,7 +263,7 @@ export default function Product() {
       ) : null}
     </Reveal>
   );
-  const ingredients = (
+  const ingredients = Boolean(c.ingredientStory || c.ingredientsList || !HIDE_TEST_DATA) && (
     <Reveal as="section" className="pdp-block" key="ing">
       <h2 className="pdp-block__h">The ingredients</h2>
       {c.ingredientStory ? <Text as="p" copy={c.ingredientStory} /> : c.ingredientsList ? <Text as="p" copy={c.ingredientsList} /> : <p><Needed what="A description of the ingredients" /></p>}
@@ -269,7 +280,7 @@ export default function Product() {
       <h2 className="facts__h">Product information</h2>
       <dl className="facts__list">
         <Fact label="Brand">{brand ? <Link to={paths.brand(brand)}>{item.brand}</Link> : item.brand}</Fact>
-        <Fact label="Food type"><DietMark d={c.dietary} isDraft={c.dietaryDraft} /></Fact>
+        {(!HIDE_TEST_DATA || (c.dietary && c.dietary !== 'unconfirmed')) && <Fact label="Food type"><DietMark d={c.dietary} isDraft={c.dietaryDraft} /></Fact>}
         <Fact label="Net quantity">{packLabel(item)}</Fact>
         {st !== 'discontinued' && <Fact label="MRP">{rupees(item.mrp ?? item.price)} <span className="facts__muted">(inclusive of all taxes)</span></Fact>}
         {unit && <Fact label="Unit price">{unit}</Fact>}
@@ -277,12 +288,12 @@ export default function Product() {
         <Fact label="Allergens" copy={c.allergens} need="Allergen information" />
         <Fact label="Storage" copy={c.storage} need="Storage instructions" />
         <Fact label="Best before" copy={c.shelfLife} need="Shelf life" />
-        <Fact label="Manufactured & marketed by">{site.legalEntity}, <Text copy={site.registeredAddress} /></Fact>
-        <Fact label="FSSAI licence" copy={site.fssaiLicence} />
+        <Fact label="Manufactured & marketed by">{site.legalEntity}{site.registeredAddress && <>, <Text copy={site.registeredAddress} /></>}</Fact>
+        {site.fssaiLicence && <Fact label="FSSAI licence" copy={site.fssaiLicence} />}
         <Fact label="Country of origin">{site.countryOfOrigin}</Fact>
-        <Fact label="Customer care"><Text copy={site.email} /> · <Text copy={site.phone} /></Fact>
+        {(site.email || site.phone) && <Fact label="Customer care">{[site.email, site.phone].filter((x) => x != null).map((x, i) => <span key={i}>{i > 0 && ' · '}<Text copy={x} /></span>)}</Fact>}
       </dl>
-      {HIDE_TEST_DATA && !c.nutrition ? <p className="facts__note"><strong>Nutritional information:</strong> details coming soon.</p> : <table className="nutrition">
+      {HIDE_TEST_DATA && !c.nutrition ? null : <table className="nutrition">
         <caption>Nutritional information <span>{c.nutrition?.basis ?? 'per 100 g (approx.)'}</span></caption>
         <tbody>
           {(c.nutrition?.rows ?? NUTRITION_ROWS.map((r) => [r, '—'] as [string, string])).map(([label, v]) => (
@@ -296,6 +307,7 @@ export default function Product() {
       <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
     </Reveal>
   );
+  const allergy = HIDE_TEST_DATA && !c.allergens ? <AllergyLine /> : null;
   const grid = (id: string, eyebrow: string, title: string, list: CatalogueItem[]) => list.length > 0 && (
     <section className="section section--tight wrap" aria-labelledby={id}>
       <Reveal className="section__head">
@@ -411,10 +423,10 @@ export default function Product() {
             <section className="glance" aria-labelledby="glance-h">
               <h2 id="glance-h" className="glance__h">At a glance</h2>
               <dl>
-              <div><dt>Taste</dt><dd>{c.taste ? <Text copy={draft(c.taste)} /> : <Needed what="Taste notes" />}</dd></div>
-              <div><dt>Ingredients</dt><dd><Text copy={c.ingredientsList} /></dd></div>
-              <div><dt>Nutrition per 100 g</dt><dd>{c.nutrition ? c.nutrition.rows.filter(([l]) => !l.startsWith('of which')).slice(0, 4).map(([l, v]) => `${l.replace(/ \(.*\)/, '')} ${v}${/\((\w+)\)/.exec(l)?.[1] ?? ''}`).join(' · ') : <Needed what="Nutrition values" />}</dd></div>
-              <div><dt>How to use</dt><dd>{firstStep ? <Text copy={draft(firstStep)} /> : <Needed what="Preparation" />} <a href="#details" className="glance__more">Full method</a></dd></div>
+              {(c.taste || !HIDE_TEST_DATA) && <div><dt>Taste</dt><dd>{c.taste ? <Text copy={draft(c.taste)} /> : <Needed what="Taste notes" />}</dd></div>}
+              {c.ingredientsList && <div><dt>Ingredients</dt><dd><Text copy={c.ingredientsList} /></dd></div>}
+              {(c.nutrition || !HIDE_TEST_DATA) && <div><dt>Nutrition per 100 g</dt><dd>{c.nutrition ? c.nutrition.rows.filter(([l]) => !l.startsWith('of which')).slice(0, 4).map(([l, v]) => `${l.replace(/ \(.*\)/, '')} ${v}${/\((\w+)\)/.exec(l)?.[1] ?? ''}`).join(' · ') : <Needed what="Nutrition values" />}</dd></div>}
+              {(firstStep || !HIDE_TEST_DATA) && <div><dt>How to use</dt><dd>{firstStep ? <Text copy={draft(firstStep)} /> : <Needed what="Preparation" />} <a href="#details" className="glance__more">Full method</a></dd></div>}
               <div><dt>Value</dt><dd>{unit}{value ? <><br /><span className="glance__value">{value.text}</span></> : null}</dd></div>
               </dl>
             </section>
@@ -430,7 +442,7 @@ export default function Product() {
         <>
           <section className="wrap pdp-details" id="details" aria-label="Product details">
             <div className="pdp-details__story">{experience}{ingredients}{serving}</div>
-            {facts}
+            <div>{facts}{allergy}</div>
           </section>
           {grid('pairs-h', 'Complete the meal', 'Goes well with', pairs)}
           {st !== 'discontinued' && grid('related-h', cat?.title ?? 'More to explore', 'You may also like', related)}
@@ -439,9 +451,9 @@ export default function Product() {
         <>
           {grid('pairs-h', 'Complete the basket', 'Goes well with', pairs)}
           <section className="wrap pdp-details pdp-details--fold" id="details" aria-label="Product details">
-            <div className="pdp-details__story">{experience}{serving}</div>
+            <div className="pdp-details__story">{experience}{serving}{allergy}</div>
             <details className="fold">
-              <summary>Ingredients, nutrition and storage <Icon name="chevron" size={18} /></summary>
+              <summary>{HIDE_TEST_DATA && !c.nutrition && !c.ingredientsList ? 'Product information' : 'Ingredients, nutrition and storage'} <Icon name="chevron" size={18} /></summary>
               {ingredients}
               {facts}
             </details>

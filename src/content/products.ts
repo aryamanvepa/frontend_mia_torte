@@ -99,11 +99,9 @@ export interface ProductContent {
 // ---------------------------------------------------------------- label defaults (every product until supplied)
 const LABEL: ProductContent = HIDE_TEST_DATA
   ? {
-      // Launch with test data hidden: neutral wording, no made-up values, until the real label is entered in the ops app.
-      ingredientsList: 'Details coming soon.',
-      allergens: 'Allergen details coming soon. If you have a food allergy, please contact us before ordering.',
+      // Launch with test data hidden: no label values at all until the real label is entered in the ops app.
+      // The product page leaves those rows out and shows one allergy line instead (src/pages/Product.tsx).
       dietary: 'unconfirmed',
-      shelfLife: 'Details coming soon.',
     }
   : {
       ingredientsList: placeholder('Full ingredients list, in descending order of weight, as printed on the pack.'),

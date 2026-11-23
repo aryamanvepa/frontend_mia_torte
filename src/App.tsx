@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { CartDrawer, Footer, Header } from './components/layout';
 import { ConsentBanner } from './components/Consent';
 import { brandList } from './content/brands';
+import { HAS_CONTACT, SHOW_POLICY_PAGES } from './content/site';
 import { storeCategories } from './content/store';
 import { trackPageView } from './lib/analytics';
 import { exitTestMode, testMode } from './lib/testmode';
@@ -43,7 +44,7 @@ function OldBrandPath() {
   const [first, second] = rest.split('/');
   if (first === 'product' && second) return <Navigate to={`/product/${second}`} replace />;
   if (first === 'shop') return <Navigate to="/shop" replace />;
-  if (first === 'contact') return <Navigate to="/contact" replace />;
+  if (first === 'contact') return <Navigate to={HAS_CONTACT ? '/contact' : '/'} replace />;
   if (first && OLD_COLLECTION[first]) return <Navigate to={`/${OLD_COLLECTION[first]}`} replace />;
   if (brand && (!first || first === brand.story.slug)) return <BrandPage brand={brand} />;
   return <NotFound />;
@@ -72,14 +73,16 @@ export default function App() {
             <Route path="/product/:code" element={<Product />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            {HAS_CONTACT && <Route path="/contact" element={<Contact />} />}
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order/:code" element={<OrderConfirmed />} />
             <Route path="/track" element={<Track />} />
-            <Route path="/shipping" element={<InfoPage slug="shipping" />} />
-            <Route path="/refunds" element={<InfoPage slug="refunds" />} />
-            <Route path="/privacy" element={<InfoPage slug="privacy" />} />
-            <Route path="/terms" element={<InfoPage slug="terms" />} />
+            {SHOW_POLICY_PAGES && <>
+              <Route path="/shipping" element={<InfoPage slug="shipping" />} />
+              <Route path="/refunds" element={<InfoPage slug="refunds" />} />
+              <Route path="/privacy" element={<InfoPage slug="privacy" />} />
+              <Route path="/terms" element={<InfoPage slug="terms" />} />
+            </>}
             <Route path="/credits" element={<Credits />} />
             <Route path="/:slug/*" element={<OldBrandPath />} />
             <Route path="*" element={<NotFound />} />

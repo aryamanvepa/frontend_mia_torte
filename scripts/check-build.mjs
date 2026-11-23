@@ -8,8 +8,10 @@
 //     made-up label data (ingredients, allergens, nutrition) or test tags
 //   - canonical / sitemap / robots addresses not on SITE_URL
 //   - barcodes (200…), the Supabase service_role key, or test-order details
-// With VITE_HIDE_TEST_DATA=1 it also fails if any "Test data" tag or
-// stock product photo (test-…) is still on a page.
+//   - stand-in business details (FSSAI 000…, example email/phone), and links
+//     to policy / contact pages that are switched off (src/content/site.ts)
+// With VITE_HIDE_TEST_DATA=1 it also fails if any "Test data" tag,
+// "details coming soon" or stock product photo (test-…) is still on a page.
 // =====================================================================
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -33,6 +35,10 @@ function htmlFiles(dir) {
 if (!existsSync(DIST)) { console.error('check: no dist/ folder. Run npm run build first.'); process.exit(1); }
 const pages = htmlFiles(DIST);
 const meta = (html, attr, name) => new RegExp(`<meta[^>]+${attr}="${name}"[^>]+content="([^"]*)"`, 'i').exec(html)?.[1];
+
+// Pages that can be switched off (policies until the text is in; contact until there is an email or phone).
+// When one isn't built, nothing may link to it and the sitemap must not list it.
+const HIDDEN_ROUTES = ['shipping', 'refunds', 'privacy', 'terms', 'contact'].filter((r) => !existsSync(join(DIST, r, 'index.html')));
 
 let prerendered = 0;
 for (const file of pages) {
@@ -68,7 +74,12 @@ for (const file of pages) {
   if (/\b200\d{10}\b/.test(visible)) fail(page, 'looks like a barcode (200…) on the page');
   if (/service_role/i.test(html)) fail(page, 'mentions service_role');
   if (/test\+\d+@example\.com/.test(html)) fail(page, 'test-order details on the page');
+  // Business details are hidden until real (src/content/site.ts): no stand-in values may reach a page.
+  const words = visible.replace(/<[^>]+>/g, ' ');
+  if (/0{14}|hello@example\.com|\+91 00000 00000|to be supplied/i.test(words)) fail(page, 'business placeholder (FSSAI 000…, example email/phone, "to be supplied") on the page');
+  for (const route of HIDDEN_ROUTES) if (new RegExp(`href="[^"]*/${route}/?"`).test(html)) fail(page, `links to /${route}, which is switched off`);
   if (HIDE) {
+    if (/details coming soon|to be added|Content needed/i.test(words)) fail(page, '"coming soon" / "to be added" in place of label details');
     if (/ph-tag--test|>Test data</.test(html)) fail(page, '"Test data" tag shown with VITE_HIDE_TEST_DATA=1');
     if (/\/images\/test-[a-z0-9-]+-\d+\.webp/.test(html)) fail(page, 'stock product photo (test-…) shown with VITE_HIDE_TEST_DATA=1');
   }
@@ -82,6 +93,7 @@ else {
   if (!locs.length) errors.push('sitemap.xml has no addresses');
   for (const l of locs) if (!l.startsWith(SITE_URL)) errors.push(`sitemap.xml: ${l} is not on ${SITE_URL}`);
   for (const l of locs) if (/\/(checkout|order|track)(\/|$)/.test(l)) errors.push(`sitemap.xml lists a private page: ${l}`);
+  for (const l of locs) for (const r of HIDDEN_ROUTES) if (l.replace(/\/$/, '').endsWith(`/${r}`)) errors.push(`sitemap.xml lists /${r}, which is switched off`);
   console.log(`check: sitemap.xml lists ${locs.length} pages`);
 }
 const robotsPath = join(DIST, 'robots.txt');
@@ -90,6 +102,7 @@ else if (!readFileSync(robotsPath, 'utf8').includes(`Sitemap: ${SITE_URL}/sitema
 if (!existsSync(join(DIST, '404.html'))) errors.push('404.html missing (deep links would break on GitHub Pages)');
 
 console.log(`check: ${prerendered} pre-rendered pages checked against ${SITE_URL}${HIDE ? ' (test data hidden)' : ''}`);
+if (HIDDEN_ROUTES.length) console.log(`check: switched off, and not linked anywhere: ${HIDDEN_ROUTES.map((r) => `/${r}`).join(', ')}`);
 for (const w of warn) console.log(`  note: ${w}`);
 if (errors.length) {
   console.error(`check: ${errors.length} problem(s)`);

@@ -6,6 +6,8 @@ Written 2026-11-23. This covers the shop only; the backend and the ops app have 
 
 On the site, every item below carries a small tag while `SHOW_PLACEHOLDER_FLAGS = true` (`src/content/site.ts`). The tags are "Placeholder", "Content needed", "Draft · confirm" and "Test data". Before launch, set the flag to `false` **after** the real values are in. Otherwise the tags just disappear and the text behind them stays.
 
+> **Go-live state (2026-11-23).** Every business detail in A is now `null` in `src/content/site.ts` and hidden everywhere. The footer, product pages, contact page and search data show nothing in its place. To turn one back on, put the real value in. The Contact page and its links come back once there's an email or phone (`HAS_CONTACT`). The policy pages in B are off with `SHOW_POLICY_PAGES = false`: no routes, links or sitemap entries. Brand-page sections that were only "to be supplied" (founder's story, kitchen, bespoke, sourcing, trade) are left out. `VITE_HIDE_TEST_DATA=1` is set. Product pages drop every label row they don't have real values for and show one line instead: "Have an allergy or dietary question? Please contact us before ordering." That line links to /contact once a contact route exists. `npm run check` fails the build if any of these come back as stand-ins.
+
 ### A. Business details. The owner must supply these; they all appear in the footer, on product pages or in policy pages
 
 | What | Where in code | Shows on | Needed from the owner |

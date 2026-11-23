@@ -71,8 +71,8 @@ export function PlaceholderTag({ label = 'Placeholder', kind = 'missing' }: { la
     : <span className="ph-tag" title="To be supplied by Torte Living before launch">{label}</span>;
 }
 
-export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | undefined; as?: 'span' | 'p' | 'div' | 'dd'; className?: string }) {
-  if (copy === undefined) return null;
+export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | null | undefined; as?: 'span' | 'p' | 'div' | 'dd'; className?: string }) {
+  if (copy == null) return null;
   const ph = isPlaceholder(copy) && SHOW_PLACEHOLDER_FLAGS;
   return (
     <Tag className={`${className ?? ''} ${ph ? 'is-ph' : ''}`}>

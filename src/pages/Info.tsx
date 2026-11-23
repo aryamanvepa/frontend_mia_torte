@@ -7,7 +7,7 @@ import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
 import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
 import { images } from '../content/images';
 import { HIDE_TEST_DATA, isTestImage } from '../content/test-labels';
-import { SHOW_PLACEHOLDER_FLAGS, house, pages, site } from '../content/site';
+import { SHOW_PLACEHOLDER_FLAGS, house, isMissing, pages, site } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { copyText } from '../content/site';
@@ -29,7 +29,7 @@ export function BrandPage({ brand }: { brand: Brand }) {
       </header>
       <Reveal className="wrap info__hero"><Img id={s.image} eager sizes="(min-width: 900px) 80vw, 100vw" /></Reveal>
       <div className="wrap info__body info__body--story">
-        {s.sections.map((sec, n) => (
+        {s.sections.filter((sec) => !isMissing(sec.body)).map((sec, n) => (
           <Reveal as="section" key={sec.heading} className="info__section">
             <span className="info__no" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
             <h2>{sec.heading}</h2>
@@ -93,7 +93,8 @@ export function Contact() {
   const blocks = [
     ...miaTorte.contact.blocks.filter((b) => b.heading !== 'The kitchen'),
     ...nutriSampoorn.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),
-  ];
+  ].filter((b) => !isMissing(b.body));
+  const legal = [site.registeredAddress, site.fssaiLicence].filter((c) => c != null);
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">
@@ -105,9 +106,9 @@ export function Contact() {
         <div className="contact__card">
           <h2 className="contact__h">Write or call</h2>
           <ul className="contact__lines">
-            <li><Icon name="mail" size={18} /> <Text copy={site.email} /></li>
-            <li><Icon name="phone" size={18} /> <Text copy={site.phone} /></li>
-            <li><Icon name="clock" size={18} /> <Text copy={site.hours} /></li>
+            {site.email && <li><Icon name="mail" size={18} /> <Text copy={site.email} /></li>}
+            {site.phone && <li><Icon name="phone" size={18} /> <Text copy={site.phone} /></li>}
+            {site.hours && <li><Icon name="clock" size={18} /> <Text copy={site.hours} /></li>}
           </ul>
           <Link to="/track" className="btn btn--line btn--block">Track an order</Link>
         </div>
@@ -118,10 +119,12 @@ export function Contact() {
               <Text as="p" copy={b.body} />
             </Reveal>
           ))}
-          <section className="info__section">
-            <h2>Registered office</h2>
-            <p className="info__legal">{site.legalEntity} · <Text copy={site.registeredAddress} /> · <Text copy={site.fssaiLicence} /></p>
-          </section>
+          {legal.length > 0 && (
+            <section className="info__section">
+              <h2>Registered office</h2>
+              <p className="info__legal">{site.legalEntity}{legal.map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>
+            </section>
+          )}
         </div>
       </div>
     </article>
@@ -153,8 +156,8 @@ export function InfoPage({ slug }: { slug: keyof typeof pages }) {
         ))}
         <section className="info__section">
           <h2>Contact</h2>
-          <p><Text copy={site.email} /> · <Text copy={site.phone} /></p>
-          <p className="info__legal">{site.legalEntity} · <Text copy={site.registeredAddress} /> · <Text copy={site.fssaiLicence} /></p>
+          {(site.email || site.phone) && <p>{[site.email, site.phone].filter((c) => c != null).map((c, i) => <span key={i}>{i > 0 && ' · '}<Text copy={c} /></span>)}</p>}
+          <p className="info__legal">{site.legalEntity}{[site.registeredAddress, site.fssaiLicence].filter((c) => c != null).map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>
         </section>
       </div>
     </article>

@@ -11,6 +11,7 @@ import { organisationLd, snippet, useSeo } from '../lib/seo';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
 import { CatalogueStatus, GridSkeleton } from './Shop';
+import { HAS_CONTACT } from '../content/site';
 
 const cat = (slug: string) => storeCategories.find((c) => c.slug === slug)!;
 const lines = (t: string) => t.split('\n').map((l, i) => <span key={i} className="hero__line">{l}</span>);
@@ -183,7 +184,7 @@ export function StoreHome() {
             <p className="lede">{storeHome.gifting.text}</p>
             {gifting.length > 0
               ? <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">Shop gifting</Link>
-              : <p className="gifting__soon">{cat('gifting-discovery').empty} <Link to="/contact">Write to us</Link></p>}
+              : <p className="gifting__soon">{cat('gifting-discovery').empty}{HAS_CONTACT && <> <Link to="/contact">Write to us</Link></>}</p>}
           </Reveal>
         </div>
         {gifting.length > 0 && <div className="wrap"><Grid items={gifting} /></div>}

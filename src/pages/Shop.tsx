@@ -9,6 +9,7 @@ import { trackViewItemList } from '../lib/analytics';
 import { bestsellers, inStoreCategory, itemContent, newFlagMeaningful, oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { useCatalogue } from '../state/store';
+import { HAS_CONTACT } from '../content/site';
 
 const SORTS = { featured: 'Recommended', 'price-asc': 'Price: low to high', 'price-desc': 'Price: high to low', name: 'Name A–Z', new: 'Newest' } as const;
 type Sort = keyof typeof SORTS;
@@ -173,7 +174,7 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
               {active
                 ? <button type="button" className="btn btn--line" onClick={() => setParams({}, { replace: true })}>Clear filters</button>
                 : <Link to={paths.shop()} className="btn btn--line">Shop all</Link>}
-              <Link to="/contact" className="arrow-link">Write to us <Icon name="arrow" size={18} /></Link>
+              {HAS_CONTACT && <Link to="/contact" className="arrow-link">Write to us <Icon name="arrow" size={18} /></Link>}
             </div>
           </div>
         ))}

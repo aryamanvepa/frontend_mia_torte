@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList, miaTorte } from '../content/brands';
 import { BrandLogo } from './BrandLogo';
-import { site } from '../content/site';
+import { HAS_CONTACT, SHOW_POLICY_PAGES, site } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
@@ -104,7 +104,7 @@ export function Header() {
           <p className="topbar__note"><Icon name="truck" size={15} /> {shipping ? `Free delivery on orders over ${rupees(shipping.free_above)}` : 'Delivering across India'}<span className="topbar__extra"> · One basket for the whole store</span></p>
           <div className="topbar__right">
             <NavLink to="/track" className="topbar__link">Track an order</NavLink>
-            <NavLink to="/contact" className="topbar__link">Help</NavLink>
+            {HAS_CONTACT && <NavLink to="/contact" className="topbar__link">Help</NavLink>}
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@ export function Header() {
             <ul className="mobile-menu__minor">
               <li><Link to="/track">Track an order</Link></li>
               {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>About {b.name}</Link></li>)}
-              <li><Link to="/contact">Contact</Link></li>
+              {HAS_CONTACT && <li><Link to="/contact">Contact</Link></li>}
             </ul>
           </nav>
         </div>
@@ -166,11 +166,13 @@ export function Footer() {
               </Link>
             ))}
           </p>
-          <ul className="footer__contact">
-            <li><Text copy={site.email} /></li>
-            <li><Text copy={site.phone} /></li>
-            <li><Text copy={site.hours} /></li>
-          </ul>
+          {HAS_CONTACT && (
+            <ul className="footer__contact">
+              {site.email && <li><Text copy={site.email} /></li>}
+              {site.phone && <li><Text copy={site.phone} /></li>}
+              {site.hours && <li><Text copy={site.hours} /></li>}
+            </ul>
+          )}
         </div>
         <nav aria-label="Shop" className="footer__col">
           <h2 className="footer__h">Shop</h2>
@@ -180,9 +182,9 @@ export function Footer() {
           <h2 className="footer__h">Help</h2>
           <ul>
             <li><Link to="/track">Track an order</Link></li>
-            <li><Link to="/shipping">Shipping &amp; delivery</Link></li>
-            <li><Link to="/refunds">Returns &amp; refunds</Link></li>
-            <li><Link to="/contact">Contact us</Link></li>
+            {SHOW_POLICY_PAGES && <li><Link to="/shipping">Shipping &amp; delivery</Link></li>}
+            {SHOW_POLICY_PAGES && <li><Link to="/refunds">Returns &amp; refunds</Link></li>}
+            {HAS_CONTACT && <li><Link to="/contact">Contact us</Link></li>}
           </ul>
         </nav>
         <nav aria-label="Company" className="footer__col">
@@ -190,15 +192,15 @@ export function Footer() {
           <ul>
             <li><Link to="/about">About Torte Living</Link></li>
             {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>{b.name}</Link></li>)}
-            <li><Link to="/privacy">Privacy policy</Link></li>
-            <li><Link to="/terms">Terms of sale</Link></li>
+            {SHOW_POLICY_PAGES && <li><Link to="/privacy">Privacy policy</Link></li>}
+            {SHOW_POLICY_PAGES && <li><Link to="/terms">Terms of sale</Link></li>}
             {analyticsConfigured && <li><button type="button" className="footer__linkbtn" onClick={openConsentSettings}>Cookie settings</button></li>}
           </ul>
         </nav>
       </div>
       <div className="wrap footer__legal">
-        <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity} · <Text copy={site.fssaiLicence} /></p>
-        <p>© {year} {site.legalEntity}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
+        <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity}{site.fssaiLicence && <> · <Text copy={site.fssaiLicence} /></>}</p>
+        <p>© {year} {site.legalEntity.replace(/\.$/, '')}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>
     </footer>

@@ -787,6 +787,7 @@ main:focus { outline: none; }
 @media (min-width: 520px) { .facts__row { grid-template-columns: 150px minmax(0, 1fr); gap: 16px; } }
 .facts__muted { font-size: .82rem; }
 .facts__note { font-size: .8rem; color: var(--muted); margin-top: 12px; }
+.facts__allergy { margin-top: 16px; padding: 12px 14px; border-left: 2px solid var(--line-strong); background: var(--linen); font-size: .92rem; }
 .diet { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; color: var(--cocoa); }
 .diet svg { flex: none; }
 .nutrition { width: 100%; border-collapse: collapse; margin-top: 28px; font-size: .9rem; }

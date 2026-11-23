@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { analyticsConfigured, getConsent, setConsent } from '../lib/analytics';
+import { SHOW_POLICY_PAGES } from '../content/site';
 
 /**
  * Asks before any analytics load (GA4, Meta Pixel). Shows only when analytics IDs are configured
@@ -19,7 +20,7 @@ export function ConsentBanner() {
     <div className="consent-bar" role="dialog" aria-live="polite" aria-label="Cookie choices">
       <p>
         We’d like to use analytics cookies (Google Analytics, Meta) to understand how the shop is used and improve it.
-        Nothing is set unless you agree. <Link to="/privacy">Privacy policy</Link>
+        Nothing is set unless you agree.{SHOW_POLICY_PAGES && <> <Link to="/privacy">Privacy policy</Link></>}
       </p>
       <div className="consent-bar__btns">
         <button type="button" className="btn btn--line" onClick={() => choose('denied')}>No thanks</button>

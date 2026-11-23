@@ -24,21 +24,52 @@ export const testValue = (text: string): Placeholder => ({ text, placeholder: tr
 export const isPlaceholder = (c: Copy): c is Placeholder => typeof c === 'object' && c !== null && c.placeholder;
 export const copyText = (c: Copy) => (isPlaceholder(c) ? c.text : c);
 
-export const site = {
+// ---------------------------------------------------------------- business & legal details
+// Each detail below is shown on the site ONLY when it has a value. `null` hides it
+// everywhere: footer, product pages, contact page, policy pages and search data.
+// They are all hidden for launch (2026-11-23) until the licences and contacts are in.
+// To turn one back on, put the real value in, e.g.
+//   fssaiLicence: 'FSSAI Lic. No. 12345678901234',
+//   registeredAddress: '12 Example Road, Pune 411001, Maharashtra',
+//   email: 'hello@lamiatorte.com',   phone: '+91 98xxx xxxxx',
+//   hours: 'Mon–Sat, 10 am – 6 pm IST',   gstin: '27ABCDE1234F1Z5',
+//   instagram: 'https://instagram.com/lamiatorte'
+// The Contact page and its links appear once there is an email or a phone.
+export const site: {
+  name: string; legalEntity: string; countryOfOrigin: string; codNote: string;
+  fssaiLicence: Copy | null; gstin: Copy | null; registeredAddress: Copy | null;
+  email: Copy | null; phone: Copy | null; hours: Copy | null; instagram: string | null;
+  dispatchNote: Copy | null; deliveryNote: Copy | null;
+} = {
   name: 'Torte Living',
   legalEntity: 'Torte Living Pvt. Ltd.',
-  fssaiLicence: placeholder('FSSAI Lic. No. 00000000000000'),
-  gstin: placeholder('GSTIN to be added'),
-  registeredAddress: placeholder('Registered office address to be supplied'),
-  email: placeholder('hello@example.com'),
-  phone: placeholder('+91 00000 00000'),
-  hours: placeholder('Mon–Sat, 10 am – 6 pm IST'),
+  fssaiLicence: null,
+  gstin: null,
+  registeredAddress: null,
+  email: null,
+  phone: null,
+  hours: null,
   countryOfOrigin: 'India',
-  dispatchNote: placeholder('Packed to order and dispatched within 1–2 working days.'),
-  deliveryNote: placeholder('Delivery ₹60, complimentary on orders above ₹999. Delivery areas to be confirmed.'),
+  dispatchNote: null,
+  deliveryNote: null,
   codNote: 'Pay on delivery. Nothing is charged online; you pay when your order arrives.',
-  instagram: placeholder('https://instagram.com/'),
+  instagram: null,
 };
+
+/** True once there is a real way to reach us (email or phone): shows the Contact page and its links. */
+export const HAS_CONTACT = Boolean(site.email || site.phone);
+
+/**
+ * Shipping, Returns & refunds, Privacy and Terms pages. false = the pages, their
+ * links and their sitemap entries are all gone. Set true once the final policy
+ * text below is in (and replace each needs(…) / placeholder(…) with it).
+ */
+export const SHOW_POLICY_PAGES = false;
+
+/** Missing-content placeholders (brand-page sections like the founder's story, kitchen
+ *  address, trade enquiries) are left out of the site rather than shown as "to be supplied". */
+export const HIDE_MISSING_SECTIONS = true;
+export const isMissing = (c: Copy | null | undefined) => c == null || (isPlaceholder(c) && c.kind === 'missing' && HIDE_MISSING_SECTIONS);
 
 // The shared landing page at "/".
 export const house = {

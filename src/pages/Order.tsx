@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon, Spinner } from '../components/ui';
 import { BrandLogo } from '../components/BrandLogo';
 import { miaTorte } from '../content/brands';
-import { site } from '../content/site';
+import { HAS_CONTACT, site } from '../content/site';
 import { requestCancellation, trackOrder, type OrderStatus } from '../lib/api';
 import { rupees } from '../lib/format';
 import { LAST_ORDER_KEY } from '../lib/keys';
@@ -180,7 +180,7 @@ export function Track() {
             )}
             {result.refund && <p className="banner banner--info">Refund {result.refund.status}: {rupees(Number(result.refund.amount))}.</p>}
             {result.status !== 'cancelled' && result.status !== 'delivered' && <CancelRequest code={result.code!} phone={phone} status={result} />}
-            {result.status === 'delivered' && <p className="track__help">Something not right? <Link to="/contact">Contact us</Link> about a return or refund.</p>}
+            {result.status === 'delivered' && HAS_CONTACT && <p className="track__help">Something not right? <Link to="/contact">Contact us</Link> about a return or refund.</p>}
           </section>
         )}
       </div>
@@ -218,7 +218,7 @@ function CancelRequest({ code, phone, status }: { code: string; phone: string; s
         <label htmlFor="cancel-reason">Reason <span className="field__opt">(optional)</span></label>
         <input id="cancel-reason" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} />
       </div>
-      {state === 'error' && <p className="banner banner--error" role="alert">{msg} {msg.includes('contact') && <Link to="/contact">Contact us</Link>}</p>}
+      {state === 'error' && <p className="banner banner--error" role="alert">{msg} {msg.includes('contact') && HAS_CONTACT && <Link to="/contact">Contact us</Link>}</p>}
       <div className="track__cancel-btns">
         <button className="btn btn--dark" disabled={state === 'sending'}>{state === 'sending' ? <><Spinner /> Sending…</> : 'Cancel this order'}</button>
         <button type="button" className="btn btn--ghost" onClick={() => setOpen(false)}>Keep my order</button>
