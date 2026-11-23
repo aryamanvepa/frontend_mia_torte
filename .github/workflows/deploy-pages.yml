@@ -1,14 +1,22 @@
-# Builds the storefront and publishes it to GitHub Pages on every push to main.
+# Builds the storefront on every push to main, nightly and on demand, and publishes it twice:
+#   1. Cloudflare Pages  → https://lamiatorte.com, the shop's main address (BASE_PATH=/)
+#   2. GitHub Pages      → https://aryamanvepa.github.io/frontend_mia_torte/ (BASE_PATH=/<repo>/)
+# Both builds use VITE_SITE_URL=https://lamiatorte.com, so canonicals, structured data and the
+# sitemap point at the main domain and the github.io copy doesn't compete in search.
+# The two jobs are independent: a Cloudflare failure never blocks the GitHub Pages deploy.
+#
 # Repository variables (Settings → Secrets and variables → Actions → Variables):
 #   VITE_SUPABASE_URL              https://<project-ref>.supabase.co
-#   VITE_SUPABASE_PUBLISHABLE_KEY  the publishable (anon) key — never the service_role key
-#   VITE_SITE_URL                  optional: the public address once there is a domain
-#                                  (https://lamiatorte.com); defaults to the GitHub Pages address
-#   BASE_PATH                      optional: / on the custom domain; defaults to /<repo>/
-#   VITE_HIDE_TEST_DATA            optional: 1 hides made-up label data and stock product photos
+#   VITE_SUPABASE_PUBLISHABLE_KEY  the publishable (anon) key. Never the service_role key.
+#   VITE_SITE_URL                  optional: defaults to https://lamiatorte.com
+#   VITE_HIDE_TEST_DATA            1 hides made-up label data and stock product photos
+#   CLOUDFLARE_ACCOUNT_ID          the Cloudflare account that owns the Pages project
+# Repository secret:
+#   CLOUDFLARE_API_TOKEN           Cloudflare API token with Pages: Edit on that account
+#
 # The build pre-renders every page with the live catalogue (scripts/prerender.mjs, using the
 # runner's Chrome), so it also runs nightly to keep prices and stock in the saved pages fresh.
-name: Deploy to GitHub Pages
+name: Deploy shop (Cloudflare Pages + GitHub Pages)
 
 on:
   push:
@@ -19,16 +27,25 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+  VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+  VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://lamiatorte.com' }}
+  # Launch switch: 1 hides made-up label data and stock product photos (src/content/test-labels.ts).
+  VITE_HIDE_TEST_DATA: ${{ vars.VITE_HIDE_TEST_DATA }}
+  CHROME_PATH: /usr/bin/google-chrome
+
 jobs:
-  build:
+  # ------------------------------------------------------------------ Cloudflare Pages (lamiatorte.com)
+  cloudflare:
     runs-on: ubuntu-latest
+    env:
+      BASE_PATH: /
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,28 +55,53 @@ jobs:
       - run: npm ci
       - name: Build
         run: npm run build
-        env:
-          # On the custom domain set the repository variable BASE_PATH to /  (default: the github.io project path).
-          BASE_PATH: ${{ vars.BASE_PATH || format('/{0}/', github.event.repository.name) }}
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
-          # Launch switch: set to 1 to hide made-up label data and stock product photos (src/content/test-labels.ts).
-          VITE_HIDE_TEST_DATA: ${{ vars.VITE_HIDE_TEST_DATA }}
-          CHROME_PATH: /usr/bin/google-chrome
-      - name: Launch checks (titles, canonicals, structured data, sitemap; no test data when hidden)
+      - name: Launch checks (titles, canonicals, structured data, sitemap; no placeholders or test data)
         run: npm run check
-        env:
-          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
-          VITE_HIDE_TEST_DATA: ${{ vars.VITE_HIDE_TEST_DATA }}
+      - name: Create the Pages project (fails harmlessly if it already exists)
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create lamiatorte --production-branch=main
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=lamiatorte --branch=main
+
+  # ------------------------------------------------------------------ GitHub Pages (github.io copy)
+  github-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Serve under /<repo>/ (works for push, nightly and manual runs alike)
+        run: echo "BASE_PATH=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Launch checks (titles, canonicals, structured data, sitemap; no placeholders or test data)
+        run: npm run check
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
-    needs: build
+    needs: github-pages
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

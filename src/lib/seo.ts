@@ -2,9 +2,9 @@
 // SEO — per-page title, description, canonical address, link-preview tags
 // (WhatsApp, Instagram, Facebook, X) and structured data for Google.
 //
-// SITE_URL is the public address of the shop. Set VITE_SITE_URL when the
-// shop moves to its own domain (e.g. https://torteliving.in); until then it
-// is the GitHub Pages address. The build's pre-render step (scripts/
+// SITE_URL is the shop's main address, https://lamiatorte.com (VITE_SITE_URL).
+// The github.io copy is built with it too, so its canonicals point at the
+// main domain and the two copies don't compete in search. The build's pre-render step (scripts/
 // prerender.mjs) captures these tags into each page's HTML, and writes
 // sitemap.xml and robots.txt from them.
 // =====================================================================
@@ -13,7 +13,7 @@ import { useLocation } from 'react-router-dom';
 import { imageSet } from '../content/images';
 
 export const SHARE_CARD_PATH = 'brand/share-card.jpg';
-export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://aryamanvepa.github.io/frontend_mia_torte').replace(/\/$/, '');
+export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://lamiatorte.com').replace(/\/$/, '');
 const SHARE_CARD = `${SITE_URL}/${SHARE_CARD_PATH}`;
 export const SITE_NAME = 'Torte Living';
 

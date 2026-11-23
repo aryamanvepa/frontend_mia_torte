@@ -21,7 +21,7 @@ import { dirname, extname, join, normalize } from 'node:path';
 
 const DIST = 'dist';
 const BASE = (process.env.BASE_PATH || '/').replace(/\/?$/, '/');
-const SITE_URL = (process.env.VITE_SITE_URL || 'https://aryamanvepa.github.io/frontend_mia_torte').replace(/\/$/, '');
+const SITE_URL = (process.env.VITE_SITE_URL || 'https://lamiatorte.com').replace(/\/$/, '');
 // Pages that are never indexed, so not worth pre-rendering.
 const SKIP = [/^\/checkout/, /^\/order\//, /^\/track/];
 const MAX_PAGES = 400;

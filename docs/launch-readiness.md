@@ -75,45 +75,11 @@ All four pages are mostly headings with "to be supplied" bodies. They need real 
 - **Share card:** the home page and pages without a photo share `brand/share-card.jpg` (1200×630). Product pages share the product photo.
 - **Launch check:** `npm run build && npm run check` verifies all of the above on every page.
 
-## 3. Domain switch (lamiatorte.com): steps at switch time
+## 3. Hosting (changed 2026-11-23)
 
-Run these **only after the DNS records are in at Cloudflare**:
-- **Apex (`lamiatorte.com`):** A records to 185.199.108.153, 185.199.109.153, 185.199.110.153 and 185.199.111.153, plus AAAA records to 2606:50c0:8000::153, 2606:50c0:8001::153, 2606:50c0:8002::153 and 2606:50c0:8003::153.
-- **`www`:** a CNAME to `aryamanvepa.github.io`.
-- **Proxy:** grey cloud (DNS only) until GitHub has issued the certificate.
-
-Then:
-1. Add the domain file and push it:
-   ```bash
-   echo lamiatorte.com > public/CNAME && git add public/CNAME && git commit -m "Custom domain: lamiatorte.com" && git push
-   ```
-2. Set the build variables:
-   ```bash
-   gh variable set BASE_PATH --body / --repo aryamanvepa/frontend_mia_torte
-   ```
-   ```bash
-   gh variable set VITE_SITE_URL --body https://lamiatorte.com --repo aryamanvepa/frontend_mia_torte
-   ```
-3. Point GitHub Pages at the domain:
-   ```bash
-   gh api -X PUT repos/aryamanvepa/frontend_mia_torte/pages -f cname=lamiatorte.com
-   ```
-4. Re-run the deploy so every page is rebuilt on `/` with lamiatorte.com addresses:
-   ```bash
-   gh workflow run deploy-pages.yml --repo aryamanvepa/frontend_mia_torte
-   ```
-5. When GitHub shows the certificate as issued (usually within an hour), force HTTPS:
-   ```bash
-   gh api -X PUT repos/aryamanvepa/frontend_mia_torte/pages -F https_enforced=true
-   ```
-6. Check:
-   - `https://lamiatorte.com/` returns 200; `www` and the old github.io address redirect to it.
-   - `/sitemap.xml` and `/robots.txt` list lamiatorte.com addresses.
-   - A deep link such as `/product/MT-000039` opens.
-   - The bag gets a quote (the backend allows the lamiatorte.com origin).
-7. The owner adds lamiatorte.com to Google Search Console (DNS TXT record at Cloudflare) and submits `https://lamiatorte.com/sitemap.xml`.
-
-To undo the switch:
-1. Delete the two variables (`gh variable delete BASE_PATH` and `gh variable delete VITE_SITE_URL`).
-2. Clear the custom domain in the repository's Settings → Pages.
-3. Remove `public/CNAME` and re-run the deploy.
+The shop is hosted on **Cloudflare Pages**, at https://lamiatorte.com, because GitHub Pages' terms don't allow e-commerce. The github.io copy stays up too. Both are built by `.github/workflows/deploy-pages.yml`, which runs on every push to main, every night at 02:00 IST and on demand:
+- **`cloudflare` job:** builds with `BASE_PATH=/`, runs `npm run check`, then `wrangler pages deploy dist --project-name=lamiatorte --branch=main`. It needs the repository secret `CLOUDFLARE_API_TOKEN` and the variable `CLOUDFLARE_ACCOUNT_ID`.
+- **`github-pages` + `deploy` jobs:** build with `BASE_PATH=/frontend_mia_torte/`, run `npm run check`, then deploy to GitHub Pages. They don't depend on the Cloudflare job.
+- **Site address:** both builds use `VITE_SITE_URL=https://lamiatorte.com` (the default), so canonicals, structured data and the sitemap always point at the main domain.
+- **Custom domain:** none is set on GitHub Pages, and there's no `public/CNAME`. The lamiatorte.com domain is attached to the Cloudflare Pages project.
+- **404 page:** `404.html` is kept. Cloudflare Pages serves it with a 404 status for unknown paths, and it boots the app.

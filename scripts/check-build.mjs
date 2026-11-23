@@ -17,7 +17,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIST = 'dist';
-const SITE_URL = (process.env.VITE_SITE_URL || 'https://aryamanvepa.github.io/frontend_mia_torte').replace(/\/$/, '');
+const SITE_URL = (process.env.VITE_SITE_URL || 'https://lamiatorte.com').replace(/\/$/, '');
 const HIDE = process.env.VITE_HIDE_TEST_DATA === '1';
 
 const errors = [];
