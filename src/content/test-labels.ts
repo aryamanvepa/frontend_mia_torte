@@ -11,6 +11,14 @@
 // =====================================================================
 export const TEST_LABELS = true;
 
+/**
+ * LAUNCH SWITCH: build with VITE_HIDE_TEST_DATA=1 (GitHub repository variable) to hide every made-up label value
+ * and every stock product photo (test-… images). Pages then say "Details coming soon" and show the product's
+ * illustration instead. Real details entered in the ops app still show. Off unless the variable is set to 1.
+ */
+export const HIDE_TEST_DATA = import.meta.env.VITE_HIDE_TEST_DATA === '1';
+export const isTestImage = (id: string) => id.startsWith('test-');
+
 /** kcal, protein, carbohydrate, total sugars, added sugars, fibre, fat, saturated fat, trans fat, cholesterol (mg), sodium (mg) — per 100 g */
 export type N = [number, number, number, number, number, number, number, number, number, number, number];
 

@@ -28,7 +28,7 @@
 // 3 a serving or lifestyle shot (see docs/photography-brief.md).
 // =====================================================================
 import { draft, placeholder, testValue, type Copy } from './site';
-import { TEST_LABELS, testLabels } from './test-labels';
+import { HIDE_TEST_DATA, TEST_LABELS, isTestImage, testLabels } from './test-labels';
 
 /** 'egg' is shown as non-vegetarian, as FSSAI requires. Only ever set from the ops app's `diet`, never guessed. */
 export type Dietary = 'veg' | 'vegan' | 'egg' | 'non-veg' | 'unconfirmed';
@@ -97,12 +97,20 @@ export interface ProductContent {
 }
 
 // ---------------------------------------------------------------- label defaults (every product until supplied)
-const LABEL: ProductContent = {
-  ingredientsList: placeholder('Full ingredients list, in descending order of weight, as printed on the pack.'),
-  allergens: placeholder('Allergen declaration, as printed on the pack.'),
-  dietary: 'unconfirmed',
-  shelfLife: placeholder('Best before, as printed on the pack.'),
-};
+const LABEL: ProductContent = HIDE_TEST_DATA
+  ? {
+      // Launch with test data hidden: neutral wording, no made-up values, until the real label is entered in the ops app.
+      ingredientsList: 'Details coming soon.',
+      allergens: 'Allergen details coming soon. If you have a food allergy, please contact us before ordering.',
+      dietary: 'unconfirmed',
+      shelfLife: 'Details coming soon.',
+    }
+  : {
+      ingredientsList: placeholder('Full ingredients list, in descending order of weight, as printed on the pack.'),
+      allergens: placeholder('Allergen declaration, as printed on the pack.'),
+      dietary: 'unconfirmed',
+      shelfLife: placeholder('Best before, as printed on the pack.'),
+    };
 
 // ---------------------------------------------------------------- defaults by ops-app category
 const BY_CATEGORY: Record<string, ProductContent> = {
@@ -427,7 +435,7 @@ export const products: Record<string, ProductContent> = {
 
 /** TEST ONLY: made-up label values (src/content/test-labels.ts) in place of the "to be supplied" placeholders. */
 function testLabelFor(product: string): ProductContent {
-  const t = TEST_LABELS ? testLabels[product] : undefined;
+  const t = TEST_LABELS && !HIDE_TEST_DATA ? testLabels[product] : undefined;
   if (!t) return {};
   const keys: [string, string][] = [['Energy (kcal)', ''], ['Protein (g)', ''], ['Carbohydrate (g)', ''], ['of which total sugars (g)', ''], ['of which added sugars (g)', ''],
     ['Dietary fibre (g)', ''], ['Total fat (g)', ''], ['of which saturated fat (g)', ''], ['of which trans fat (g)', ''], ['Cholesterol (mg)', ''], ['Sodium (mg)', '']];
@@ -447,5 +455,6 @@ export function contentFor(product: string, category: string | null | undefined)
   const own = products[product];
   const cat = BY_CATEGORY[(category ?? '').trim().toLowerCase()];
   const merged: ProductContent = { ...LABEL, ...cat, ...testLabelFor(product), ...own };
-  return { ...merged, images: merged.images ?? [], hasOwnContent: Boolean(own) };
+  const images = (merged.images ?? []).filter((id) => !(HIDE_TEST_DATA && isTestImage(id)));
+  return { ...merged, images, hasOwnContent: Boolean(own) };
 }

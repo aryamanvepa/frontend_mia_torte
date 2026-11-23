@@ -3,7 +3,9 @@
 #   VITE_SUPABASE_URL              https://<project-ref>.supabase.co
 #   VITE_SUPABASE_PUBLISHABLE_KEY  the publishable (anon) key — never the service_role key
 #   VITE_SITE_URL                  optional: the public address once there is a domain
-#                                  (e.g. https://torteliving.in); defaults to the GitHub Pages address
+#                                  (https://lamiatorte.com); defaults to the GitHub Pages address
+#   BASE_PATH                      optional: / on the custom domain; defaults to /<repo>/
+#   VITE_HIDE_TEST_DATA            optional: 1 hides made-up label data and stock product photos
 # The build pre-renders every page with the live catalogue (scripts/prerender.mjs, using the
 # runner's Chrome), so it also runs nightly to keep prices and stock in the saved pages fresh.
 name: Deploy to GitHub Pages
@@ -37,11 +39,19 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: /${{ github.event.repository.name }}/
+          # On the custom domain set the repository variable BASE_PATH to /  (default: the github.io project path).
+          BASE_PATH: ${{ vars.BASE_PATH || format('/{0}/', github.event.repository.name) }}
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          # Launch switch: set to 1 to hide made-up label data and stock product photos (src/content/test-labels.ts).
+          VITE_HIDE_TEST_DATA: ${{ vars.VITE_HIDE_TEST_DATA }}
           CHROME_PATH: /usr/bin/google-chrome
+      - name: Launch checks (titles, canonicals, structured data, sitemap; no test data when hidden)
+        run: npm run check
+        env:
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
+          VITE_HIDE_TEST_DATA: ${{ vars.VITE_HIDE_TEST_DATA }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

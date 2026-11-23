@@ -99,16 +99,27 @@ export function useSeo(seo: Seo | null) {
 }
 
 // ---------------------------------------------------------------- structured data helpers
-export const organisationLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Torte Living Pvt. Ltd.',
-  url: `${SITE_URL}/`,
-  brand: [
-    { '@type': 'Brand', name: 'La Mia Torte', logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp` },
-    { '@type': 'Brand', name: 'Nutri Sampoorn' },
-  ],
-};
+export const organisationLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Torte Living Pvt. Ltd.',
+    alternateName: 'Torte Living',
+    url: `${SITE_URL}/`,
+    logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp`,
+    brand: [
+      { '@type': 'Brand', name: 'La Mia Torte', logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp` },
+      { '@type': 'Brand', name: 'Nutri Sampoorn' },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Torte Living',
+    url: `${SITE_URL}/`,
+    potentialAction: { '@type': 'SearchAction', target: `${SITE_URL}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
+  },
+];
 
 export function breadcrumbLd(trail: { name: string; path: string }[]) {
   return {

@@ -5,6 +5,7 @@
 // (src/content/products.ts), they replace it automatically.
 // =====================================================================
 import type { CSSProperties, ReactNode } from 'react';
+import { HIDE_TEST_DATA } from '../content/test-labels';
 
 type Motif = 'cookie' | 'bowl' | 'scatter' | 'ear' | 'dosa' | 'jar';
 
@@ -164,7 +165,7 @@ export function PackArt({ product, category, brandCode, variant = 'card' }: {
           strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{accents[art[2]]}</svg>
       )}
       {variant !== 'thumb' && product && <span className="pack__name" aria-hidden="true">{product}</span>}
-      {variant !== 'thumb' && <span className="pack__note" aria-hidden="true">{variant === 'hero' ? `${isMT ? 'La Mia Torte' : 'Nutri Sampoorn'} · photograph to follow` : 'Photo to follow'}</span>}
+      {variant !== 'thumb' && !HIDE_TEST_DATA && <span className="pack__note" aria-hidden="true">{variant === 'hero' ? `${isMT ? 'La Mia Torte' : 'Nutri Sampoorn'} · photograph to follow` : 'Photo to follow'}</span>}
     </div>
   );
 }

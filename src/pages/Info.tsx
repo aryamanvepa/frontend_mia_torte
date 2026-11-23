@@ -6,6 +6,7 @@ import { useCatalogue } from '../state/store';
 import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
 import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
 import { images } from '../content/images';
+import { HIDE_TEST_DATA, isTestImage } from '../content/test-labels';
 import { SHOW_PLACEHOLDER_FLAGS, house, pages, site } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
@@ -167,11 +168,11 @@ export function Credits() {
       <header className="page-head page-head--narrow wrap">
         <p className="eyebrow">Information</p>
         <h1 className="display display--lg">Photo credits</h1>
-        <p className="lede">The photographs on this site are placeholder stock images used under the <a href="https://unsplash.com/license" rel="noopener" target="_blank">Unsplash Licence</a>. They set the mood and show ingredients; they are not photographs of our products, which are shown as illustrations until our own photography is ready.</p>
+        <p className="lede">Some photographs on this site are stock images used under the <a href="https://unsplash.com/license" rel="noopener" target="_blank">Unsplash Licence</a>. They set the mood and show ingredients{HIDE_TEST_DATA ? '' : ', and a few stand in for products until our own photography is ready'}. Our product photographs are our own.</p>
       </header>
       <div className="wrap info__body">
         <ul className="credits">
-          {Object.entries(images).filter(([, i]) => i.credit).map(([id, i]) => (
+          {Object.entries(images).filter(([id, i]) => i.credit && !(HIDE_TEST_DATA && isTestImage(id))).map(([id, i]) => (
             <li key={id}>
               <Img id={id} sizes="120px" className="credits__img" alt="" />
               <span>{i.alt}<br />Photo by <a href={i.credit!.profile} rel="noopener" target="_blank">{i.credit!.photographer}</a> on <a href={i.credit!.url} rel="noopener" target="_blank">{i.credit!.source}</a></span>

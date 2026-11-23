@@ -5,6 +5,7 @@ import { PackArt } from '../components/PackArt';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
+import { HIDE_TEST_DATA } from '../content/test-labels';
 import { copyText, draft, site, type Copy } from '../content/site';
 import { deliveryFallback, deliveryText } from '../content/store';
 import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
@@ -18,6 +19,7 @@ import { NotFound } from './Info';
 import { NotifyMe } from '../components/NotifyMe';
 
 function Needed({ what }: { what: string }) {
+  if (HIDE_TEST_DATA) return <span>Coming soon.</span>;
   return <span className="is-ph">{what} to be added. <PlaceholderTag label="Content needed" /></span>;
 }
 
@@ -46,6 +48,7 @@ function DietMark({ d, isDraft }: { d?: Dietary; isDraft?: boolean }) {
       </span>
     );
   }
+  if (HIDE_TEST_DATA) return <span>Details coming soon.</span>;
   return <span className="is-ph">Vegetarian / non-vegetarian mark to be confirmed. <PlaceholderTag /></span>;
 }
 
@@ -112,11 +115,14 @@ function productSeo(item: CatalogueItem, items: CatalogueItem[]): Seo {
   const canonical = oneCardPerProduct(packs)[0] ?? item;
   const intro = c.intro ? copyText(c.intro) : '';
   const description = snippet([c.tagline, intro].filter(Boolean).join(' ') || `${item.product} from ${item.brand}. ${cat?.intro ?? ''}`);
-  const availability = (i: CatalogueItem) => (i.status === 'discontinued' ? 'https://schema.org/Discontinued' : i.availability === 'sold_out' || i.test_stock ? 'https://schema.org/OutOfStock'
+  // Only claim what is true for a real shopper: "Coming soon" and test-mode stock are not in stock.
+  const availability = (i: CatalogueItem) => (i.status === 'discontinued' ? 'https://schema.org/Discontinued'
+    : i.status === 'coming_soon' || i.status === 'out_of_stock' || i.availability === 'sold_out' || i.test_stock ? 'https://schema.org/OutOfStock'
     : i.availability === 'low' ? 'https://schema.org/LimitedAvailability' : 'https://schema.org/InStock');
   const photo = c.images[0] ? imageUrl(c.images[0]) : undefined;
   return {
-    title: `${titleOf(item)} ${packFull(item)} · ${item.brand}`,
+    // Search results show about 60 characters: drop the brand from long titles rather than have them cut.
+    title: [`${titleOf(item)} ${packFull(item)} · ${item.brand}`, `${titleOf(item)} ${packFull(item)}`].find((t) => t.length <= 60) ?? `${titleOf(item)} ${packFull(item)}`,
     description,
     canonical: paths.product(canonical),
     image: c.images[0],
@@ -276,15 +282,15 @@ export default function Product() {
         <Fact label="Country of origin">{site.countryOfOrigin}</Fact>
         <Fact label="Customer care"><Text copy={site.email} /> · <Text copy={site.phone} /></Fact>
       </dl>
-      <table className="nutrition">
+      {HIDE_TEST_DATA && !c.nutrition ? <p className="facts__note"><strong>Nutritional information:</strong> details coming soon.</p> : <table className="nutrition">
         <caption>Nutritional information <span>{c.nutrition?.basis ?? 'per 100 g (approx.)'}</span></caption>
         <tbody>
           {(c.nutrition?.rows ?? NUTRITION_ROWS.map((r) => [r, '—'] as [string, string])).map(([label, v]) => (
             <tr key={label} className={label.startsWith('of which') ? 'is-sub' : ''}><th scope="row">{label}</th><td>{v}</td></tr>
           ))}
         </tbody>
-      </table>
-      {!c.nutrition && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
+      </table>}
+      {!c.nutrition && !HIDE_TEST_DATA && <p className="facts__note is-ph">Values to be supplied from laboratory analysis. <PlaceholderTag /></p>}
       {c.nutrition?.test && <p className="facts__note is-ph">Made-up values for testing only, not from the pack label. <PlaceholderTag kind="test" /></p>}
       {c.nutrition?.draft && <p className="facts__note is-ph">Values entered by Torte Living, to be confirmed against the pack label. <PlaceholderTag kind="draft" /></p>}
       <p className="facts__note">Please read the label on the pack before eating. In case of any difference, the pack label prevails.</p>
