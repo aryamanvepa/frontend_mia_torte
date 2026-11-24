@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects (GitHub Pages ignores this file).
+# Returns & refunds now live on the Shipping & returns page.
+/refunds    /shipping/  301
+/refunds/   /shipping/  301
