@@ -89,7 +89,7 @@ for (const file of pages) {
     // No internal marker of any kind on the live site: placeholder / draft / content-needed tags,
     // their highlight class, or the wording behind them.
     if (/class="[^"]*\b(ph-tag|is-ph)\b/.test(html)) fail(page, 'internal placeholder tag or highlight (ph-tag / is-ph) on the page');
-    if (/Draft · confirm|Draft page\.|Photo needed|Placeholder|to be confirmed|Lifestyle photograph to come|photograph to follow|for testing only|brand brief/i.test(words)) fail(page, 'internal wording ("Draft · confirm", "to be confirmed", "Placeholder" …) on the page');
+    if (/Draft · confirm|Draft page\.|Photo needed|Placeholder|to be confirmed|Lifestyle photograph to come|photographs? (?:to|of this product will) follow|will follow|for testing only|brand brief/i.test(words)) fail(page, 'internal wording ("Draft · confirm", "to be confirmed", "Placeholder" …) on the page');
     if (/\/images\/test-[a-z0-9-]+-\d+\.webp/.test(html)) fail(page, 'stock product photo (test-…) shown with VITE_HIDE_TEST_DATA=1');
   }
 }

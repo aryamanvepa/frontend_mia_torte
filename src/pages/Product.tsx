@@ -351,7 +351,7 @@ export default function Product() {
               ))}
             </div>
           )}
-          {photos.length === 0 && <p className="gallery__note">An illustration for now: photographs of this product will follow.</p>}
+          {photos.length === 0 && SHOW_PLACEHOLDER_FLAGS && <p className="gallery__note">An illustration for now: photographs of this product will follow.</p>}
         </div>
 
         <div className="pdp__info">

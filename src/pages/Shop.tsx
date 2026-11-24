@@ -208,7 +208,7 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
         ) : !active && category?.gallery?.length ? (
           <div className="shop__gallery">
             <p className="shop__gallery-note">{category.empty}</p>
-            <ul className="gallery">
+            <ul className="hamper-gallery">
               {category.gallery.map((id, n) => (
                 <li key={id}><Reveal delay={(n % 3) * 60}><Img id={id} sizes="(min-width: 900px) 33vw, (min-width: 600px) 50vw, 100vw" /></Reveal></li>
               ))}
