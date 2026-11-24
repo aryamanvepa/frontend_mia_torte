@@ -165,7 +165,7 @@ export const nutriSampoorn: Brand = {
       slug: 'atta-grain-blends',
       title: 'Atta & Grain Blends',
       categories: ['Atta & flours', 'Atta', 'Grain blends', 'Flours'],
-      image: 'ns-atta-bowl',
+      image: 'pantry-grains',
       intro: 'Multigrain and millet-based attas and traditional grain and pulse blends, for rotis, parathas and bhakris with more flavour and character.',
       comingSoon: 'New grain blends are in development.',
     },

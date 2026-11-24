@@ -94,6 +94,16 @@ for (const file of pages) {
   }
 }
 
+// ---------------------------------------------------------------- trackers
+// The privacy policy says the site uses no analytics or advertising trackers. Fail if a GA4
+// measurement ID or a Meta Pixel ID was built in (VITE_GA4_ID / VITE_META_PIXEL_ID), so the policy
+// is updated before one is turned on.
+for (const f of readdirSync(join(DIST, 'assets')).filter((f) => f.endsWith('.js'))) {
+  const js = readFileSync(join(DIST, 'assets', f), 'utf8');
+  if (/["'`]G-[A-Z0-9]{6,}["'`]/.test(js) || /fbq\(\s*["']init["']\s*,\s*["']\d{6,}/.test(js) || (process.env.VITE_META_PIXEL_ID && js.includes(process.env.VITE_META_PIXEL_ID)))
+    errors.push(`assets/${f}: an analytics or advertising ID is built in, but the privacy policy says there are no trackers`);
+}
+
 // ---------------------------------------------------------------- sitemap & robots
 const sitemapPath = join(DIST, 'sitemap.xml');
 if (!existsSync(sitemapPath)) errors.push('sitemap.xml missing');

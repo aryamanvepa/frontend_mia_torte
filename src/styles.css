@@ -763,6 +763,15 @@ main:focus { outline: none; }
   .coll-head__media { aspect-ratio: 4 / 3; }
 }
 .crumbs--inline { padding: 0; }
+.info__updated { font-size: .84rem; color: var(--muted); }
+.info__list { display: grid; gap: 8px; padding-left: 1.2em; list-style: disc; }
+.info__list li::marker { color: var(--gold-ink); }
+.info__section .info__list + p { margin-top: 12px; }
+.delivery__more a { font-size: .86rem; color: var(--cocoa); }
+.about__founder { margin-top: clamp(32px, 5vw, 56px); }
+.founder__head--photo { display: grid; gap: 28px; align-items: end; }
+@media (min-width: 760px) { .founder__head--photo { grid-template-columns: 280px 1fr; } }
+.founder__photo .img { aspect-ratio: 4 / 5; border-radius: var(--radius); }
 .legal-details { margin-block: clamp(40px, 6vw, 72px); padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); max-width: 860px; }
 .legal-details dl { display: grid; gap: 12px; margin-top: 14px; }
 .legal-details dl > div { display: grid; gap: 2px; }
@@ -1433,13 +1442,14 @@ a.add-btn { text-decoration: none; }
 .card__buy { margin-top: auto; }
 .card__buy .card__foot { margin-top: 0; }
 
-/* Home banner: frame the photo on the baker's hands (they sit in its upper third).
-   Wide screens: the photo sits to the right of the text card, fading into the dark background on its left. */
-.store-hero__img img { object-position: 50% 28%; }
+/* Home banner: product-led and warm. The photo (cookies in gift boxes, candle-lit) sits to the right of
+   the text card on wide screens, fading into a warm cream background on its left. */
+.store-hero__media { background: radial-gradient(90% 120% at 30% 40%, #f8ecd9 0%, #efdcc0 70%, #e8d2b2 100%); }
+.store-hero__img img { object-position: 50% 62%; }
 @media (min-width: 900px) {
-  .store-hero__media { background: #0c0b0a; overflow: hidden; }
-  .store-hero__img { left: 38%; -webkit-mask-image: linear-gradient(to right, transparent, #000 20%); mask-image: linear-gradient(to right, transparent, #000 20%); }
-  .store-hero__img img { object-position: 50% 24%; }
+  .store-hero__media { overflow: hidden; }
+  .store-hero__img { left: 42%; -webkit-mask-image: linear-gradient(to right, transparent, #000 22%); mask-image: linear-gradient(to right, transparent, #000 22%); }
+  .store-hero__img img { object-position: 50% 55%; }
 }
 
 /* ---------------------------------------------------------------- La Mia Torte logo */
@@ -1467,7 +1477,8 @@ a.add-btn { text-decoration: none; }
 .header__mark:hover { transform: scale(1.03); }
 .header__mark:focus-visible { outline-offset: 4px; border-radius: 12px; }
 .header__logo { width: 104px; filter: none; }
-@media (max-width: 899px) { .header__logo { width: 60px; } }
+/* Phones: a larger emblem (84px), with the bar made taller to hold it, so the menu and bag keep their space. */
+@media (max-width: 899px) { :root { --header-h: 96px; } .header__logo { width: 84px; } }
 /* Menu under the emblem: spaced small capitals and a hairline, in the manner of luxury houses */
 .header__nav .navlink { font-size: .72rem; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; padding: 15px 0; }
 .header__nav .navlink::after { bottom: 10px; }

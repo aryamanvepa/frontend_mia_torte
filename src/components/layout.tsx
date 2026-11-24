@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList, miaTorte } from '../content/brands';
 import { BrandLogo } from './BrandLogo';
-import { HAS_CONTACT, SHOW_POLICY_PAGES, site } from '../content/site';
+import { HAS_CONTACT, POLICY_LIVE, copyText, mailHref, site, telHref } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
@@ -168,8 +168,8 @@ export function Footer() {
           </p>
           {HAS_CONTACT && (
             <ul className="footer__contact">
-              {site.email && <li><Text copy={site.email} /></li>}
-              {site.phone && <li><Text copy={site.phone} /></li>}
+              {site.email && <li><a href={mailHref!}>{copyText(site.email)}</a></li>}
+              {site.phone && <li><a href={telHref!}>{copyText(site.phone)}</a></li>}
               {site.hours && <li><Text copy={site.hours} /></li>}
             </ul>
           )}
@@ -182,8 +182,7 @@ export function Footer() {
           <h2 className="footer__h">Help</h2>
           <ul>
             <li><Link to="/track">Track an order</Link></li>
-            {SHOW_POLICY_PAGES && <li><Link to="/shipping">Shipping &amp; delivery</Link></li>}
-            {SHOW_POLICY_PAGES && <li><Link to="/refunds">Returns &amp; refunds</Link></li>}
+            {POLICY_LIVE.shipping && <li><Link to="/shipping">Shipping &amp; returns</Link></li>}
             {HAS_CONTACT && <li><Link to="/contact">Contact us</Link></li>}
           </ul>
         </nav>
@@ -192,8 +191,9 @@ export function Footer() {
           <ul>
             <li><Link to="/about">About Torte Living</Link></li>
             {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>{b.name}</Link></li>)}
-            {SHOW_POLICY_PAGES && <li><Link to="/privacy">Privacy policy</Link></li>}
-            {SHOW_POLICY_PAGES && <li><Link to="/terms">Terms of sale</Link></li>}
+            <li><Link to="/about/founder">About the founder</Link></li>
+            {POLICY_LIVE.privacy && <li><Link to="/privacy">Privacy policy</Link></li>}
+            {POLICY_LIVE.terms && <li><Link to="/terms">Terms of use and sale</Link></li>}
             {analyticsConfigured && <li><button type="button" className="footer__linkbtn" onClick={openConsentSettings}>Cookie settings</button></li>}
           </ul>
         </nav>

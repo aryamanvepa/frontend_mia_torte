@@ -7,7 +7,7 @@ import { trackAuth } from '../lib/analytics';
 import { myOrders, myProfile, sendCode, signOut, useSession, verifyCode, type MyOrder, type MyProfile } from '../lib/auth';
 import { rupees } from '../lib/format';
 import { useSeo } from '../lib/seo';
-import { SHOW_POLICY_PAGES } from '../content/site';
+import { POLICY_LIVE } from '../content/site';
 
 const STATUS: Record<string, string> = {
   placed: 'Received', confirmed: 'Confirmed', processing: 'Being prepared', packed: 'Packed', dispatched: 'On its way',
@@ -75,7 +75,7 @@ function SignIn() {
         </form>
       )}
       {msg && <p className="banner banner--error" role="alert">{msg}</p>}
-      {SHOW_POLICY_PAGES && <p className="account__note">By signing in you agree to our <Link to="/terms">terms</Link> and <Link to="/privacy">privacy policy</Link>.</p>}
+      {(POLICY_LIVE.terms && POLICY_LIVE.privacy) && <p className="account__note">By signing in you agree to our <Link to="/terms">terms</Link> and <Link to="/privacy">privacy policy</Link>.</p>}
     </div>
   );
 }

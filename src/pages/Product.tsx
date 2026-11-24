@@ -6,7 +6,7 @@ import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Price, Reveal, Spinner, StockNote, Stepper, Text } from '../components/ui';
 import { NUTRITION_ROWS, type Dietary } from '../content/products';
 import { HIDE_TEST_DATA } from '../content/test-labels';
-import { HAS_CONTACT, SHOW_PLACEHOLDER_FLAGS, copyText, draft, site, type Copy } from '../content/site';
+import { HAS_CONTACT, POLICY_LIVE, SHOW_PLACEHOLDER_FLAGS, copyText, draft, mailHref, site, telHref, type Copy } from '../content/site';
 import { deliveryFallback, deliveryText } from '../content/store';
 import { getQuote, type CatalogueItem, type Delivery } from '../lib/api';
 import { trackViewItem } from '../lib/analytics';
@@ -39,7 +39,9 @@ function Fact({ label, copy, children, need }: { label: string; copy?: Copy | nu
 function AllergyLine() {
   return (
     <p className="facts__allergy">
-      Have an allergy or dietary question? Please {HAS_CONTACT ? <Link to="/contact">contact us</Link> : 'contact us'} before ordering.
+      Have an allergy or dietary question? Please {HAS_CONTACT && mailHref && telHref
+        ? <>contact us before ordering: <a href={mailHref}>{copyText(site.email!)}</a> or <a href={telHref}>{copyText(site.phone!)}</a>.</>
+        : 'contact us before ordering.'}
     </p>
   );
 }
@@ -110,6 +112,7 @@ function DeliveryCheck({ item }: { item: CatalogueItem }) {
             : <p className="delivery__msg delivery__msg--no">{deliveryText(delivery, pin)}</p>
         )}
       </div>
+      {POLICY_LIVE.shipping && <p className="delivery__more"><Link to="/shipping">Shipping, cancellations &amp; returns</Link></p>}
     </section>
   );
 }
@@ -292,7 +295,7 @@ export default function Product() {
         {site.fssaiLicence && <Fact label="FSSAI registration">{copyText(site.fssaiLicence).replace(/^FSSAI Reg\. No\. /, '')}</Fact>}
         {site.gstin && <Fact label="GSTIN">{copyText(site.gstin).replace(/^GSTIN /, '')}</Fact>}
         <Fact label="Country of origin">{site.countryOfOrigin}</Fact>
-        {(site.email || site.phone) && <Fact label="Customer care">{[site.email, site.phone].filter((x) => x != null).map((x, i) => <span key={i}>{i > 0 && ' · '}<Text copy={x} /></span>)}</Fact>}
+        {(site.email || site.phone) && <Fact label="Customer care">{site.email && <a href={mailHref!}>{copyText(site.email)}</a>}{site.email && site.phone && ' · '}{site.phone && <a href={telHref!}>{copyText(site.phone)}</a>}</Fact>}
       </dl>
       {HIDE_TEST_DATA && !c.nutrition ? null : <table className="nutrition">
         <caption>Nutritional information <span>{c.nutrition?.basis ?? 'per 100 g (approx.)'}</span></caption>

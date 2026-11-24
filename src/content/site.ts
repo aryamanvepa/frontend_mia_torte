@@ -29,10 +29,9 @@ export const copyText = (c: Copy) => (isPlaceholder(c) ? c.text : c);
 // Each detail below is shown on the site ONLY when it has a value. `null` hides it
 // everywhere: footer, product pages, contact page, policy pages and search data.
 // Legal name, FSSAI registration, GSTIN and registered address are from the
-// government certificates (added 2026-11-24). Email, phone, hours and Instagram
-// stay hidden until Torte Living confirms which to publish, e.g.
-//   email: 'hello@lamiatorte.com',   phone: '+91 98xxx xxxxx',
-//   hours: 'Mon–Sat, 10 am – 6 pm IST',   instagram: 'https://instagram.com/…'
+// government certificates (added 2026-11-24). Email and phone approved by
+// Torte Living on 2026-11-24. Hours stay hidden until confirmed, e.g.
+//   hours: 'Mon–Sat, 10 am – 6 pm IST'
 // The Contact page and its links appear once there is an email or a phone.
 export const site: {
   name: string; legalEntity: string; countryOfOrigin: string; codNote: string;
@@ -51,25 +50,37 @@ export const site: {
     street: 'Plot No. G-403, Alpha-706, Jayabheri Silicon County, Serilingampally',
     locality: 'Kondapur', city: 'Hyderabad', region: 'Telangana', postalCode: '500084', country: 'IN',
   },
-  email: null,
-  phone: null,
+  email: 'miatorte@gmail.com',
+  phone: '+91 73306 16222',
   hours: null,
   countryOfOrigin: 'India',
   dispatchNote: null,
   deliveryNote: null,
   codNote: 'Pay on delivery. Nothing is charged online; you pay when your order arrives.',
-  instagram: null,
+  instagram: 'https://www.instagram.com/miatortebakery',
+};
+
+/** mailto: / tel: links for the published email and phone. */
+export const mailHref = site.email ? `mailto:${copyText(site.email)}` : null;
+export const telHref = site.phone ? `tel:${copyText(site.phone).replace(/[^\d+]/g, '')}` : null;
+
+/** Grievance officer (Consumer Protection (E-Commerce) Rules 2020; DPDP Act 2023). Approved 2026-11-24. */
+export const grievanceOfficer = {
+  name: 'Meenakshi Sareen',
+  role: 'Director, Torte Living Private Limited',
+  email: 'miatorte@gmail.com',
+  phone: '+91 73306 16222',
 };
 
 /** True once there is a real way to reach us (email or phone): shows the Contact page and its links. */
 export const HAS_CONTACT = Boolean(site.email || site.phone);
 
 /**
- * Shipping, Returns & refunds, Privacy and Terms pages. false = the pages, their
- * links and their sitemap entries are all gone. Set true once the final policy
- * text below is in (and replace each needs(…) / placeholder(…) with it).
+ * Which policy pages are live. false = the page, its links and its sitemap entry are all gone.
+ * Shipping & returns is live (2026-11-24). Privacy and Terms are drafts (text below, and
+ * ../reports/policy-drafts-2026-11-24/) waiting for Torte Living's approval.
  */
-export const SHOW_POLICY_PAGES = false;
+export const POLICY_LIVE = { shipping: true, privacy: false, terms: false } as const;
 
 /** Missing-content placeholders (brand-page sections like the founder's story, kitchen
  *  address, trade enquiries) are left out of the site rather than shown as "to be supplied". */
@@ -93,48 +104,155 @@ export const house = {
   },
 };
 
-// Policy & information pages. Section bodies are placeholders for the client to supply.
-export interface PolicyPage { slug: string; title: string; intro: Copy; sections: { heading: string; body: Copy }[] }
-const needs = (what: string) => placeholder(`${what}: to be supplied by Torte Living.`);
+// ---------------------------------------------------------------- policy pages
+// Section bodies are paragraphs (a string) or bullet lists (an array). Every statement
+// is based on what the shop and the backend actually do; commitments the business has
+// not confirmed yet are marked "COMMITMENT" in comments so they are easy to review.
+export interface PolicySection { heading: string; body: Copy | string[]; after?: string }
+export interface PolicyPage { slug: string; title: string; intro: Copy; updated: string; sections: PolicySection[]; grievance?: boolean }
 
-export const pages: Record<string, PolicyPage> = {
+const legalLine = `${site.legalEntity}, ${copyText(site.registeredAddress ?? '')}`;
+
+export const pages: Record<'shipping' | 'privacy' | 'terms', PolicyPage> = {
   shipping: {
-    slug: 'shipping', title: 'Shipping & delivery',
-    intro: placeholder('Where we deliver, how long it takes and what it costs.'),
+    slug: 'shipping', title: 'Shipping & returns', updated: '24 November 2026', grievance: true,
+    intro: 'How we deliver, what it costs, how to cancel, and what to do if something isn’t right with your order.',
     sections: [
-      { heading: 'Delivery charges', body: placeholder('Pilot rule: ₹60 per order, complimentary on orders above ₹999. Final rule to be confirmed.') },
-      { heading: 'Where we deliver', body: needs('Serviceable cities / PIN codes, local and national couriers') },
-      { heading: 'Dispatch & delivery times', body: needs('Packing time, delivery estimates, handling of fresh bakes') },
-      { heading: 'Pay on delivery', body: needs('Accepted payment methods on delivery (cash / UPI)') },
+      { heading: 'Payment', body: 'Cash on delivery only. Nothing is charged online: you pay when your order arrives.' },
+      {
+        heading: 'Delivery charges',
+        body: ['₹60 per order.', 'Free delivery on orders above ₹999.', 'The delivery charge is shown in your bag and at checkout before you place your order.'],
+      },
+      {
+        heading: 'Where we deliver',
+        body: [
+          'Hyderabad (PIN codes 500001 to 500100): local delivery, usually the same or next day after dispatch.',
+          'Other PIN codes from 500000 to 509999: usually 2 to 4 days after dispatch.',
+          'The rest of India: usually 3 to 7 days after dispatch.',
+          'Some areas, including PIN codes starting with 99, aren’t served yet.',
+        ],
+        after: 'Check your PIN code on any product page or at checkout. Delivery times are estimates from dispatch, not guarantees.',
+      },
+      // COMMITMENT (not confirmed): dispatch time.
+      { heading: 'Dispatch', body: 'Orders are usually dispatched within 2 to 3 working days of being placed.' },
+      { heading: 'Tracking your order', body: 'Use Track an order with your order code (shown on your order confirmation) and the phone number you ordered with.' },
+      {
+        heading: 'Cancelling an order',
+        body: 'You can ask to cancel from the Track an order page until your order is dispatched. If it hasn’t been packed yet, it’s cancelled straight away; if it has been packed, we’ll review your request and let you know. As you pay on delivery, there is nothing to refund for a cancelled order.',
+      },
+      {
+        heading: 'Returns',
+        body: 'Our products are packaged food, so we can’t accept returns for a change of mind.',
+      },
+      {
+        heading: 'Damaged, wrong or expired items',
+        body: [
+          'Tell us within 48 hours of delivery, by email or phone (below).',
+          'Include your order code and photos of the item and its packaging.',
+          'Once we’ve checked, we’ll replace the item or refund it.',
+        ],
+      },
+      // COMMITMENT (not confirmed): refund method and timeline for cash-on-delivery orders.
+      { heading: 'Refunds', body: 'As you pay on delivery, approved refunds are made by bank transfer or UPI, usually within 7 working days of approval.' },
     ],
   },
-  refunds: {
-    slug: 'refunds', title: 'Returns & refunds',
-    intro: placeholder('What happens if something arrives damaged or is not right.'),
-    sections: [
-      { heading: 'Damaged or incorrect items', body: needs('How to report, time window, photos required') },
-      { heading: 'Cancellations', body: needs('Until when an order can be cancelled') },
-      { heading: 'Refunds', body: needs('Refund method and timelines') },
-    ],
-  },
+
   privacy: {
-    slug: 'privacy', title: 'Privacy policy',
-    intro: placeholder('How Torte Living Pvt. Ltd. collects, uses and protects personal data (DPDP Act 2023).'),
+    slug: 'privacy', title: 'Privacy policy', updated: '24 November 2026 (draft)', grievance: true,
+    intro: `How ${site.legalEntity} collects, uses and protects your personal data when you use this website, under the Digital Personal Data Protection Act, 2023.`,
     sections: [
-      { heading: 'What we collect', body: needs('Name, phone, email, delivery address; the purpose of each') },
-      { heading: 'Marketing', body: needs('Marketing messages only with separate consent; how to withdraw it') },
-      { heading: 'Back-in-stock alerts', body: draft('If you ask us to email you when a product is available, we keep your email address (and first name, if you give it) only to send you that one email. We do not use it for marketing or share it. To be removed before then, write to us and we will delete it. How long requests are kept is to be confirmed by Torte Living.') },
-      { heading: 'Who we share it with', body: needs('Delivery partners, hosting providers') },
-      { heading: 'Your rights & grievance officer', body: needs('Contact details of the grievance officer') },
+      { heading: 'Who we are', body: `This website is run by ${legalLine}. We are responsible for your personal data as the “data fiduciary”.` },
+      {
+        heading: 'What we collect',
+        body: [
+          'When you order: your name, phone number, email address (if you give one), delivery address and any order notes, and whether you agreed to marketing messages.',
+          'When you ask to be told a product is available: your email address, your first name (if you give it) and the product.',
+          'On your device: your bag and the last PIN code you checked are kept in your own browser so they are there when you come back. They are not sent to us until you check delivery or place an order.',
+        ],
+      },
+      {
+        heading: 'Why we use it',
+        body: [
+          'To accept, pack, deliver and support your order, including contacting you about delivery.',
+          'To keep the records Indian tax and accounting law requires.',
+          'To send you one email when a product you asked about is available.',
+          'To send you marketing messages, only if you ticked the box at checkout. You can withdraw that consent at any time.',
+        ],
+      },
+      {
+        heading: 'Cookies, analytics and advertising',
+        body: 'This website uses no analytics or advertising trackers. If we ever add them, we will ask for your consent first and keep your choice on your device.',
+      },
+      {
+        heading: 'Who we share it with',
+        body: [
+          'Delivery partners, who receive your name, phone number and address to deliver your order.',
+          'The providers that host this website and store its data: Cloudflare and GitHub (website hosting) and Supabase (database).',
+        ],
+        after: 'We do not sell your personal data.',
+      },
+      {
+        heading: 'How long we keep it',
+        body: [
+          'Back-in-stock requests are erased 180 days after they have been handled.',
+          'Order records are kept for as long as Indian tax and accounting law requires.',
+        ],
+      },
+      // COMMITMENT (not confirmed): security wording.
+      { heading: 'Keeping it safe', body: 'We use reasonable security safeguards, and only people who need your data to run your order can see it.' },
+      {
+        heading: 'Your rights',
+        body: [
+          'Ask for a summary of the personal data we hold about you and how we use it.',
+          'Ask us to correct, complete or update it.',
+          'Ask us to erase it, unless the law requires us to keep it.',
+          'Withdraw any consent you have given.',
+          'Nominate someone to exercise these rights for you in case of death or incapacity.',
+          'Raise a grievance with us, and then with the Data Protection Board of India if you are not satisfied.',
+        ],
+        after: 'To use any of these rights, write to our grievance officer (below).',
+      },
+      { heading: 'Changes to this policy', body: 'If we change this policy, we will update it here with a new date.' },
     ],
   },
+
   terms: {
-    slug: 'terms', title: 'Terms of sale',
-    intro: placeholder('The terms on which Torte Living Pvt. Ltd. sells through this website.'),
+    slug: 'terms', title: 'Terms of use and sale', updated: '24 November 2026 (draft)', grievance: true,
+    intro: 'The terms on which you use this website and buy from us. Please read them before you order.',
     sections: [
-      { heading: 'Orders & pricing', body: needs('Prices include GST; order acceptance; errors') },
-      { heading: 'Food safety & allergens', body: needs('Allergen statement, storage advice, shelf life') },
-      { heading: 'Governing law', body: needs('Jurisdiction and contact details') },
+      {
+        heading: 'Who we are',
+        body: `This website and its shop are run by ${legalLine}. La Mia Torte and Nutri Sampoorn are our brands. ${copyText(site.gstin ?? '')}. ${copyText(site.fssaiLicence ?? '')}.`,
+      },
+      { heading: 'Prices and payment', body: 'Prices are in Indian rupees and include GST. The delivery charge is shown before you order. Payment is cash on delivery only.' },
+      {
+        heading: 'Orders and stock',
+        body: 'Placing an order is an offer to buy. Stock and prices are checked when you place it, and your order is accepted when you see the confirmation page. If we later can’t fulfil it, for example because an item is unavailable or a price was shown in error, we will tell you and cancel all or part of it.',
+      },
+      { heading: 'Delivery, cancellations and returns', body: 'These are set out on our Shipping & returns page, which forms part of these terms.' },
+      {
+        heading: 'Product information and allergens',
+        body: 'We describe our products as accurately as we can, but photos are for illustration. Always read the label on the pack, which takes precedence over the website. If you have an allergy or a dietary question, please contact us before ordering.',
+      },
+      { heading: 'Intellectual property', body: 'The names, logos, text and photos on this website belong to us or are used with permission. Please don’t copy or reuse them without our written consent. Other brand names mentioned belong to their owners.' },
+      // COMMITMENT (not confirmed): liability wording.
+      {
+        heading: 'Our responsibility to you',
+        body: 'We are responsible for supplying products that are as described and safe to eat when stored as the label says. Nothing in these terms limits your rights under the Consumer Protection Act, 2019. Beyond those rights, our responsibility for any order is limited to the amount you paid for it, and we are not responsible for losses that could not reasonably have been foreseen.',
+      },
+      { heading: 'Governing law', body: 'These terms are governed by the laws of India. The courts at Hyderabad, Telangana have jurisdiction, without affecting your right to approach a consumer commission.' },
+      { heading: 'Changes to these terms', body: 'We may update these terms. The version on this page when you place an order applies to that order.' },
     ],
   },
+};
+
+/**
+ * About the founder. Only facts Torte Living has given. `photo` (an images.ts id) and `story`
+ * (her own words, one paragraph per entry) stay null until supplied: the page shows nothing for them.
+ */
+export const founder = {
+  name: 'Meenakshi Sareen',
+  role: 'Founder and Director, Torte Living Private Limited, Hyderabad',
+  photo: null as string | null,
+  story: null as string[] | null,
 };

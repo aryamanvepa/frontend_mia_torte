@@ -77,7 +77,7 @@ export function StoreHome() {
     <>
       {/* 1 · Main banner */}
       <section className="store-hero">
-        <div className="store-hero__media"><Img id="craft-flour-hands" eager sizes="100vw" className="store-hero__img" alt="" /></div>
+        <div className="store-hero__media"><Img id="mt-cookie-box-1" eager sizes="(min-width: 900px) 60vw, 100vw" className="store-hero__img" /></div>
         <div className="wrap store-hero__inner">
           <div className="store-hero__card hero__in">
             <h1 className="display store-hero__title">{lines(storeHome.heroTitle)}</h1>

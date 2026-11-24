@@ -72,13 +72,13 @@ export const storeCategories: StoreCategory[] = [
   },
   {
     slug: 'everyday-nourishment',
-    title: 'Everyday Nourishment',
+    title: 'Nutri Sampoorn',
     craving: 'Eat Well Every Day',
     kind: 'considered',
-    heading: 'Nutri Sampoorn · Everyday Nourishment',
+    eyebrow: 'Everyday Nourishment',
     tagline: nsTaglines[0],
     intro: 'Superseed atta blends, single grain flours and instant dosa mixes from Nutri Sampoorn, for the meals you make every day.',
-    image: 'ns-atta-bowl',
+    image: 'ns-seeds-spoons',
     categories: ['Atta & flours', 'Atta', 'Flours', 'Grain blends', 'Dosa & batter mixes', 'Dosa mixes', 'Breakfast mixes', 'Breakfast', 'Chutney powders', 'Podis', 'Pantry'],
     sections: [
       {

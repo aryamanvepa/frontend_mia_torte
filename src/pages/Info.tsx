@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { BrandLogo } from '../components/BrandLogo';
 import { useCatalogue } from '../state/store';
-import { Icon, Img, PlaceholderTag, Reveal, Text } from '../components/ui';
+import { Icon, Img, Reveal, Text } from '../components/ui';
 import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
 import { images } from '../content/images';
 import { HIDE_TEST_DATA, isTestImage } from '../content/test-labels';
-import { SHOW_PLACEHOLDER_FLAGS, house, isMissing, pages, site } from '../content/site';
+import { founder, grievanceOfficer, house, isMissing, mailHref, pages, site, telHref } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { copyText, type Copy } from '../content/site';
@@ -71,6 +71,7 @@ export function About() {
             </li>
           ))}
         </ul>
+        <p className="about__founder"><Link to="/about/founder" className="arrow-link">About the founder, {founder.name} <Icon name="arrow" size={16} /></Link></p>
         <LegalDetails />
         <ul className="company__brands company__brands--about">
           {brandList.map((b) => (
@@ -127,8 +128,9 @@ export function Contact() {
         <div className="contact__card">
           <h2 className="contact__h">Write or call</h2>
           <ul className="contact__lines">
-            {site.email && <li><Icon name="mail" size={18} /> <Text copy={site.email} /></li>}
-            {site.phone && <li><Icon name="phone" size={18} /> <Text copy={site.phone} /></li>}
+            {site.email && <li><Icon name="mail" size={18} /> <a href={mailHref!}>{copyText(site.email)}</a></li>}
+            {site.phone && <li><Icon name="phone" size={18} /> <a href={telHref!}>{copyText(site.phone)}</a></li>}
+            {site.instagram && <li><Icon name="instagram" size={18} /> <a href={site.instagram} rel="noopener" target="_blank">Instagram @miatortebakery</a></li>}
             {site.hours && <li><Icon name="clock" size={18} /> <Text copy={site.hours} /></li>}
           </ul>
           <Link to="/track" className="btn btn--line btn--block">Track an order</Link>
@@ -162,24 +164,91 @@ export function InfoPage({ slug }: { slug: keyof typeof pages }) {
         <p className="eyebrow">Information</p>
         <h1 className="display display--lg">{p.title}</h1>
         <Text as="p" className="lede" copy={p.intro} />
+        <p className="info__updated">Last updated {p.updated}</p>
       </header>
-      {SHOW_PLACEHOLDER_FLAGS && (
-        <div className="wrap info__notice">
-          <p className="banner banner--info"><strong>Draft page.</strong> The text on this page is a placeholder outline. {site.legalEntity} needs to supply the final wording before launch. <PlaceholderTag /></p>
-        </div>
-      )}
       <div className="wrap info__body">
         {p.sections.map((s) => (
-          <Reveal as="section" key={s.heading} className="info__section">
+          <section key={s.heading} className="info__section">
             <h2>{s.heading}</h2>
-            <Text as="p" copy={s.body} />
-          </Reveal>
+            {Array.isArray(s.body)
+              ? <ul className="info__list">{s.body.map((b) => <li key={b}>{b}</li>)}</ul>
+              : <Text as="p" copy={s.body} />}
+            {s.after && <p>{s.after}</p>}
+          </section>
         ))}
         <section className="info__section">
-          <h2>Contact</h2>
-          {(site.email || site.phone) && <p>{[site.email, site.phone].filter((c) => c != null).map((c, i) => <span key={i}>{i > 0 && ' · '}<Text copy={c} /></span>)}</p>}
-          <p className="info__legal">{site.legalEntity}{[site.registeredAddress, site.fssaiLicence].filter((c) => c != null).map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>
+          <h2>Contact us</h2>
+          {(site.email || site.phone) && (
+            <p>
+              {site.email && <a href={mailHref!}>{copyText(site.email)}</a>}
+              {site.email && site.phone && ' · '}
+              {site.phone && <a href={telHref!}>{copyText(site.phone)}</a>}
+            </p>
+          )}
+          <p className="info__legal">{site.legalEntity}{[site.registeredAddress, site.fssaiLicence, site.gstin].filter((c) => c != null).map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>
         </section>
+        {p.grievance && (
+          <section className="info__section">
+            <h2>Grievance officer</h2>
+            <p>{grievanceOfficer.name}, {grievanceOfficer.role}</p>
+            <p><a href={`mailto:${grievanceOfficer.email}`}>{grievanceOfficer.email}</a> · <a href={`tel:${grievanceOfficer.phone.replace(/[^\d+]/g, '')}`}>{grievanceOfficer.phone}</a></p>
+            {/* COMMITMENT (not confirmed): response times, set to the Consumer Protection (E-Commerce) Rules 2020. */}
+            <p>We acknowledge complaints within 48 hours and aim to resolve them within one month.</p>
+          </section>
+        )}
+      </div>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------- about the founder
+/** Only the facts Torte Living has given. Her photo and own story appear only once added in site.ts (founder). */
+export function Founder() {
+  useSeo({
+    title: `About the founder · ${founder.name} · Torte Living`,
+    description: snippet(`${founder.name} is the founder of Torte Living in Hyderabad, the maker of La Mia Torte cookies, snacks and mueslis and Nutri Sampoorn superseed attas, flours and instant dosa mixes.`),
+    type: 'article',
+    jsonLd: breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'About Torte Living', path: '/about' }, { name: 'About the founder', path: '/about/founder' }]),
+  });
+  return (
+    <article className="info founder">
+      <header className={`page-head page-head--narrow wrap ${founder.photo ? 'founder__head--photo' : ''}`}>
+        {founder.photo && <div className="founder__photo"><Img id={founder.photo} eager sizes="(min-width: 900px) 320px, 60vw" /></div>}
+        <div>
+          <p className="eyebrow">About the founder</p>
+          <h1 className="display display--lg">{founder.name}</h1>
+          <p className="lede">{founder.role}</p>
+        </div>
+      </header>
+      <div className="wrap info__body">
+        {founder.story?.length ? (
+          <section className="info__section founder__story">
+            <h2>In her words</h2>
+            {founder.story.map((para) => <p key={para}>{para}</p>)}
+          </section>
+        ) : null}
+        <section className="info__section">
+          <h2>Two brands</h2>
+          <p>
+            {founder.name} founded Torte Living in Hyderabad and makes both of its brands.{' '}
+            <Link to={paths.brand(miaTorte)}>La Mia Torte</Link> is the indulgent side: cookies, snacks and millets &amp; nuts mueslis.{' '}
+            <Link to={paths.brand(nutriSampoorn)}>Nutri Sampoorn</Link> is the everyday side: superseed atta blends, single grain flours, and instant dosa mixes and chutneys.
+          </p>
+        </section>
+        <section className="info__section">
+          <h2>What Torte Living stands for</h2>
+          <ul className="info__list">
+            {house.beliefs.map((b) => <li key={b.title}><strong>{b.title}.</strong> {b.text}</li>)}
+          </ul>
+        </section>
+        <section className="info__section">
+          <h2>Say hello</h2>
+          <p>
+            {site.instagram && <><a href={site.instagram} rel="noopener" target="_blank">Instagram @miatortebakery</a>{site.email && ' · '}</>}
+            {site.email && <a href={mailHref!}>{copyText(site.email)}</a>}
+          </p>
+        </section>
+        <p><Link to="/about" className="arrow-link">About Torte Living <Icon name="arrow" size={16} /></Link></p>
       </div>
     </article>
   );

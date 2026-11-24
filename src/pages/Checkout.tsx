@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon, Spinner, Stepper } from '../components/ui';
 import { ProductThumb } from '../components/layout';
-import { SHOW_POLICY_PAGES, site } from '../content/site';
+import { POLICY_LIVE, site } from '../content/site';
 import { getQuote, placeOrder, type Problem, type Quote, type QuoteExtras } from '../lib/api';
 import { deliveryFallback, deliveryText } from '../content/store';
 import { trackBeginCheckout, trackPurchase } from '../lib/analytics';
@@ -394,7 +394,8 @@ export default function Checkout() {
             </button>
             {unserviceable && <p className="field__error">We don’t deliver to this PIN code yet.</p>}
             {problems.length > 0 && <p className="field__error">Please update the items marked in your order summary.</p>}
-            {SHOW_POLICY_PAGES && <p className="place__terms">By placing this order you agree to our <Link to="/terms">terms of sale</Link> and <Link to="/privacy">privacy policy</Link>.</p>}
+            {POLICY_LIVE.terms && POLICY_LIVE.privacy && <p className="place__terms">By placing this order you agree to our <Link to="/terms">terms of use and sale</Link> and <Link to="/privacy">privacy policy</Link>.</p>}
+            {POLICY_LIVE.shipping && <p className="place__terms">Cash on delivery. Delivery, cancellations and returns: see <Link to="/shipping">Shipping &amp; returns</Link>.</p>}
             {catStatus === 'error' && <p className="field__hint">Live stock could not be refreshed. Your order will still be checked before it is placed.</p>}
           </div>
         </form>

@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-do
 import { CartDrawer, Footer, Header } from './components/layout';
 import { ConsentBanner } from './components/Consent';
 import { brandList } from './content/brands';
-import { HAS_CONTACT, SHOW_POLICY_PAGES } from './content/site';
+import { HAS_CONTACT, POLICY_LIVE } from './content/site';
 import { storeCategories } from './content/store';
 import { trackPageView } from './lib/analytics';
 import { exitTestMode, testMode } from './lib/testmode';
@@ -11,7 +11,7 @@ import { StoreHome } from './pages/Home';
 import Listing from './pages/Shop';
 import Product from './pages/Product';
 import SearchPage from './pages/Search';
-import { About, BrandPage, Contact, Credits, InfoPage, NotFound } from './pages/Info';
+import { About, BrandPage, Contact, Credits, Founder, InfoPage, NotFound } from './pages/Info';
 import { OrderConfirmed, Track } from './pages/Order';
 
 const Checkout = lazy(() => import('./pages/Checkout'));
@@ -77,12 +77,11 @@ export default function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/order/:code" element={<OrderConfirmed />} />
             <Route path="/track" element={<Track />} />
-            {SHOW_POLICY_PAGES && <>
-              <Route path="/shipping" element={<InfoPage slug="shipping" />} />
-              <Route path="/refunds" element={<InfoPage slug="refunds" />} />
-              <Route path="/privacy" element={<InfoPage slug="privacy" />} />
-              <Route path="/terms" element={<InfoPage slug="terms" />} />
-            </>}
+            {POLICY_LIVE.shipping && <Route path="/shipping" element={<InfoPage slug="shipping" />} />}
+            {POLICY_LIVE.shipping && <Route path="/refunds" element={<Navigate to="/shipping" replace />} />}
+            {POLICY_LIVE.privacy && <Route path="/privacy" element={<InfoPage slug="privacy" />} />}
+            {POLICY_LIVE.terms && <Route path="/terms" element={<InfoPage slug="terms" />} />}
+            <Route path="/about/founder" element={<Founder />} />
             <Route path="/credits" element={<Credits />} />
             <Route path="/:slug/*" element={<OldBrandPath />} />
             <Route path="*" element={<NotFound />} />
