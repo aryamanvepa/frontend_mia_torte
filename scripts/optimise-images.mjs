@@ -27,13 +27,15 @@ const WIDTHS = [640, 1280, 1920];
 for (const file of readdirSync(src).sort()) {
   if (!/\.(jpe?g|png|webp)$/i.test(file)) continue;
   const id = basename(file, extname(file)).toLowerCase().replace(/[^a-z0-9-]+/g, '-');
-  const img = sharp(join(src, file)).rotate();
+  // Colour: phone photos are often Display P3 (wider than sRGB). Convert to sRGB and embed an sRGB
+  // profile, so browsers show the colours as shot instead of reading P3 values as sRGB (flat, dull).
+  const img = sharp(join(src, file)).rotate().toColourspace('srgb').withIccProfile('srgb');
   const { width, height } = await img.metadata();
   const widths = WIDTHS.filter((w) => w <= width);
   // Keep the full original width too, so photos narrower than the next step still look sharp on big screens.
   if (!widths.length || widths[widths.length - 1] < width) widths.push(width);
   for (const w of widths) {
-    await img.clone().resize({ width: w }).webp({ quality: w > 1000 ? 72 : 76, effort: 5 }).toFile(join(outDir, `${id}-${w}.webp`));
+    await img.clone().resize({ width: w }).webp({ quality: 84, smartSubsample: true, effort: 5 }).toFile(join(outDir, `${id}-${w}.webp`));
   }
   const lqip = await img.clone().resize({ width: 24 }).blur(1).webp({ quality: 40 }).toBuffer();
   manifest[id] = { w: width, h: height, widths, lqip: `data:image/webp;base64,${lqip.toString('base64')}` };

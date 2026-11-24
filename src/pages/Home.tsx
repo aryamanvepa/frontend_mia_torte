@@ -5,13 +5,13 @@ import { PackArt } from '../components/PackArt';
 import { BrandLogo } from '../components/BrandLogo';
 import { Icon, Img, PlaceholderTag, Reveal } from '../components/ui';
 import { brandList } from '../content/brands';
-import { nourishmentTypes, storeCategories, storeHome } from '../content/store';
+import { nourishmentSections, storeCategories, storeHome } from '../content/store';
 import { bestsellers, inStoreCategory, newProducts, oneCardPerProduct, paths } from '../lib/brand';
 import { organisationLd, snippet, useSeo } from '../lib/seo';
 import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
 import { CatalogueStatus, GridSkeleton } from './Shop';
-import { HAS_CONTACT, SHOW_PLACEHOLDER_FLAGS } from '../content/site';
+import { SHOW_PLACEHOLDER_FLAGS } from '../content/site';
 
 const cat = (slug: string) => storeCategories.find((c) => c.slug === slug)!;
 const lines = (t: string) => t.split('\n').map((l, i) => <span key={i} className="hero__line">{l}</span>);
@@ -58,7 +58,9 @@ export function StoreHome() {
   const inCat = (slug: string) => byStatus(cards.filter((i) => inStoreCategory(i, cat(slug))));
   const snacking = useMemo(() => inCat('better-snacking').filter((i) => cat('better-snacking').categories.some((c) => c.toLowerCase() === (i.category ?? '').toLowerCase())), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
   const treats = useMemo(() => inCat('indulgence-treats'), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
-  const nourishing = useMemo(() => inCat('everyday-nourishment'), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Nutri Sampoorn, in the order of its sub-sections (atta blends, single grain flours, dosa mixes & chutneys).
+  const nsOrder = nourishmentSections.flatMap((s) => s.products);
+  const nourishing = useMemo(() => byStatus(inCat('everyday-nourishment').sort((a, b) => (nsOrder.indexOf(a.product) + 1 || 99) - (nsOrder.indexOf(b.product) + 1 || 99))), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
   const gifting = useMemo(() => inCat('gifting-discovery'), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
   // New & seasonal: the backend's "new" flag; until it means something, products not already shown above.
   const discoveries = useMemo(() => {
@@ -67,7 +69,7 @@ export function StoreHome() {
     const shown = new Set([...best.slice(0, 4), ...snacking.slice(0, 4), ...treats.slice(0, 4), ...nourishing.slice(0, 4)].map((i) => i.product));
     return cards.filter((i) => !shown.has(i.product));
   }, [items, cards, best, snacking, treats, nourishing]);
-  const nourishCounts = (type: string) => new Set(items.filter((i) => (i.category ?? '').toLowerCase() === type.toLowerCase()).map((i) => i.product)).size;
+  const nourishCounts = (names: string[]) => new Set(items.filter((i) => names.includes(i.product)).map((i) => i.product)).size;
   const sn = storeHome.snacking;
   const hero = snacking.find((i) => i.product === 'Peri Peri Trail Mix') ?? snacking[0];
 
@@ -154,14 +156,17 @@ export function StoreHome() {
           <p className="lede">{storeHome.nourishment.text}</p>
         </Reveal>
         <ul className="type-links">
-          {nourishmentTypes.map((t) => (
-            <li key={t}>
-              <Link to={`${paths.category(cat('everyday-nourishment'))}?type=${encodeURIComponent(t)}`} className="type-link">
-                <span>{t}</span><small>{nourishCounts(t) || ''} {nourishCounts(t) === 1 ? 'product' : nourishCounts(t) ? 'products' : ''}</small>
-                <Icon name="arrow" size={18} />
-              </Link>
-            </li>
-          ))}
+          {nourishmentSections.map((s) => {
+            const n = nourishCounts(s.products);
+            return (
+              <li key={s.id}>
+                <Link to={`${paths.category(cat('everyday-nourishment'))}#${s.id}`} className="type-link">
+                  <span>{s.title}</span><small>{n ? `${n} ${n === 1 ? 'product' : 'products'}` : ''}</small>
+                  <Icon name="arrow" size={18} />
+                </Link>
+              </li>
+            );
+          })}
         </ul>
         <Grid items={nourishing} />
       </section>
@@ -177,14 +182,18 @@ export function StoreHome() {
       {/* 8 · Gifting & bundles */}
       <section className="gifting" aria-labelledby="gift-h">
         <div className="wrap gifting__grid">
-          <Reveal className="gifting__media"><Img id="mt-cookie-box-1" sizes="(min-width: 900px) 40vw, 100vw" /></Reveal>
+          <Reveal className="gifting__media gifting__collage">
+            <Img id="gift-hamper-6" sizes="(min-width: 900px) 30vw, 66vw" />
+            <Img id="gift-hamper-1" sizes="(min-width: 900px) 15vw, 33vw" />
+            <Img id="gift-hamper-4" sizes="(min-width: 900px) 15vw, 33vw" />
+          </Reveal>
           <Reveal className="gifting__text" delay={80}>
             <p className="eyebrow">{storeHome.gifting.eyebrow}</p>
             <h2 id="gift-h" className="display display--md">{storeHome.gifting.title}</h2>
             <p className="lede">{storeHome.gifting.text}</p>
             {gifting.length > 0
               ? <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">Shop gifting</Link>
-              : <p className="gifting__soon">{cat('gifting-discovery').empty}{HAS_CONTACT && <> <Link to="/contact">Write to us</Link></>}</p>}
+              : <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">See this season’s hampers</Link>}
           </Reveal>
         </div>
         {gifting.length > 0 && <div className="wrap"><Grid items={gifting} /></div>}

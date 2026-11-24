@@ -71,6 +71,13 @@ export const images: Record<string, ImageInfo> = {
   'mt-trail-mix-1': { alt: 'A jar of La Mia Torte Peri Peri Trail Mix beside a bowl of spiced nuts and seeds', credit: null },
   'mt-salted-nuts-1': { alt: 'A jar of La Mia Torte Salted Nuts & Bean Crunch beside a bowl of nuts, seeds and green peas', credit: null },
   'mt-salted-nuts-2': { alt: 'Salted Nuts & Bean Crunch in a white bowl with almonds, cashews and seeds scattered on a wooden board', credit: null },
+  // ---- Festive gift hampers and boxes (Torte Living's own photos, Diwali 2026). Not products: there are no hamper SKUs.
+  'gift-hamper-1': { alt: 'A festive gift basket wrapped in gold tulle: jars of snacks with bamboo lids around a golden diya, beside lanterns and candles', credit: null },
+  'gift-hamper-2': { alt: 'A gift basket of snack jars and a Nutri Sampoorn pack, tied with gold ribbon, with a lantern and marigolds', credit: null },
+  'gift-hamper-3': { alt: 'A large festive basket of jars, muesli packs and a decorated sweet box, wrapped in gold tulle', credit: null },
+  'gift-hamper-4': { alt: 'A green gift box opened to show jars of snacks, painted diyas and packs of treats', credit: null },
+  'gift-hamper-5': { alt: 'Peri Peri Veggie Crisps, jars of bean mix and millet crunch with a golden diya and a gold thank-you gift bag', credit: null },
+  'gift-hamper-6': { alt: 'A wide festive hamper of muesli, snack jars and atta under gold tulle, with a lantern and baby’s breath', credit: null },
   'mt-cookie-box-1': { alt: 'La Mia Torte cookies in gift boxes and a Diwali gift pack of assorted cookies', credit: null },
   'mt-oreo-cream-1': { alt: 'A cookies-and-cream cookie with chocolate sandwich-biscuit pieces and white chocolate chunks', credit: null },
   'ns-grain-texture': { alt: 'A close view of mixed whole grains, seeds and husks', credit: unsplash('Tahamie Farooqui', 'tami171091', 'GN3rHKNSMmc') },

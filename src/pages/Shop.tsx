@@ -45,7 +45,7 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
   const sort: Sort = sortParam in SORTS ? sortParam : 'featured';
 
   const head = mode === 'category' && category
-    ? { title: category.title, intro: category.intro, image: category.image, path: paths.category(category) }
+    ? { title: category.heading ?? category.title, intro: category.intro, image: category.image, path: paths.category(category) }
     : mode === 'bestsellers'
       ? { title: bestsellersPage.title, intro: bestsellersPage.intro, image: bestsellersPage.image, path: paths.bestsellers() }
       : { title: shopAllPage.title, intro: shopAllPage.intro, image: undefined as string | undefined, path: paths.shop() };
@@ -110,6 +110,26 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
     if (status === 'ready' && shown.length) trackViewItemList(head.title, shown);
   }, [status, head.title, shown.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Sub-sections (e.g. Nutri Sampoorn's atta blends, flours, dosa mixes), in the listed order, when no filter or sort is on.
+  const groups = useMemo(() => {
+    if (!category?.sections || active || sort !== 'featured') return null;
+    const used = new Set<string>();
+    const out = category.sections.map((s) => {
+      const list = s.products.map((name) => shown.find((i) => i.product === name)).filter((i): i is CatalogueItem => Boolean(i));
+      list.forEach((i) => used.add(i.product));
+      return { ...s, list };
+    });
+    const rest = shown.filter((i) => !used.has(i.product));
+    if (rest.length) out.push({ id: 'more', title: 'More from the range', text: '', products: [], list: rest });
+    return out.filter((g) => g.list.length);
+  }, [category, active, sort, shown]);
+
+  // Bring a #section link from the home page into view once the products are in.
+  useEffect(() => {
+    if (!groups?.length || !window.location.hash) return;
+    document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: 'start' });
+  }, [groups?.length]);
+
   const others = storeCategories.filter((c) => c.slug !== category?.slug);
   const select = (key: keyof typeof f, label: string, options: { value: string; label: string }[]) => options.length > 1 || f[key] ? (
     <label className="filter">
@@ -129,8 +149,15 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
             <Link to="/">Home</Link>
             {mode !== 'all' && <><span aria-hidden="true">/</span><Link to={paths.shop()}>Shop all</Link></>}
           </nav>
+          {mode === 'category' && category?.eyebrow && <p className="eyebrow">{category.eyebrow}</p>}
           <h1 className="display display--lg">{head.title}</h1>
+          {mode === 'category' && category?.tagline && <p className="coll-head__tagline">{category.tagline}</p>}
           <p className="lede">{head.intro}</p>
+          {groups && groups.length > 1 && (
+            <nav className="coll-head__jump" aria-label="In this section">
+              {groups.map((g) => <a key={g.id} href={`#${g.id}`}>{g.title}</a>)}
+            </nav>
+          )}
         </div>
         {head.image && <div className="coll-head__media"><Img id={head.image} eager sizes="(min-width: 900px) 40vw, 100vw" /></div>}
       </header>
@@ -162,10 +189,32 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
         {status === 'ready' && (shown.length ? (
           <>
             <p className="shop__count">{shown.length} {shown.length === 1 ? 'product' : 'products'}</p>
-            <div className="grid">
-              {shown.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={n < 2} /></Reveal>)}
-            </div>
+            {groups ? groups.map((g, gi) => (
+              <section key={g.id} id={g.id} className="shop__group" aria-labelledby={`${g.id}-h`}>
+                <header className="shop__group-head">
+                  <h2 id={`${g.id}-h`} className="display display--sm">{g.title}</h2>
+                  {g.text && <p>{g.text}</p>}
+                </header>
+                <div className="grid">
+                  {g.list.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={gi === 0 && n < 2} /></Reveal>)}
+                </div>
+              </section>
+            )) : (
+              <div className="grid">
+                {shown.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={n < 2} /></Reveal>)}
+              </div>
+            )}
           </>
+        ) : !active && category?.gallery?.length ? (
+          <div className="shop__gallery">
+            <p className="shop__gallery-note">{category.empty}</p>
+            <ul className="gallery">
+              {category.gallery.map((id, n) => (
+                <li key={id}><Reveal delay={(n % 3) * 60}><Img id={id} sizes="(min-width: 900px) 33vw, (min-width: 600px) 50vw, 100vw" /></Reveal></li>
+              ))}
+            </ul>
+            <Link to={paths.shop()} className="btn btn--line">Shop all</Link>
+          </div>
         ) : (
           <div className="soon">
             <p className="eyebrow">{active ? 'No matches' : 'Coming soon'}</p>

@@ -289,7 +289,8 @@ export default function Product() {
         <Fact label="Storage" copy={c.storage} need="Storage instructions" />
         <Fact label="Best before" copy={c.shelfLife} need="Shelf life" />
         <Fact label="Manufactured & marketed by">{site.legalEntity}{site.registeredAddress && <>, <Text copy={site.registeredAddress} /></>}</Fact>
-        {site.fssaiLicence && <Fact label="FSSAI licence" copy={site.fssaiLicence} />}
+        {site.fssaiLicence && <Fact label="FSSAI registration">{copyText(site.fssaiLicence).replace(/^FSSAI Reg\. No\. /, '')}</Fact>}
+        {site.gstin && <Fact label="GSTIN">{copyText(site.gstin).replace(/^GSTIN /, '')}</Fact>}
         <Fact label="Country of origin">{site.countryOfOrigin}</Fact>
         {(site.email || site.phone) && <Fact label="Customer care">{[site.email, site.phone].filter((x) => x != null).map((x, i) => <span key={i}>{i > 0 && ' · '}<Text copy={x} /></span>)}</Fact>}
       </dl>

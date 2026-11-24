@@ -24,7 +24,30 @@ export interface StoreCategory {
   categories: string[];
   alsoIncludes?: string[];
   empty: string;
+  /** Small line above the page heading, e.g. the brand that owns the section. */
+  eyebrow?: string;
+  /** The page heading, when it should read differently from the nav title. */
+  heading?: string;
+  /** A short line under the heading. */
+  tagline?: string;
+  /** Sub-sections shown in order on the category page (when no filter is on). Products by exact name. */
+  sections?: { id: string; title: string; text: string; products: string[] }[];
+  /** Photos shown on the page when it has no products yet (e.g. gifting). Never products, never prices. */
+  gallery?: string[];
 }
+
+/**
+ * Nutri Sampoorn taglines for the client to choose from (Everyday Nourishment hero uses the first).
+ * Kept to what the client states (superseeds, 6 of 12 ingredients, mix with water): no health or
+ * nutrient claims (FSSAI Advertising & Claims Regulations 2018).
+ */
+export const nsTaglines = [
+  'Eat well, even on your busiest days.',
+  'Just add water. Breakfast is ready.',
+  'Everyday grains, made easy.',
+  'Six superseeds in your daily roti.',
+  'Good food in no time, from grains you know.',
+];
 
 export const storeCategories: StoreCategory[] = [
   {
@@ -42,10 +65,9 @@ export const storeCategories: StoreCategory[] = [
     title: 'Better Snacking',
     craving: 'Snack Better',
     kind: 'sensory',
-    intro: 'Millet crunches, roasted mixes, nuts and chips with real flavour. Better snacking. Nothing missing on taste.',
+    intro: 'Millet crunches, roasted mixes, nuts, chips and millets & nuts muesli with real flavour. Better snacking. Nothing missing on taste.',
     image: 'category-snacks',
-    categories: ['Snacks', 'Savouries', 'Namkeen', 'Nuts & seeds', 'Nuts', 'Seeds'],
-    alsoIncludes: ['Jowar Jeera Delight (8 nos.)'],
+    categories: ['Snacks', 'Savouries', 'Namkeen', 'Nuts & seeds', 'Nuts', 'Seeds', 'Muesli', 'Granola'],
     empty: 'New snacks are on their way.',
   },
   {
@@ -53,9 +75,31 @@ export const storeCategories: StoreCategory[] = [
     title: 'Everyday Nourishment',
     craving: 'Eat Well Every Day',
     kind: 'considered',
-    intro: 'Multigrain and millet attas, dosa mixes, muesli and pantry staples for the meals you make every day.',
+    heading: 'Nutri Sampoorn · Everyday Nourishment',
+    tagline: nsTaglines[0],
+    intro: 'Superseed atta blends, single grain flours and instant dosa mixes from Nutri Sampoorn, for the meals you make every day.',
     image: 'ns-atta-bowl',
-    categories: ['Atta & flours', 'Atta', 'Flours', 'Grain blends', 'Dosa & batter mixes', 'Dosa mixes', 'Breakfast mixes', 'Breakfast', 'Muesli', 'Granola', 'Chutney powders', 'Podis', 'Pantry'],
+    categories: ['Atta & flours', 'Atta', 'Flours', 'Grain blends', 'Dosa & batter mixes', 'Dosa mixes', 'Breakfast mixes', 'Breakfast', 'Chutney powders', 'Podis', 'Pantry'],
+    sections: [
+      {
+        id: 'superseed-atta',
+        title: 'Superseed Atta Blends',
+        text: 'Of the 12 ingredients, 6 are superseeds, adding extra nutritional value to your daily roti.',
+        products: ['Multigrain Superseed Atta (MGA)', 'Gluten Free Superseed Atta'],
+      },
+      {
+        id: 'single-grain-flours',
+        title: 'Single Grain Flours',
+        text: 'One grain in each pack: ragi, jowar, bajra, and sattu (roasted gram flour).',
+        products: ['Ragi Flour', 'Jowar Flour', 'Bajra Flour', 'Sattu (Roasted Gram Flour)'],
+      },
+      {
+        id: 'instant-dosa-mixes',
+        title: 'Instant Dosa Mixes & Chutneys',
+        text: 'Just mix with water and the batter is ready. A travel hack for eating well, for busy mums and fitness enthusiasts who want good food in no time.',
+        products: ['Instant Multigrain Dosa Mix', 'Instant MultiMillet Dosa Mix', 'Instant Pesarattu Dosa Mix', 'Instant Peanut Putana Chutney'],
+      },
+    ],
     empty: 'New pantry staples are on their way.',
   },
   {
@@ -63,10 +107,11 @@ export const storeCategories: StoreCategory[] = [
     title: 'Gifting & Discovery',
     craving: 'Discover & Gift',
     kind: 'sensory',
-    intro: 'Hampers, bundles, trial packs and seasonal collections: easy ways to try more, and to share it.',
-    image: 'mt-cookie-box-1',
+    intro: 'Festive hampers and gift boxes of our treats, snacks and pantry favourites, wrapped in gold for the season.',
+    image: 'gift-hamper-6',
     categories: ['Gifting', 'Gift boxes', 'Hampers', 'Bundles', 'Trial packs', 'Seasonal'],
-    empty: 'Our first hampers and trial packs are being put together. For gifting or corporate orders in the meantime, write to us and we will help.',
+    gallery: ['gift-hamper-1', 'gift-hamper-4', 'gift-hamper-2', 'gift-hamper-5', 'gift-hamper-3', 'gift-hamper-6'],
+    empty: 'Our festive hampers and gift boxes aren’t on the online shop yet. Here is a look at this season’s.',
   },
 ];
 
@@ -94,9 +139,9 @@ export const storeHome = {
     title: 'Better snacking.\nNothing missing on taste.',
     text: 'Crunchy, bold and full of flavour, because a snack should be a pleasure first. Made with millets, nuts, beans and seeds, so the snack you reach for is one you can feel good about.',
     pillars: [
-      { title: 'Crunch first', text: 'Millet crunches, bean mixes, trail mix and vegetable chips, made for a proper crunch.' },
+      { title: 'Crunch first', text: 'Millet crunches, bean mixes, trail mix, vegetable chips and millets & nuts muesli, made for a proper crunch.' },
       { title: 'Big, bold flavour', text: 'Peri peri, pudina, masala, or simply salted: flavours you will want to come back to.' },
-      { title: 'Better ingredients behind it', text: 'Built on millets, nuts, beans and seeds, with full nutrition information on every product page.' },
+      { title: 'Better ingredients behind it', text: 'Built on millets, nuts, beans and seeds.' },
     ],
     /** Lifestyle photo for the feature (images.ts id). Until it exists, a product illustration and a note on the shot. */
     image: 'mt-pudina-crunch-1' as string | undefined,
@@ -104,15 +149,15 @@ export const storeHome = {
   },
   treats: { eyebrow: 'Indulgence & Treats', title: 'Something to savour.', cta: 'Shop treats' },
   nourishment: {
-    eyebrow: 'Everyday Nourishment',
-    title: 'For the meals you make every day.',
-    text: 'Attas, dosa mixes, muesli and chutney powders, with the ingredients, nutrition and preparation set out clearly on every page.',
+    eyebrow: 'Nutri Sampoorn · Everyday Nourishment',
+    title: nsTaglines[0],
+    text: 'Superseed atta blends, single grain flours, and instant dosa mixes that need only water. Staples for the meals you make every day.',
   },
   discoveries: { eyebrow: 'New & seasonal', title: 'New on the shelf' },
   gifting: {
-    eyebrow: 'Gifting & bundles',
+    eyebrow: 'Gifting',
     title: 'Made for sharing.',
-    text: 'Hampers, bundles and trial packs that make it easy to try more, or to give something good.',
+    text: 'Festive hampers and gift boxes of our treats, snacks and pantry favourites, wrapped in gold for the season.',
   },
   company: {
     eyebrow: 'About Torte Living',
@@ -139,8 +184,8 @@ export const pairings: Record<string, string[]> = {
   'chutney powders': ['dosa & batter mixes', 'atta & flours', 'snacks'],
 };
 
-/** Sub-types shown as quick links on the Everyday Nourishment section (ops categories). */
-export const nourishmentTypes = ['Atta & flours', 'Dosa & batter mixes', 'Muesli', 'Chutney powders'];
+/** The Everyday Nourishment (Nutri Sampoorn) sub-sections, shown as quick links on the home page. */
+export const nourishmentSections = storeCategories.find((c) => c.slug === 'everyday-nourishment')!.sections!;
 
 /** Friendly display name for an ops category, used in filters. */
 export const typeLabel = (category: string | null | undefined) => category?.trim() || 'Other';

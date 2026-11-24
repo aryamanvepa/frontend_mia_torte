@@ -10,7 +10,7 @@ import { HIDE_TEST_DATA, isTestImage } from '../content/test-labels';
 import { SHOW_PLACEHOLDER_FLAGS, house, isMissing, pages, site } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
-import { copyText } from '../content/site';
+import { copyText, type Copy } from '../content/site';
 
 // ---------------------------------------------------------------- brand page (story + its products)
 export function BrandPage({ brand }: { brand: Brand }) {
@@ -71,6 +71,7 @@ export function About() {
             </li>
           ))}
         </ul>
+        <LegalDetails />
         <ul className="company__brands company__brands--about">
           {brandList.map((b) => (
             <li key={b.code}>
@@ -87,6 +88,26 @@ export function About() {
   );
 }
 
+/** Company details from the government certificates (shown only once each is set in site.ts). */
+function LegalDetails() {
+  const rows: [string, Copy | null][] = [
+    ['Company', site.legalEntity],
+    ['Registered office', site.registeredAddress],
+    ['FSSAI registration', site.fssaiLicence && copyText(site.fssaiLicence).replace(/^FSSAI Reg\. No\. /, '')],
+    ['GSTIN', site.gstin && copyText(site.gstin).replace(/^GSTIN /, '')],
+  ];
+  const shown = rows.filter(([, v]) => v != null);
+  if (shown.length < 2) return null;
+  return (
+    <section className="legal-details" aria-labelledby="legal-h">
+      <h2 id="legal-h" className="eyebrow">Company details</h2>
+      <dl>
+        {shown.map(([k, v]) => <div key={k}><dt>{k}</dt><dd><Text copy={v} /></dd></div>)}
+      </dl>
+    </section>
+  );
+}
+
 // ---------------------------------------------------------------- contact (one for the whole store)
 export function Contact() {
   useSeo({ title: 'Contact · Torte Living', description: 'Questions about an order, a product, gifting or trade: contact Torte Living, makers of La Mia Torte and Nutri Sampoorn.' });
@@ -94,7 +115,7 @@ export function Contact() {
     ...miaTorte.contact.blocks.filter((b) => b.heading !== 'The kitchen'),
     ...nutriSampoorn.contact.blocks.filter((b) => b.heading !== 'Orders & deliveries'),
   ].filter((b) => !isMissing(b.body));
-  const legal = [site.registeredAddress, site.fssaiLicence].filter((c) => c != null);
+  const legal = [site.registeredAddress, site.fssaiLicence, site.gstin].filter((c) => c != null);
   return (
     <article className="info">
       <header className="page-head page-head--narrow wrap">

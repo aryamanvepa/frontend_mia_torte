@@ -8,6 +8,7 @@
 //     made-up label data (ingredients, allergens, nutrition) or test tags
 //   - canonical / sitemap / robots addresses not on SITE_URL
 //   - barcodes (200…), the Supabase service_role key, or test-order details
+//   - a missing or fake FSSAI registration number (it must be in every footer)
 //   - stand-in business details (FSSAI 000…, example email/phone), and links
 //     to policy / contact pages that are switched off (src/content/site.ts)
 // With VITE_HIDE_TEST_DATA=1 it also fails if any "Test data" tag,
@@ -76,7 +77,11 @@ for (const file of pages) {
   if (/test\+\d+@example\.com/.test(html)) fail(page, 'test-order details on the page');
   // Business details are hidden until real (src/content/site.ts): no stand-in values may reach a page.
   const words = visible.replace(/<[^>]+>/g, ' ');
-  if (/0{14}|hello@example\.com|\+91 00000 00000|to be supplied/i.test(words)) fail(page, 'business placeholder (FSSAI 000…, example email/phone, "to be supplied") on the page');
+  if (/0{14}|example\.com|00000 00000|to be supplied|GSTIN to be added|Lic\. No\. 0/i.test(words)) fail(page, 'business placeholder (fake FSSAI 000…, example.com email, 00000 phone, "to be supplied") on the page');
+  // FSSAI: the registration number must be on every page (footer), and must be the real 14-digit one.
+  const fssai = /FSSAI Reg\. No\. (\d+)/.exec(words)?.[1];
+  if (!fssai) fail(page, 'no FSSAI registration number in the footer');
+  else if (!/^[1-9]\d{13}$/.test(fssai)) fail(page, `FSSAI number ${fssai} is not a real 14-digit number`);
   for (const route of HIDDEN_ROUTES) if (new RegExp(`href="[^"]*/${route}/?"`).test(html)) fail(page, `links to /${route}, which is switched off`);
   if (HIDE) {
     if (/details coming soon|to be added|Content needed/i.test(words)) fail(page, '"coming soon" / "to be added" in place of label details');

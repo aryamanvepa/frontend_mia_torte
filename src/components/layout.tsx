@@ -199,7 +199,8 @@ export function Footer() {
         </nav>
       </div>
       <div className="wrap footer__legal">
-        <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity}{site.fssaiLicence && <> · <Text copy={site.fssaiLicence} /></>}</p>
+        <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity}{[site.fssaiLicence, site.gstin].filter((c) => c != null).map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>
+        {site.registeredAddress && <p className="footer__address">Registered office: <Text copy={site.registeredAddress} /></p>}
         <p>© {year} {site.legalEntity.replace(/\.$/, '')}. All prices include GST. Payment on delivery; payment options are shown at checkout.</p>
         <p><Link to="/credits">Photo credits</Link></p>
       </div>

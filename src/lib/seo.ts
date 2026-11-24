@@ -11,6 +11,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { imageSet } from '../content/images';
+import { copyText, site } from '../content/site';
 
 export const SHARE_CARD_PATH = 'brand/share-card.jpg';
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://lamiatorte.com').replace(/\/$/, '');
@@ -103,8 +104,12 @@ export const organisationLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Torte Living Pvt. Ltd.',
+    name: site.legalEntity,
+    legalName: site.legalEntity,
     alternateName: 'Torte Living',
+    ...(site.gstin ? { taxID: copyText(site.gstin).replace(/^GSTIN /, '') } : {}),
+    ...(site.fssaiLicence ? { identifier: { '@type': 'PropertyValue', propertyID: 'FSSAI registration', value: copyText(site.fssaiLicence).replace(/^FSSAI Reg\. No\. /, '') } } : {}),
+    ...(site.address ? { address: { '@type': 'PostalAddress', streetAddress: site.address.street, addressLocality: `${site.address.locality}, ${site.address.city}`, addressRegion: site.address.region, postalCode: site.address.postalCode, addressCountry: site.address.country } } : {}),
     url: `${SITE_URL}/`,
     logo: `${SITE_URL}/brand/la-mia-torte-logo-480.webp`,
     brand: [

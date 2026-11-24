@@ -28,25 +28,29 @@ export const copyText = (c: Copy) => (isPlaceholder(c) ? c.text : c);
 // ---------------------------------------------------------------- business & legal details
 // Each detail below is shown on the site ONLY when it has a value. `null` hides it
 // everywhere: footer, product pages, contact page, policy pages and search data.
-// They are all hidden for launch (2026-11-23) until the licences and contacts are in.
-// To turn one back on, put the real value in, e.g.
-//   fssaiLicence: 'FSSAI Lic. No. 12345678901234',
-//   registeredAddress: '12 Example Road, Pune 411001, Maharashtra',
+// Legal name, FSSAI registration, GSTIN and registered address are from the
+// government certificates (added 2026-11-24). Email, phone, hours and Instagram
+// stay hidden until Torte Living confirms which to publish, e.g.
 //   email: 'hello@lamiatorte.com',   phone: '+91 98xxx xxxxx',
-//   hours: 'Mon–Sat, 10 am – 6 pm IST',   gstin: '27ABCDE1234F1Z5',
-//   instagram: 'https://instagram.com/lamiatorte'
+//   hours: 'Mon–Sat, 10 am – 6 pm IST',   instagram: 'https://instagram.com/…'
 // The Contact page and its links appear once there is an email or a phone.
 export const site: {
   name: string; legalEntity: string; countryOfOrigin: string; codNote: string;
   fssaiLicence: Copy | null; gstin: Copy | null; registeredAddress: Copy | null;
+  /** The same address in parts, for search engines (Organization structured data). */
+  address: { street: string; locality: string; city: string; region: string; postalCode: string; country: string } | null;
   email: Copy | null; phone: Copy | null; hours: Copy | null; instagram: string | null;
   dispatchNote: Copy | null; deliveryNote: Copy | null;
 } = {
   name: 'Torte Living',
-  legalEntity: 'Torte Living Pvt. Ltd.',
-  fssaiLicence: null,
-  gstin: null,
-  registeredAddress: null,
+  legalEntity: 'Torte Living Private Limited',
+  fssaiLicence: 'FSSAI Reg. No. 23626050000127',
+  gstin: 'GSTIN 36AAMCT6790R1Z4',
+  registeredAddress: 'Plot No. G-403, Alpha-706, Jayabheri Silicon County, Serilingampally, Kondapur, Hyderabad, Telangana 500084',
+  address: {
+    street: 'Plot No. G-403, Alpha-706, Jayabheri Silicon County, Serilingampally',
+    locality: 'Kondapur', city: 'Hyderabad', region: 'Telangana', postalCode: '500084', country: 'IN',
+  },
   email: null,
   phone: null,
   hours: null,
