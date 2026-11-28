@@ -4,8 +4,9 @@
 # deployment of the `lamiatorte` project (--branch=playground). Production is the project's `main` branch,
 # so this never touches lamiatorte.com, and it never touches the github.io copy (deploy-pages.yml).
 #
-# Runs on every push to the `playground` branch and on demand. Bring it up to date with production:
-#   git push origin main:playground
+# Runs on every push to the `playground` branch and on demand. The playground code lives only on that branch;
+# bring it up to date with production by merging main into it:
+#   git switch playground && git merge origin/main && git push origin playground
 # The build is noindex everywhere, disallows all crawling, writes no sitemap and switches ordering off;
 # `npm run check:playground` fails the run otherwise.
 name: Deploy design playground (Cloudflare Pages branch)

@@ -223,7 +223,8 @@ same `lamiatorte` project, built by `.github/workflows/deploy-playground.yml` on
   Its `:root` block holds today's values (generated from `src/playground/production.json`), so with
   nothing changed the playground renders exactly like the live site.
 
-Bring the playground up to date with the live shop: `git push origin main:playground`.
+The playground code lives on the `playground` branch only (main is untouched). Bring it up to date with
+the live shop by merging: `git switch playground && git merge origin/main && git push origin playground`.
 Run it locally: `VITE_PLAYGROUND=1 npm run dev`.
 
 ### Making a chosen design the live look
