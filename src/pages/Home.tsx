@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
-import { Icon, Img, Reveal } from '../components/ui';
+import { HeroPhoto, Icon, Img, Reveal } from '../components/ui';
 import { storeCategories, storeHome } from '../content/store';
-import { publishedTestimonials } from '../content/testimonials';
+import { publishedTestimonials, sampleTestimonials } from '../content/testimonials';
+import { social } from '../content/site';
+
+// Real testimonials win; the design playground alone falls back to clearly marked samples.
+const shownTestimonials = publishedTestimonials.length ? publishedTestimonials : sampleTestimonials;
 import { bestsellers, paths } from '../lib/brand';
 import { rupees } from '../lib/format';
 import { organisationLd, snippet, useSeo } from '../lib/seo';
@@ -31,7 +35,7 @@ export function StoreHome() {
     <>
       {/* 1 · Hero: the photo across the top half of the screen, the message in a frosted cream box */}
       <section className="home-hero" aria-labelledby="home-hero-h">
-        <Img id="mt-cookie-box-1" eager sizes="100vw" className="home-hero__img" />
+        <HeroPhoto id="mt-cookie-box-1" className="home-hero__img" />
         <div className="wrap home-hero__inner">
           <div className="home-hero__box hero__in">
             <h1 id="home-hero-h" className="display home-hero__title">{lines(storeHome.heroTitle)}</h1>
@@ -76,21 +80,33 @@ export function StoreHome() {
         <ScrollRow items={best} label="Bestsellers" />
       </section>
 
-      {/* 4 · Testimonials: social proof right before the decision. Hidden until real, permitted entries exist. */}
-      {publishedTestimonials.length > 0 && (
-        <section className="section section--tight wrap testimonials" aria-labelledby="testimonials-h">
-          <Reveal className="section__head"><h2 id="testimonials-h" className="display display--md">What our customers say</h2></Reveal>
+      {/* 4 · Testimonials, right after the bestsellers: social proof just before the decision.
+             Real, permitted entries only; until there are some, an invitation to share one. */}
+      <section className="section section--tight wrap testimonials" aria-labelledby="testimonials-h">
+        <Reveal className="section__head"><h2 id="testimonials-h" className="display display--md">What our customers say</h2></Reveal>
+        {shownTestimonials.length > 0 ? (
           <ul className="testimonials__list">
-            {publishedTestimonials.map((t) => (
-              <li key={`${t.firstName}-${t.date}`} className="testimonial">
+            {shownTestimonials.map((t) => (
+              <li key={`${t.firstName}-${t.date}-${t.product}`} className={`testimonial ${t.sample ? 'testimonial--sample' : ''}`}>
+                {t.sample && <span className="testimonial__sample">Sample</span>}
                 <blockquote><p>“{t.quote}”</p></blockquote>
                 <p className="testimonial__by">{t.firstName}, {t.city}</p>
                 <p className="testimonial__meta">{t.product} · via {t.source}</p>
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <div className="testimonials__invite">
+            <p className="testimonials__invite-h">Tried something you loved? Tell us.</p>
+            <p>Send us a message or tag us on Instagram. With your permission, we may share your words here.</p>
+            <div className="testimonials__invite-btns">
+              <a href={social.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn--terracotta" aria-label="Tell us on WhatsApp (opens in a new tab)"><Icon name="whatsapp" size={18} /> WhatsApp</a>
+              <a href={social.instagramMT} target="_blank" rel="noopener noreferrer" className="btn btn--line" aria-label="La Mia Torte on Instagram (opens in a new tab)"><Icon name="instagram" size={18} /> La Mia Torte</a>
+              <a href={social.instagramNS} target="_blank" rel="noopener noreferrer" className="btn btn--line" aria-label="Nutri Sampoorn on Instagram (opens in a new tab)"><Icon name="instagram" size={18} /> Nutri Sampoorn</a>
+            </div>
+          </div>
+        )}
+      </section>
     </>
   );
 }

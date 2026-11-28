@@ -104,7 +104,8 @@ for (const file of pages) {
 // unlawful under India's consumer rules, so any doubtful entry stops the build.
 {
   const { build } = await import('esbuild');
-  const out = await build({ entryPoints: ['src/content/testimonials.ts'], bundle: true, write: false, format: 'esm', platform: 'node' });
+  const out = await build({ entryPoints: ['src/content/testimonials.ts'], bundle: true, write: false, format: 'esm', platform: 'node',
+    define: { 'import.meta.env.VITE_PLAYGROUND': JSON.stringify(process.env.VITE_PLAYGROUND ?? '') } });
   const { testimonials } = await import('data:text/javascript;base64,' + Buffer.from(out.outputFiles[0].text).toString('base64'));
   const products = new Set([...readFileSync('src/content/products.ts', 'utf8').matchAll(/^  '([^']+)': \{/gm)].map((m) => m[1]));
   const FAKE = /lorem|ipsum|placeholder|sample|dummy|\btest|example|xxx|tbd|todo|customer name|name here|your name|\[|\]|\{|\}/i;
@@ -112,6 +113,7 @@ for (const file of pages) {
   const seen = new Set();
   testimonials.forEach((t, n) => {
     const where = `testimonial #${n + 1}${t.firstName ? ` (${t.firstName})` : ''}`;
+    if (t.sample) errors.push(`${where}: is a sample (sample: true); samples belong to the design playground only`);
     if (t.permission !== true) errors.push(`${where}: no permission from the customer (permission must be true)`);
     for (const k of ['quote', 'firstName', 'city', 'product', 'source', 'date']) if (!String(t[k] ?? '').trim()) errors.push(`${where}: ${k} is empty`);
     if (String(t.quote ?? '').trim().length < 20) errors.push(`${where}: quote is too short to be a real testimonial`);
@@ -123,7 +125,13 @@ for (const file of pages) {
     if (seen.has(t.quote)) errors.push(`${where}: duplicate quote`);
     seen.add(t.quote);
   });
-  console.log(`check: ${testimonials.length} testimonial(s) on file${testimonials.length ? '' : ' (section hidden)'}`);
+  console.log(`check: ${testimonials.length} testimonial(s) on file${testimonials.length ? '' : ' (the section invites reviews instead)'}`);
+  // A live build must not carry the playground's sample testimonials, on a page or in the code.
+  if (process.env.VITE_PLAYGROUND !== '1') {
+    for (const f of readdirSync(join(DIST, 'assets')).filter((f) => f.endsWith('.js')))
+      if (/Sample review:/.test(readFileSync(join(DIST, 'assets', f), 'utf8'))) errors.push(`assets/${f}: contains the playground's sample testimonials`);
+    for (const file of pages) if (/testimonial--sample|Sample review:/.test(readFileSync(file, 'utf8'))) errors.push(`${file.slice(DIST.length)}: shows a sample testimonial`);
+  }
 }
 
 // ---------------------------------------------------------------- trackers

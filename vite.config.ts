@@ -20,6 +20,8 @@ function githubPages(): Plugin {
 export default defineConfig({
   // BASE_PATH is "/<repo-name>/" on GitHub Pages (set by the deploy workflow); "/" locally.
   base: process.env.BASE_PATH || '/',
+  // Replace the playground flag at build time, so live builds drop playground-only code and samples entirely.
+  define: { 'import.meta.env.VITE_PLAYGROUND': JSON.stringify(process.env.VITE_PLAYGROUND ?? '') },
   plugins: [react(), githubPages()],
   build: { target: 'es2020', cssCodeSplit: true },
 });

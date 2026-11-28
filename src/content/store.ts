@@ -30,10 +30,28 @@ export interface StoreCategory {
   heading?: string;
   /** A short line under the heading. */
   tagline?: string;
-  /** Sub-sections shown in order on the category page (when no filter is on). Products by exact name. */
-  sections?: { id: string; title: string; text: string; products: string[] }[];
+  /**
+   * Subcategories, in order. Each has its own page at /<collection>/<id> (hero photo, breadcrumb, its
+   * products) and is a group on the collection page. Products match by exact name (`products`) or by
+   * ops-app category (`categories`).
+   */
+  sections?: Subcategory[];
   /** Photos shown on the page when it has no products yet (e.g. gifting). Never products, never prices. */
   gallery?: string[];
+}
+
+export interface Subcategory {
+  /** URL segment: /<collection slug>/<id>. */
+  id: string;
+  title: string;
+  /** One or two lines under the heading. */
+  text: string;
+  /** Hero photo (images.ts id): bright, no white-flour or black-bowl shots. */
+  image: string;
+  /** Search-result description (about 150 characters). */
+  description: string;
+  products?: string[];
+  categories?: string[];
 }
 
 /**
@@ -58,6 +76,16 @@ export const storeCategories: StoreCategory[] = [
     intro: 'Cookies, biscuits, brownies and desserts for the moments that call for something genuinely delicious.',
     image: 'chocolate-cocoa',
     categories: ['Cookies', 'Biscuits', 'Brownies', 'Cakes', 'Desserts', 'Chocolate'],
+    sections: [
+      {
+        id: 'cookies',
+        title: 'Cookies',
+        text: 'Big, generous cookies from La Mia Torte: crisp at the edge, soft in the middle, finished by hand.',
+        image: 'mt-pista-1',
+        description: 'La Mia Torte cookies: chocolate chip, red velvet, mocha, pistachio, carrot crème and more, baked in small batches. Cash on delivery.',
+        categories: ['Cookies', 'Biscuits'],
+      },
+    ],
     empty: 'New treats are being perfected in the kitchen.',
   },
   {
@@ -68,6 +96,24 @@ export const storeCategories: StoreCategory[] = [
     intro: 'Millet crunches, roasted mixes, nuts, chips and millets & nuts muesli with real flavour. Better snacking. Nothing missing on taste.',
     image: 'category-snacks',
     categories: ['Snacks', 'Savouries', 'Namkeen', 'Nuts & seeds', 'Nuts', 'Seeds', 'Muesli', 'Granola'],
+    sections: [
+      {
+        id: 'snacks',
+        title: 'Snacks',
+        text: 'Millet crunches, bean mixes, trail mix and vegetable chips, with big, bold flavour.',
+        image: 'mt-pudina-crunch-1',
+        description: 'Better snacks from La Mia Torte: pudina millet crunch, peri peri trail mix, masala bean mix, vegetable chips and salted nuts.',
+        categories: ['Snacks', 'Savouries', 'Namkeen', 'Nuts & seeds', 'Nuts', 'Seeds'],
+      },
+      {
+        id: 'mueslis',
+        title: 'Mueslis',
+        text: 'Millets & nuts mueslis in fruit and nut, mango, orange and strawberry, for breakfast or a crunchy snack.',
+        image: 'mt-mango-muesli-1',
+        description: 'La Mia Torte millets & nuts mueslis: fruit & nut, nutty mango, nutty orange and crunchy strawberry. Breakfast, or a crunchy snack.',
+        categories: ['Muesli', 'Granola'],
+      },
+    ],
     empty: 'New snacks are on their way.',
   },
   {
@@ -82,21 +128,27 @@ export const storeCategories: StoreCategory[] = [
     categories: ['Atta & flours', 'Atta', 'Flours', 'Grain blends', 'Dosa & batter mixes', 'Dosa mixes', 'Breakfast mixes', 'Breakfast', 'Chutney powders', 'Podis', 'Pantry'],
     sections: [
       {
-        id: 'superseed-atta',
+        id: 'superseed-atta-blends',
         title: 'Superseed Atta Blends',
         text: 'Of the 12 ingredients, 6 are superseeds, adding extra nutritional value to your daily roti.',
+        image: 'ns-seeds-spoons',
+        description: 'Nutri Sampoorn superseed atta blends, multigrain and gluten free: of the 12 ingredients, 6 are superseeds. For your daily roti.',
         products: ['Multigrain Superseed Atta (MGA)', 'Gluten Free Superseed Atta'],
       },
       {
         id: 'single-grain-flours',
         title: 'Single Grain Flours',
         text: 'One grain in each pack: ragi, jowar, bajra, and sattu (roasted gram flour).',
+        image: 'ns-grain-texture',
+        description: 'Nutri Sampoorn single grain flours: ragi, jowar, bajra and sattu (roasted gram flour), one grain in each pack.',
         products: ['Ragi Flour', 'Jowar Flour', 'Bajra Flour', 'Sattu (Roasted Gram Flour)'],
       },
       {
-        id: 'instant-dosa-mixes',
+        id: 'instant-dosa-mixes-chutneys',
         title: 'Instant Dosa Mixes & Chutneys',
         text: 'Just mix with water and the batter is ready. A travel hack for eating well, for busy mums and fitness enthusiasts who want good food in no time.',
+        image: 'category-dosa',
+        description: 'Nutri Sampoorn instant dosa mixes (multigrain, multimillet, pesarattu) and peanut putana chutney. Just mix with water.',
         products: ['Instant Multigrain Dosa Mix', 'Instant MultiMillet Dosa Mix', 'Instant Pesarattu Dosa Mix', 'Instant Peanut Putana Chutney'],
       },
     ],
@@ -202,8 +254,12 @@ export const pairings: Record<string, string[]> = {
   'chutney powders': ['dosa & batter mixes', 'atta & flours', 'snacks'],
 };
 
-/** The Everyday Nourishment (Nutri Sampoorn) sub-sections, shown as quick links on the home page. */
+/** The Nutri Sampoorn subcategories. */
 export const nourishmentSections = storeCategories.find((c) => c.slug === 'everyday-nourishment')!.sections!;
+
+/** Does a catalogue product belong to this subcategory? */
+export const inSubcategory = (item: { product: string; category?: string | null }, sub: Subcategory) =>
+  Boolean(sub.products?.includes(item.product) || sub.categories?.some((c) => c.toLowerCase() === (item.category ?? '').trim().toLowerCase()));
 
 /** Friendly display name for an ops category, used in filters. */
 export const typeLabel = (category: string | null | undefined) => category?.trim() || 'Other';

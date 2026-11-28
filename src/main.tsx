@@ -1,8 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import '@fontsource-variable/fraunces/opsz.css';
-import '@fontsource-variable/fraunces/opsz-italic.css';
+// Headings: Libre Caslon (Google Fonts, self-hosted so visitors' browsers never call Google; font-display: swap).
+// Display for large headings, Text for smaller ones. Only the weights in use.
+import '@fontsource/libre-caslon-display/400.css';
+import '@fontsource/libre-caslon-text/400.css';
+import '@fontsource/libre-caslon-text/400-italic.css';
 import '@fontsource-variable/dm-sans/index.css';
 import './styles.css';
 import App from './App';

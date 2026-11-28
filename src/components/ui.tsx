@@ -82,6 +82,23 @@ export function Text({ copy, as: Tag = 'span', className }: { copy: Copy | null 
   );
 }
 
+/**
+ * Full-width hero photo that never zooms or crops its subject on wide screens: the photo keeps its own
+ * proportions, anchored to the right, and only its background carries on to the left (a mirrored,
+ * softly blurred stretch of the photo's left edge, feathered into it). On narrow screens it simply fills.
+ */
+export function HeroPhoto({ id, className = '' }: { id: string; className?: string }) {
+  const s = imageSet(id);
+  if (!s) return null;
+  const style = { '--hero-src': `url("${s.src}")`, '--hero-ar': String(s.width / s.height) } as CSSProperties;
+  return (
+    <div className={`hero-photo ${className}`} style={style}>
+      <div className="hero-photo__fill" aria-hidden="true" />
+      <Img id={id} eager sizes="(min-width: 900px) 60vw, 100vw" className="hero-photo__img" />
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- price & stock
 export function Price({ item, size = 'md' }: { item: Pick<CatalogueItem, 'price' | 'mrp'>; size?: 'md' | 'lg' }) {
   const save = savingPct(item);

@@ -1,6 +1,6 @@
 /* =====================================================================
    Torte Living storefront — one design system for the whole store
-   Warm cream / cocoa / gold; Fraunces (display) + DM Sans (text).
+   Warm cream / cocoa / gold; Libre Caslon Display / Text (headings) + DM Sans (text).
    ===================================================================== */
 :root {
   --cream: #f6efe5;
@@ -22,7 +22,10 @@
   --line: rgba(58, 36, 25, 0.13);
   --line-strong: rgba(58, 36, 25, 0.28);
 
-  --serif: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  /* Headings: Libre Caslon Text (smaller headings, serif accents) and Libre Caslon Display (large headings).
+     The "fallback" faces are Georgia sized to Caslon's width while the web font loads, to avoid layout shift. */
+  --serif: 'Libre Caslon Text', 'Caslon Text Fallback', Georgia, serif;
+  --display: 'Libre Caslon Display', 'Caslon Display Fallback', 'Libre Caslon Text', Georgia, serif;
   --sans: 'DM Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --gutter: clamp(16px, 4vw, 48px);
@@ -1647,3 +1650,65 @@ a.add-btn { text-decoration: none; }
 .social--labels a:hover { text-decoration: underline; }
 .footer__social { margin: 14px 0 6px; }
 @media (max-width: 380px) { .topbar__note { font-size: .6rem; } .topbar__inner { gap: 8px; } }
+
+/* ================================================================ round 2026-11-28 b: subcategories, testimonials, footer logos, Libre Caslon */
+@font-face { font-family: 'Caslon Text Fallback'; src: local('Georgia'); size-adjust: var(--caslon-text-adjust, 100%); }
+@font-face { font-family: 'Caslon Display Fallback'; src: local('Georgia'); size-adjust: var(--caslon-display-adjust, 100%); }
+.display { font-family: var(--display); font-weight: 400; font-variation-settings: normal; letter-spacing: -0.01em; }
+.display--sm, .display.display--sm { font-family: var(--serif); letter-spacing: 0; }
+.display em { font-family: var(--serif); font-weight: 400; }
+h1, h2, h3 { font-weight: 400; }
+
+/* Subcategory pages: the home-page hero treatment */
+.home-hero--sub .home-hero__img { height: clamp(260px, 46svh, 460px); }
+@media (min-width: 900px) { .home-hero--sub .home-hero__img { height: clamp(380px, 52svh, 560px); } }
+.home-hero--sub .crumbs { margin-bottom: 2px; font-size: .8rem; }
+.home-hero--sub .crumbs a { color: #3a2419; }
+.home-hero--sub + .shop__results { padding-top: clamp(28px, 4vw, 48px); }
+.shop__group-head h2 a { color: inherit; text-decoration: none; }
+.shop__group-head h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.shop__group-more { justify-self: start; font-size: .88rem; }
+
+/* Shop menu: collections and their subcategory pages only */
+.megamenu__grid { grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, .8fr); }
+.megamenu li a { font-size: .92rem; color: var(--cocoa); }
+.megamenu li a.megamenu__all { color: var(--terracotta); font-weight: 500; }
+.mm-acc__link { display: block; padding: 11px 0; font: 500 1rem/1.3 var(--sans); text-decoration: none; }
+
+/* Testimonials: invitation (live, until real ones exist) and the playground's sample badge */
+.testimonials__invite { display: grid; gap: 12px; justify-items: start; padding: clamp(24px, 4vw, 40px); border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); max-width: 860px; }
+.testimonials__invite-h { font: 400 clamp(1.4rem, 2.6vw, 1.9rem)/1.2 var(--serif); color: var(--cocoa); }
+.testimonials__invite > p:not(.testimonials__invite-h) { color: var(--muted); max-width: 46em; }
+.testimonials__invite-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.testimonials__invite-btns .btn { --h: 46px; padding: 0 20px; }
+.testimonial { position: relative; }
+.testimonial__sample { justify-self: start; padding: 3px 8px; border-radius: 999px; background: #fde9c8; color: #7a4a10; border: 1px dashed #c88a2a; font: 600 .68rem/1.3 var(--sans); letter-spacing: .12em; text-transform: uppercase; }
+
+/* Footer: both brand logos side by side at the bottom of every page */
+.footer__logos { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 4vw, 40px); padding-block: 26px 22px; border-top: 1px solid rgba(233, 211, 166, .16); }
+.footer__logo { display: inline-flex; line-height: 0; transition: opacity .25s; }
+.footer__logo:hover { opacity: .85; }
+.footer__logo .brand-logo { width: 92px; filter: none; }
+.footer__logo .ns-logo { height: 60px; width: auto; }
+.footer__logo-sep { width: 1px; height: 56px; background: rgba(233, 211, 166, .28); }
+@media (max-width: 420px) { .footer__logo .brand-logo { width: 76px; } .footer__logo .ns-logo { height: 50px; } }
+
+/* Hero photos: the subject keeps its place and size; only the background carries on to the left.
+   --hero-h is the photo's height; the photo is as wide as its own proportions allow (anchored right). */
+.home-hero { --hero-h: clamp(300px, 52svh, 520px); }
+.home-hero--sub { --hero-h: clamp(260px, 46svh, 460px); }
+@media (min-width: 900px) { .home-hero { --hero-h: clamp(440px, 58svh, 640px); } .home-hero--sub { --hero-h: clamp(380px, 52svh, 560px); } }
+.home-hero .home-hero__img, .home-hero--sub .home-hero__img { height: var(--hero-h); }
+.hero-photo { position: relative; width: 100%; overflow: hidden; background: #e9dcc7; --photo-w: min(100%, calc(var(--hero-h) * var(--hero-ar))); }
+.hero-photo__img { position: absolute; top: 0; right: 0; bottom: 0; width: var(--photo-w); height: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 56px); mask-image: linear-gradient(to right, transparent 0, #000 56px); }
+.hero-photo__img img { object-fit: cover; object-position: 50% 50%; }
+/* The fill: the photo's left edge, mirrored so it meets the photo exactly, stretched across the space to the left. */
+.hero-photo__fill { position: absolute; top: 0; bottom: 0; left: 0; width: calc(100% - var(--photo-w) + 64px);
+  background-image: var(--hero-src); background-repeat: no-repeat; background-position: left center; background-size: calc(100% / 0.07) 100%;
+  transform: scaleX(-1) scale(1.06); transform-origin: center; filter: blur(14px) saturate(1.05); }
+@media (max-width: 899px) {
+  /* Phones: the photo fills the width (it is close to the screen's shape); no fill needed. */
+  .hero-photo__img { -webkit-mask-image: none; mask-image: none; width: 100%; }
+  .hero-photo__fill { display: none; }
+}

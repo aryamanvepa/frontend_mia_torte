@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { brandList, miaTorte } from '../content/brands';
+import { brandList, miaTorte, nutriSampoorn } from '../content/brands';
 import { BrandLogo } from './BrandLogo';
 import { HAS_CONTACT, POLICY_LIVE, copyText, mailHref, site, social, telHref } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
@@ -62,8 +62,8 @@ function SearchBox({ onDone, autoFocus }: { onDone?: () => void; autoFocus?: boo
 
 // ---------------------------------------------------------------- header
 /** The Nutri Sampoorn logo (client artwork, transparent WebP), for the header link to its section. */
-export function NsLogo({ height = 46, className = '' }: { height?: number; className?: string }) {
-  const src = (w: number) => `${import.meta.env.BASE_URL}brand/nutri-sampoorn-logo-${w}.webp`;
+export function NsLogo({ height = 46, className = '', onDark = false }: { height?: number; className?: string; onDark?: boolean }) {
+  const src = (w: number) => `${import.meta.env.BASE_URL}brand/nutri-sampoorn-logo-${onDark ? 'dark-' : ''}${w}.webp`;
   const width = Math.round(height * (640 / 230));
   return <img className={`ns-logo ${className}`} src={src(640)} srcSet={`${src(320)} 320w, ${src(640)} 640w, ${src(947)} 947w`} sizes={`${width}px`} width={width} height={height} alt="Nutri Sampoorn" loading="eager" decoding="async" />;
 }
@@ -89,18 +89,6 @@ export function SocialLinks({ labels = false, className = '' }: { labels?: boole
   );
 }
 
-/** Products of each store category for the Shop menu, one entry per product, in shop order. */
-function useShopMenu() {
-  const { items } = useCatalogue();
-  return useMemo(() => {
-    const cards = oneCardPerProduct(items);
-    return storeCategories.map((c) => ({
-      cat: c,
-      products: cards.filter((i) => primaryCategoryOf(i)?.slug === c.slug).sort((a, b) => a.product.localeCompare(b.product)),
-    }));
-  }, [items]);
-}
-
 export function Header() {
   const { count, openDrawer, bump } = useCart();
   const { shipping } = useCatalogue();
@@ -113,7 +101,6 @@ export function Header() {
   const searchBtn = useRef<HTMLButtonElement>(null);
   const shopBtn = useRef<HTMLButtonElement>(null);
   const shopTimer = useRef<number>();
-  const shopMenu = useShopMenu();
   const nsCat = storeCategories.find((c) => c.slug === 'everyday-nourishment')!;
   const closeSearch = (refocus = false) => { setSearchOpen(false); if (refocus) searchBtn.current?.focus(); };
   // Shop menu: opens on hover (with a short grace period so the pointer can travel into it) or click.
@@ -223,12 +210,12 @@ export function Header() {
         </div>
         <div id="shop-menu" className="megamenu" hidden={!shopOpen} onMouseEnter={() => hoverShop(true)} onMouseLeave={() => hoverShop(false)}>
           <div className="wrap megamenu__grid">
-            {shopMenu.map(({ cat: c, products }) => (
+            {storeCategories.map((c) => (
               <div key={c.slug} className="megamenu__col">
                 <Link to={paths.category(c)} className="megamenu__cat">{c.title}</Link>
                 <ul>
-                  {products.map((i) => <li key={i.code}><Link to={paths.product(i)}>{titleOf(i)}</Link></li>)}
-                  {!products.length && <li><Link to={paths.category(c)}>See this season’s hampers</Link></li>}
+                  {(c.sections ?? []).map((s) => <li key={s.id}><Link to={paths.subcategory(c, s)}>{s.title}</Link></li>)}
+                  <li><Link to={paths.category(c)} className="megamenu__all">{c.sections?.length ? `All ${c.title}` : 'See this season’s hampers'}</Link></li>
                 </ul>
               </div>
             ))}
@@ -251,15 +238,17 @@ export function Header() {
                   <ul>
                     <li><Link to={paths.shop()}>Shop all</Link></li>
                     <li><Link to={paths.bestsellers()}>Bestsellers</Link></li>
-                    {shopMenu.map(({ cat: c, products }) => (
+                    {storeCategories.map((c) => (
                       <li key={c.slug}>
-                        <details className="mm-acc mm-acc--sub">
-                          <summary>{c.title} <Icon name="chevron" size={16} /></summary>
-                          <ul>
-                            <li><Link to={paths.category(c)}>All {c.title}</Link></li>
-                            {products.map((i) => <li key={i.code}><Link to={paths.product(i)}>{titleOf(i)}</Link></li>)}
-                          </ul>
-                        </details>
+                        {c.sections?.length ? (
+                          <details className="mm-acc mm-acc--sub">
+                            <summary>{c.title} <Icon name="chevron" size={16} /></summary>
+                            <ul>
+                              <li><Link to={paths.category(c)}>All {c.title}</Link></li>
+                              {c.sections.map((s) => <li key={s.id}><Link to={paths.subcategory(c, s)}>{s.title}</Link></li>)}
+                            </ul>
+                          </details>
+                        ) : <Link to={paths.category(c)} className="mm-acc__link">{c.title}</Link>}
                       </li>
                     ))}
                   </ul>
@@ -290,13 +279,6 @@ export function Footer() {
         <div className="footer__brand">
           <Wordmark as="p" />
           <p className="footer__line">Something delicious is waiting.</p>
-          <p className="footer__ranges">
-            {brandList.map((b) => (
-              <Link key={b.code} to={paths.brand(b)} className={b.logo ? 'footer__range-logo' : 'footer__range'}>
-                {b.logo ? <BrandLogo brand={b} width={76} /> : b.name}
-              </Link>
-            ))}
-          </p>
           <SocialLinks labels className="footer__social" />
           {HAS_CONTACT && (
             <ul className="footer__contact">
@@ -329,6 +311,12 @@ export function Footer() {
             {analyticsConfigured && <li><button type="button" className="footer__linkbtn" onClick={openConsentSettings}>Cookie settings</button></li>}
           </ul>
         </nav>
+      </div>
+      {/* Our two brands, side by side, on every page */}
+      <div className="wrap footer__logos">
+        <Link to={paths.brand(miaTorte)} className="footer__logo" aria-label="La Mia Torte"><BrandLogo brand={miaTorte} width={92} /></Link>
+        <span className="footer__logo-sep" aria-hidden="true" />
+        <Link to={paths.brand(nutriSampoorn)} className="footer__logo"><NsLogo height={60} onDark /></Link>
       </div>
       <div className="wrap footer__legal">
         <p>La Mia Torte and Nutri Sampoorn are brands of {site.legalEntity}{[site.fssaiLicence, site.gstin].filter((c) => c != null).map((c, i) => <span key={i}> · <Text copy={c} /></span>)}</p>

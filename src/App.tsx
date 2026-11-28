@@ -5,10 +5,11 @@ import { ConsentBanner } from './components/Consent';
 import { brandList } from './content/brands';
 import { HAS_CONTACT, POLICY_LIVE } from './content/site';
 import { storeCategories } from './content/store';
+import { paths } from './lib/brand';
 import { trackPageView } from './lib/analytics';
 import { exitTestMode, testMode } from './lib/testmode';
 import { StoreHome } from './pages/Home';
-import Listing from './pages/Shop';
+import Listing, { SubcategoryPage } from './pages/Shop';
 import Product from './pages/Product';
 import SearchPage from './pages/Search';
 import { About, AccountHome, BrandPage, Contact, Credits, Founder, InfoPage, NotFound } from './pages/Info';
@@ -71,6 +72,9 @@ export default function App() {
             <Route path="/shop" element={<Listing mode="all" />} />
             <Route path="/bestsellers" element={<Listing mode="bestsellers" />} />
             {storeCategories.map((c) => <Route key={c.slug} path={`/${c.slug}`} element={<Listing key={c.slug} mode="category" category={c} />} />)}
+            {storeCategories.flatMap((c) => (c.sections ?? []).map((s) => (
+              <Route key={`${c.slug}/${s.id}`} path={paths.subcategory(c, s)} element={<SubcategoryPage key={`${c.slug}/${s.id}`} category={c} sub={s} />} />
+            )))}
             <Route path="/product/:code" element={<Product />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/about" element={<About />} />

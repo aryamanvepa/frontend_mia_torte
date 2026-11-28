@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
-import { Icon, Img, Reveal } from '../components/ui';
+import { HeroPhoto, Icon, Img, Reveal } from '../components/ui';
 import { brands, type BrandCode } from '../content/brands';
-import { bestsellerOrder, bestsellersPage, shopAllPage, storeCategories, typeLabel, type StoreCategory } from '../content/store';
+import { bestsellerOrder, bestsellersPage, inSubcategory, shopAllPage, storeCategories, typeLabel, type StoreCategory, type Subcategory } from '../content/store';
 import type { CatalogueItem } from '../lib/api';
 import { trackViewItemList } from '../lib/analytics';
 import { bestsellers, inStoreCategory, itemContent, newFlagMeaningful, oneCardPerProduct, paths } from '../lib/brand';
@@ -117,12 +117,12 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
     if (!category?.sections || active || sort !== 'featured') return null;
     const used = new Set<string>();
     const out = category.sections.map((s) => {
-      const list = s.products.map((name) => shown.find((i) => i.product === name)).filter((i): i is CatalogueItem => Boolean(i));
+      const list = subcategoryItems(shown, s);
       list.forEach((i) => used.add(i.product));
-      return { ...s, list };
+      return { ...s, list, page: true };
     });
     const rest = shown.filter((i) => !used.has(i.product));
-    if (rest.length) out.push({ id: 'more', title: 'More from the range', text: '', products: [], list: rest });
+    if (rest.length) out.push({ id: 'more', title: 'More from the range', text: '', image: '', description: '', list: rest, page: false });
     return out.filter((g) => g.list.length);
   }, [category, active, sort, shown]);
 
@@ -155,9 +155,9 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
           <h1 className="display display--lg">{head.title}</h1>
           {mode === 'category' && category?.tagline && <p className="coll-head__tagline">{category.tagline}</p>}
           <p className="lede">{head.intro}</p>
-          {groups && groups.length > 1 && (
-            <nav className="coll-head__jump" aria-label="In this section">
-              {groups.map((g) => <a key={g.id} href={`#${g.id}`}>{g.title}</a>)}
+          {groups && groups.some((g) => g.page) && (
+            <nav className="coll-head__jump" aria-label="In this collection">
+              {groups.map((g) => g.page && category ? <Link key={g.id} to={paths.subcategory(category, g)}>{g.title}</Link> : null)}
             </nav>
           )}
         </div>
@@ -194,8 +194,9 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
             {groups ? groups.map((g, gi) => (
               <section key={g.id} id={g.id} className="shop__group" aria-labelledby={`${g.id}-h`}>
                 <header className="shop__group-head">
-                  <h2 id={`${g.id}-h`} className="display display--sm">{g.title}</h2>
+                  <h2 id={`${g.id}-h`} className="display display--sm">{g.page && category ? <Link to={paths.subcategory(category, g)}>{g.title}</Link> : g.title}</h2>
                   {g.text && <p>{g.text}</p>}
+                  {g.page && category && <Link to={paths.subcategory(category, g)} className="arrow-link shop__group-more">See all {g.title} <Icon name="arrow" size={16} /></Link>}
                 </header>
                 <div className="grid">
                   {g.list.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={gi === 0 && n < 2} /></Reveal>)}
@@ -239,6 +240,79 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
               <Link to={paths.category(c)} className="related-cat">
                 <span className="related-cat__img"><Img id={c.image} sizes="120px" alt="" /></span>
                 <span><strong>{c.title}</strong><small>{c.craving}</small></span>
+                <Icon name="arrow" size={18} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+/** A subcategory's products, one card each: in its listed order when it names products, else by name. */
+function subcategoryItems<T extends CatalogueItem>(cards: T[], sub: Subcategory): T[] {
+  const list = cards.filter((i) => inSubcategory(i, sub));
+  return sub.products ? [...list].sort((a, b) => sub.products!.indexOf(a.product) - sub.products!.indexOf(b.product)) : [...list].sort((a, b) => a.product.localeCompare(b.product));
+}
+
+/**
+ * A subcategory's own page (e.g. /everyday-nourishment/single-grain-flours): a full-width hero photo with
+ * the heading in a frosted box (as on the home page), a breadcrumb, then its products.
+ */
+export function SubcategoryPage({ category, sub }: { category: StoreCategory; sub: Subcategory }) {
+  const { items, status } = useCatalogue();
+  const cards = useMemo(() => subcategoryItems(oneCardPerProduct(items), sub), [items, sub]);
+  const path = paths.subcategory(category, sub);
+  useSeo({
+    title: `${sub.title} · ${category.title} · Torte Living`,
+    description: snippet(sub.description),
+    image: sub.image,
+    jsonLd: breadcrumbLd([{ name: 'Home', path: '/' }, { name: category.title, path: paths.category(category) }, { name: sub.title, path }]),
+  });
+  useEffect(() => {
+    if (status === 'ready' && cards.length) trackViewItemList(sub.title, cards);
+  }, [status, sub.title, cards.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const siblings = (category.sections ?? []).filter((s) => s.id !== sub.id);
+  return (
+    <div className="shop">
+      <section className="home-hero home-hero--sub" aria-labelledby="sub-h">
+        <HeroPhoto id={sub.image} className="home-hero__img" />
+        <div className="wrap home-hero__inner">
+          <div className="home-hero__box hero__in">
+            <nav className="crumbs crumbs--inline" aria-label="Breadcrumb">
+              <Link to="/">Home</Link><span aria-hidden="true">/</span>
+              <Link to={paths.category(category)}>{category.title}</Link><span aria-hidden="true">/</span>
+              <span aria-current="page">{sub.title}</span>
+            </nav>
+            <h1 id="sub-h" className="display home-hero__title">{sub.title}</h1>
+            <p className="home-hero__text">{sub.text}</p>
+          </div>
+        </div>
+      </section>
+      <section className="wrap shop__results" aria-label={sub.title}>
+        {status === 'loading' && <GridSkeleton n={4} />}
+        {status === 'error' && <CatalogueStatus />}
+        {status === 'ready' && (cards.length ? (
+          <>
+            <p className="shop__count">{cards.length} {cards.length === 1 ? 'product' : 'products'}</p>
+            <div className="grid">
+              {cards.map((i, n) => <Reveal key={i.code} delay={(n % 4) * 60}><ProductCard code={i.code} priority={n < 2} /></Reveal>)}
+            </div>
+          </>
+        ) : (
+          <div className="soon"><p className="soon__text">{category.empty}</p><Link to={paths.category(category)} className="btn btn--line">See all {category.title}</Link></div>
+        ))}
+      </section>
+      <section className="wrap section section--tight related-cats" aria-labelledby="sub-more-h">
+        <h2 id="sub-more-h" className="display display--sm">More from {category.title}</h2>
+        <ul className="related-cats__list">
+          {[...siblings.map((s) => ({ key: s.id, to: paths.subcategory(category, s), image: s.image, title: s.title, small: category.title })),
+            { key: 'all', to: paths.category(category), image: category.image, title: `All ${category.title}`, small: category.craving }].map((l) => (
+            <li key={l.key}>
+              <Link to={l.to} className="related-cat">
+                <span className="related-cat__img"><Img id={l.image} sizes="120px" alt="" /></span>
+                <span><strong>{l.title}</strong><small>{l.small}</small></span>
                 <Icon name="arrow" size={18} />
               </Link>
             </li>

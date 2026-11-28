@@ -20,6 +20,7 @@ export const paths = {
   shop: () => '/shop',
   category: (c: Pick<StoreCategory, 'slug'>) => `/${c.slug}`,
   bestsellers: () => '/bestsellers',
+  subcategory: (c: { slug: string }, s: { id: string }) => `/${c.slug}/${s.id}`,
   search: (q?: string) => (q ? `/search?q=${encodeURIComponent(q)}` : '/search'),
   brand: (b: Brand) => `/${b.slug}`,
   product: (item: Pick<CatalogueItem, 'code'>) => `/product/${item.code}`,
