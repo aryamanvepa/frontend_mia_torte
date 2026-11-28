@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { brandList, brands, type Brand, type BrandCode } from '../content/brands';
-import { storeCategories, type BuyingKind, type StoreCategory } from '../content/store';
+import { bestsellerOrder, storeCategories, type BuyingKind, type StoreCategory } from '../content/store';
 import { contentFor, NUTRITION_KEYS, type Dietary } from '../content/products';
 import { draft } from '../content/site';
 import type { CatalogueItem } from './api';
@@ -40,9 +40,12 @@ export function primaryCategoryOf(item: CatItem): StoreCategory | null {
 export const inStoreCategory = (item: CatItem, c: StoreCategory) => storeCategoriesOf(item).some((x) => x.slug === c.slug);
 export const buyingKindOf = (item: CatItem): BuyingKind => primaryCategoryOf(item)?.kind ?? 'sensory';
 
-/** Bestsellers: ranked by the backend's sales rank when it provides one, else the hand-picked featured products. */
+/** Bestsellers: Torte Living's curated list (content/store.ts bestsellerOrder), in that order; else the backend's sales rank, else the featured products. */
 export function bestsellers<T extends CatalogueItem>(items: T[], n = 8): T[] {
   const cards = oneCardPerProduct(items);
+  if (bestsellerOrder.length) {
+    return bestsellerOrder.map((name) => cards.find((c) => c.product === name)).filter((c): c is T => Boolean(c)).slice(0, n);
+  }
   const ranked = cards.filter((i) => i.bestseller_rank != null).sort((a, b) => a.bestseller_rank! - b.bestseller_rank!);
   if (ranked.length >= Math.min(4, cards.length)) return ranked.slice(0, n);
   const featured = cards.filter((i) => itemContent(i).featured);

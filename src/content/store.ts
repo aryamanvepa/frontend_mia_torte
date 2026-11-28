@@ -115,6 +115,24 @@ export const storeCategories: StoreCategory[] = [
   },
 ];
 
+/**
+ * Bestsellers, curated by Torte Living (2026-11-28), in this exact order, by product name as in the ops
+ * app. Used by the home page row and the /bestsellers page. The backend's sales-based bestseller_rank
+ * takes over only if this list is emptied.
+ */
+export const bestsellerOrder: string[] = [
+  'Pudina Millet Crunch',
+  'Peri Peri Vegie Chips',
+  'Masala Protein Bean Mix',
+  'Nutty Mango Millets & Nuts Muesli',
+  'Crunchy Strawberry Millets & Nuts Muesli',
+  'Instant Pesarattu Dosa Mix',
+  'Gluten Free Superseed Atta',
+  'Classic Chocolate Chip',
+  'Red Velvet Melt',
+  'Mocha Me Happy',
+];
+
 export const bestsellersPage = {
   slug: 'bestsellers',
   title: 'Bestsellers',
@@ -130,7 +148,7 @@ export const shopAllPage = {
 // ---------------------------------------------------------------- home page (§5)
 export const storeHome = {
   heroTitle: 'Something delicious\nis waiting.',
-  heroText: 'Cookies and treats, better snacks and everyday staples, made with care in small batches. Find a favourite, or discover a new one.',
+  heroText: 'Treats, Snacks and Everyday staples made with care in small batches.',
   cravingTitle: 'Shop by craving',
   bestsellersTitle: 'Bestsellers',
   /** The home page's lead category feature: taste leads, ingredients and nutrition reinforce. */

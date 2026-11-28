@@ -9,6 +9,7 @@
 //   - canonical / sitemap / robots addresses not on SITE_URL
 //   - barcodes (200…), the Supabase service_role key, or test-order details
 //   - a missing or fake FSSAI registration number (it must be in every footer)
+//   - a testimonial without the customer's permission, or one that looks made up
 //   - stand-in business details (FSSAI 000…, example email/phone), and links
 //     to policy / contact pages that are switched off (src/content/site.ts)
 // With VITE_HIDE_TEST_DATA=1 it also fails if any "Test data" tag,
@@ -96,6 +97,33 @@ for (const file of pages) {
     if (/Draft · confirm|Draft page\.|Photo needed|Placeholder|to be confirmed|Lifestyle photograph to come|photographs? (?:to|of this product will) follow|will follow|for testing only|brand brief/i.test(words)) fail(page, 'internal wording ("Draft · confirm", "to be confirmed", "Placeholder" …) on the page');
     if (/\/images\/test-[a-z0-9-]+-\d+\.webp/.test(html)) fail(page, 'stock product photo (test-…) shown with VITE_HIDE_TEST_DATA=1');
   }
+}
+
+// ---------------------------------------------------------------- testimonials
+// Real customers only, each with permission (src/content/testimonials.ts). Fake or unpermitted reviews are
+// unlawful under India's consumer rules, so any doubtful entry stops the build.
+{
+  const { build } = await import('esbuild');
+  const out = await build({ entryPoints: ['src/content/testimonials.ts'], bundle: true, write: false, format: 'esm', platform: 'node' });
+  const { testimonials } = await import('data:text/javascript;base64,' + Buffer.from(out.outputFiles[0].text).toString('base64'));
+  const products = new Set([...readFileSync('src/content/products.ts', 'utf8').matchAll(/^  '([^']+)': \{/gm)].map((m) => m[1]));
+  const FAKE = /lorem|ipsum|placeholder|sample|dummy|\btest|example|xxx|tbd|todo|customer name|name here|your name|\[|\]|\{|\}/i;
+  const SOURCES = ['Instagram', 'WhatsApp', 'Email', 'Google', 'In person'];
+  const seen = new Set();
+  testimonials.forEach((t, n) => {
+    const where = `testimonial #${n + 1}${t.firstName ? ` (${t.firstName})` : ''}`;
+    if (t.permission !== true) errors.push(`${where}: no permission from the customer (permission must be true)`);
+    for (const k of ['quote', 'firstName', 'city', 'product', 'source', 'date']) if (!String(t[k] ?? '').trim()) errors.push(`${where}: ${k} is empty`);
+    if (String(t.quote ?? '').trim().length < 20) errors.push(`${where}: quote is too short to be a real testimonial`);
+    for (const k of ['quote', 'firstName', 'city', 'product']) if (FAKE.test(String(t[k] ?? ''))) errors.push(`${where}: ${k} looks like placeholder text`);
+    if (/\s/.test(String(t.firstName ?? '').trim())) errors.push(`${where}: first name only, please (no surname)`);
+    if (t.product && !products.has(t.product)) errors.push(`${where}: product "${t.product}" is not a product we sell`);
+    if (t.source && !SOURCES.includes(t.source)) errors.push(`${where}: source must be one of ${SOURCES.join(', ')}`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(t.date ?? '') || new Date(t.date) > new Date()) errors.push(`${where}: date must be a real past date (YYYY-MM-DD)`);
+    if (seen.has(t.quote)) errors.push(`${where}: duplicate quote`);
+    seen.add(t.quote);
+  });
+  console.log(`check: ${testimonials.length} testimonial(s) on file${testimonials.length ? '' : ' (section hidden)'}`);
 }
 
 // ---------------------------------------------------------------- trackers
