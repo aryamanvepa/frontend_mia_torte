@@ -46,7 +46,11 @@ for (const file of pages) {
   const html = readFileSync(file, 'utf8');
   const page = file.slice(DIST.length) || '/';
   const isShell = !/<div id="root">\s*<[a-z]/i.test(html);
-  if (isShell) { if (page !== '/index.html') warn.push(`${page}: not pre-rendered (plain app shell)`); continue; }
+  if (isShell) {
+    // Private app pages (account, track, search, checkout) are the plain app with noindex; anything else is a miss.
+    if (page !== '/index.html' && !/<meta name="robots" content="noindex"/.test(html)) warn.push(`${page}: not pre-rendered (plain app shell)`);
+    continue;
+  }
   prerendered++;
 
   const title = /<title>([^<]*)<\/title>/i.exec(html)?.[1]?.trim();

@@ -123,12 +123,30 @@ if (!pages.length) { console.warn('prerender: nothing rendered; leaving the plai
 
 // ---------------------------------------------------------------- write pages
 let written = 0;
+let shells = 0;
+const privateShell = shell.includes('name="robots"') ? shell : shell.replace('</head>', '<meta name="robots" content="noindex" />\n</head>');
 for (const p of pages) {
-  if (p.noindex) continue; // 404s and private pages fall back to the plain app
   const out = p.path === '/' ? join(DIST, 'index.html') : join(DIST, p.path.slice(1), 'index.html');
+  if (p.noindex) {
+    // Private app pages (account, track, search, checkout) get the plain app so they answer 200, not the
+    // host's 404 page; the app sets their noindex tag. Real "Not found" pages still fall back to 404.html.
+    if (/<title>Not found/i.test(p.html) || p.path === '/') continue;
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, privateShell);
+    shells++;
+    continue;
+  }
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, p.html);
   written++;
+}
+// Private pages the crawler skips (checkout, track) or never links to directly (search) get the same.
+for (const path of ['/checkout', '/track', '/search']) {
+  const out = join(DIST, path.slice(1), 'index.html');
+  if (existsSync(out)) continue;
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, privateShell);
+  shells++;
 }
 
 // ---------------------------------------------------------------- sitemap & robots
@@ -148,4 +166,4 @@ Disallow: ${BASE}order/
 Sitemap: ${SITE_URL}/sitemap.xml
 `);
 
-console.log(`prerender: ${written} pages written, ${urls.length} in sitemap.xml${failed ? `, ${failed} failed` : ''}`);
+console.log(`prerender: ${written} pages written, ${shells} private app pages, ${urls.length} in sitemap.xml${failed ? `, ${failed} failed` : ''}`);
