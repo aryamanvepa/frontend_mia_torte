@@ -55,6 +55,8 @@ export interface Design {
   // 4. Colour
   accent: string;
   accent2: string;
+  /** Call-to-action colour (terracotta "Shop now" buttons, menu highlights). */
+  cta: string;
   surface: Surface;
   surfaceCustom: string;
   text: string;
@@ -123,13 +125,13 @@ export const BODY_FONTS: Record<string, FontChoice> = {
 };
 
 // ---------------------------------------------------------------- palettes (one click)
-export interface Palette { label: string; accent: string; accent2: string; surface: Surface; surfaceCustom?: string; text: string }
+export interface Palette { label: string; accent: string; accent2: string; cta: string; surface: Surface; surfaceCustom?: string; text: string }
 export const PALETTES: Record<string, Palette> = {
-  today: { label: 'Cocoa & gold (today)', accent: '#3a2419', accent2: '#87622a', surface: 'cream', text: '#3a2419' },
-  golden: { label: 'Warm golden', accent: '#6b3d12', accent2: '#8a5a0b', surface: 'custom', surfaceCustom: '#f8eedc', text: '#3b2614' },
-  giftbox: { label: 'Gift-box green', accent: '#2f4a40', accent2: '#85662a', surface: 'custom', surfaceCustom: '#f4f0e6', text: '#22302a' },
-  blush: { label: 'Blush', accent: '#7d3346', accent2: '#94505d', surface: 'custom', surfaceCustom: '#fbefec', text: '#3d2328' },
-  earthy: { label: 'Nutri Sampoorn earthy', accent: '#4e5a3a', accent2: '#94491d', surface: 'custom', surfaceCustom: '#f1ecdf', text: '#2f2a20' },
+  today: { label: 'Cocoa & gold (today)', accent: '#3a2419', accent2: '#87622a', cta: '#b5532f', surface: 'cream', text: '#3a2419' },
+  golden: { label: 'Warm golden', accent: '#6b3d12', accent2: '#8a5a0b', cta: '#a3561a', surface: 'custom', surfaceCustom: '#f8eedc', text: '#3b2614' },
+  giftbox: { label: 'Gift-box green', accent: '#2f4a40', accent2: '#85662a', cta: '#9c4a2c', surface: 'custom', surfaceCustom: '#f4f0e6', text: '#22302a' },
+  blush: { label: 'Blush', accent: '#7d3346', accent2: '#94505d', cta: '#a3394f', surface: 'custom', surfaceCustom: '#fbefec', text: '#3d2328' },
+  earthy: { label: 'Nutri Sampoorn earthy', accent: '#4e5a3a', accent2: '#94491d', cta: '#9a4a1f', surface: 'custom', surfaceCustom: '#f1ecdf', text: '#2f2a20' },
 };
 
 // ---------------------------------------------------------------- colour helpers
@@ -164,7 +166,7 @@ export function surfaceColours(d: Design) {
  * hand-tuned in styles.css, so they are used as-is whenever a colour is still the original; any other colour
  * gets computed shades.
  */
-const ORIGINAL = { accent: '#3a2419', accent2: '#87622a', text: '#3a2419', bg: '#f6efe5', paper: '#fbf7f1', linen: '#efe5d6' };
+const ORIGINAL = { accent: '#3a2419', accent2: '#87622a', cta: '#b5532f', text: '#3a2419', bg: '#f6efe5', paper: '#fbf7f1', linen: '#efe5d6' };
 
 /** Text colour that reads best on a filled button of this colour. */
 const onColour = (fill: string, light: string) => (contrast(fill, light) >= contrast(fill, '#1f140d') ? light : '#1f140d');
@@ -236,6 +238,9 @@ export function designToVars(d: Design): Record<string, string> {
   v['--gold-ink'] = d.accent2;
   v['--gold'] = d.accent2 === ORIGINAL.accent2 ? '#b38b4d' : mix(d.accent2, '#ffffff', 0.22);
   v['--gold-soft'] = d.accent2 === ORIGINAL.accent2 ? '#e9d3a6' : mix(d.accent2, '#ffffff', 0.62);
+  v['--terracotta'] = d.cta;
+  v['--terracotta-deep'] = d.cta === ORIGINAL.cta ? '#9a4426' : mix(d.cta, '#000000', 0.15);
+  v['--lv-on-cta'] = d.cta === ORIGINAL.cta ? '#fff' : onColour(d.cta, '#ffffff');
 
   // 5. Density
   v['--lv-space'] = num(d.density);
@@ -256,6 +261,13 @@ export function designToVars(d: Design): Record<string, string> {
   v['--lv-btn-deco'] = text ? 'underline' : 'none';
   v['--lv-btn-size'] = num(d.buttonSize);
   v['--lv-btn-px'] = text ? '4px' : px(28 * d.buttonSize);
+  // the same three styles for the call-to-action (terracotta) buttons
+  v['--lv-cta-bg'] = filled ? 'var(--terracotta)' : 'transparent';
+  v['--lv-cta-fg'] = filled ? 'var(--lv-on-cta)' : 'var(--terracotta)';
+  v['--lv-cta-border'] = text ? 'transparent' : 'var(--terracotta)';
+  v['--lv-cta-hover-bg'] = filled ? 'var(--terracotta-deep)' : text ? 'transparent' : 'var(--terracotta)';
+  v['--lv-cta-hover-border'] = filled ? 'var(--terracotta-deep)' : text ? 'transparent' : 'var(--terracotta)';
+  v['--lv-cta-hover-fg'] = text ? 'var(--terracotta-deep)' : 'var(--lv-on-cta)';
 
   // 7. Cards & grid
   const tablet = Math.min(3, d.colsDesktop);
@@ -299,6 +311,9 @@ export function contrastChecks(d: Design): ContrastCheck[] {
     ['Secondary accent on cards', d.accent2, s.paper, 4.5],
   ];
   if (d.buttonStyle === 'filled') rows.push(['Button label on accent', onAccent, d.accent, 4.5]);
+  const onCta = d.cta === ORIGINAL.cta ? '#ffffff' : v['--lv-on-cta'];
+  if (d.buttonStyle === 'filled') rows.push(['Label on call-to-action buttons', onCta, d.cta, 4.5]);
+  else rows.push(['Call-to-action buttons on page', d.cta, s.bg, 4.5]);
   rows.push([d.buttonStyle === 'filled' ? 'Accent on page (outline buttons, links)' : 'Button label on page', d.accent, s.bg, 4.5]);
   if (d.priceEmphasis === 'accent') rows.push(['Accent price on page', d.accent, s.bg, 4.5]);
   if (d.picBorderWidth > 0) rows.push(['Picture border on page (non-text, 3:1)', d.picBorderColor, s.bg, 3]);

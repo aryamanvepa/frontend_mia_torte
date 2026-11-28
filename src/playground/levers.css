@@ -48,6 +48,9 @@ html:root {
   --gold-ink: #87622a;
   --gold: #b38b4d;
   --gold-soft: #e9d3a6;
+  --terracotta: #b5532f;
+  --terracotta-deep: #9a4426;
+  --lv-on-cta: #fff;
   --lv-space: 1;
   --lv-measure: 1;
   --lv-r-btn: 999px;
@@ -63,6 +66,12 @@ html:root {
   --lv-btn-deco: none;
   --lv-btn-size: 1;
   --lv-btn-px: 28px;
+  --lv-cta-bg: var(--terracotta);
+  --lv-cta-fg: var(--lv-on-cta);
+  --lv-cta-border: var(--terracotta);
+  --lv-cta-hover-bg: var(--terracotta-deep);
+  --lv-cta-hover-border: var(--terracotta-deep);
+  --lv-cta-hover-fg: var(--lv-on-cta);
   --lv-cols-m: 2;
   --lv-cols-t: 3;
   --lv-cols-d: 4;
@@ -92,6 +101,7 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .hero__title { font-size: calc(clamp(2.6rem, 6.4vw, 5.4rem) * var(--lv-h1)); }
 .ns-hero__title { font-size: calc(clamp(2.7rem, 7vw, 6.2rem) * var(--lv-h1)); }
 .store-hero__title { font-size: calc(clamp(2.3rem, 5.6vw, 4.6rem) * var(--lv-h1)); }
+.home-hero__title { font-size: calc(clamp(2.1rem, 4.6vw, 3.9rem) * var(--lv-h1)); }
 .snack-feature__title { font-size: calc(clamp(2.2rem, 5.2vw, 4.2rem) * var(--lv-h1)); letter-spacing: calc(var(--lv-h-track) - 0.005em); }
 .card__title { font-size: calc(clamp(1.08rem, 1.6vw, 1.32rem) * var(--lv-h3)); letter-spacing: calc(var(--lv-h-track) + 0.01em); }
 
@@ -104,6 +114,7 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .info__section p { max-width: calc(40em * var(--lv-measure)); }
 .info--story .info__section p { font-size: calc(1.05rem * var(--lv-body)); line-height: calc(1.8 * var(--lv-lh)); }
 .shop__group-head p { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.5 * var(--lv-lh)); }
+.home-hero__text { font-size: calc(clamp(1rem, 1.4vw, 1.15rem) * var(--lv-body)); line-height: calc(1.5 * var(--lv-lh)); color: var(--cocoa); }
 .snack-feature .lede { max-width: calc(46ch * var(--lv-measure)); }
 @media (max-width: 520px) { .card__summary { font-size: calc(0.82rem * var(--lv-body)); } }
 
@@ -123,6 +134,8 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .line__brand { font-size: calc(0.74rem * var(--lv-small)); }
 .footer__legal { font-size: calc(0.8rem * var(--lv-small)); }
 .header__nav .navlink { font-size: calc(0.72rem * var(--lv-small)); }
+.home-hero__trust { font-size: calc(0.8rem * var(--lv-small)); }
+@media (min-width: 900px) { .primary-nav__link { font-size: calc(0.74rem * var(--lv-small)); } }
 
 /* prices */
 .card__price { font-size: calc(1.02rem * var(--lv-price)); font-weight: var(--lv-price-weight); color: var(--lv-price-color); }
@@ -173,7 +186,7 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 /* Inside controls, "cocoa" means the accent: filled buttons, Add, sizes, steppers, counts, badges. */
 /* (Header icons, the bag included, stay in the text colour, like the search and account icons.) */
 .btn, .add-btn, .seg__btn, .size, .chip, .card__notify, .stepper, .bagstep, .sline__qty, .bag-btn__count,
-.add-btn__count, .size__count, .timeline, .confirm__check, .cod {
+.add-btn__count, .size__count, .timeline, .confirm__check, .cod, .scrollrow__btn {
   --cocoa: var(--lv-accent); --espresso: var(--lv-accent-deep); --cream: var(--lv-on-accent);
 }
 .card__badge:not([class*='card__badge--']) { background: color-mix(in srgb, var(--lv-accent-deep) 82%, transparent); color: var(--lv-on-accent); }
@@ -212,6 +225,12 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .rail { grid-auto-columns: var(--lv-rail-m); gap: calc(14px * var(--lv-space)); }
 @media (min-width: 700px) { .rail { grid-auto-columns: var(--lv-rail-t); gap: calc(20px * var(--lv-space)); } }
 @media (min-width: 1100px) { .rail { grid-template-columns: repeat(var(--lv-rail-d)); gap: calc(36px * var(--lv-space)) calc(24px * var(--lv-space)); } }
+/* the home page's one-row scrolling bestsellers (4 to a screen on desktop today) */
+.rail.rail--scroll { grid-auto-columns: var(--lv-rail-m); }
+@media (min-width: 700px) { .rail.rail--scroll { grid-auto-columns: var(--lv-rail-t); } }
+@media (min-width: 1100px) {
+  .rail.rail--scroll { grid-auto-columns: calc((100% - (var(--lv-cols-d) - 1) * 24px * var(--lv-space)) / var(--lv-cols-d)); gap: calc(24px * var(--lv-space)); }
+}
 
 .card__media, .sk--media { aspect-ratio: var(--lv-card-aspect); }
 .card__summary { display: var(--lv-card-desc); }
@@ -229,7 +248,7 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .brand-card, .type-link, .related-cat, .closing__inner, .soon, .facts, .glance, .delivery, .notify, .checkout__aside,
 .checkout__mobile-summary, .track__result, .track__ship, .contact__card, .legal-details, .account__card, .store-hero__card,
 .quickadd__menu, .searchbox__suggest, .range, .banner, .consent-bar, .hero__chip, .pdp__status, .freebar, .delivery-eta,
-.cod, .confirm__code, .totals__free, .snack-feature__shot, .account-tile { --radius: var(--lv-r-card); }
+.cod, .confirm__code, .totals__free, .snack-feature__shot, .account-tile, .home-hero__box, .testimonial { --radius: var(--lv-r-card); }
 
 /* Button size, then the main (filled) button's style: filled / outline / underlined text. */
 .btn { min-height: calc(var(--h) * var(--lv-btn-size)); padding-inline: calc(28px * var(--lv-btn-size)); font-size: calc(0.95rem * var(--lv-btn-size)); }
@@ -241,3 +260,12 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .btn--dark::before { background: var(--lv-btn-sweep); }
 .btn--dark:hover { color: var(--lv-btn-fg-hover); }
 .btn--dark.is-adding { background: var(--ok); border-color: var(--ok); }
+/* Call-to-action (terracotta) buttons: same style lever, their own colour */
+.btn--terracotta {
+  background: var(--lv-cta-bg); color: var(--lv-cta-fg); border-color: var(--lv-cta-border);
+  text-decoration-line: var(--lv-btn-deco); text-underline-offset: 4px; padding-inline: var(--lv-btn-px);
+}
+.btn--terracotta:hover, .cats--cta .cat__link:hover .cat__cta { background: var(--lv-cta-hover-bg); border-color: var(--lv-cta-hover-border); color: var(--lv-cta-hover-fg); }
+/* Small buttons keep their own size (after the rules above, as in styles.css) */
+.btn--sm { padding-inline: calc(18px * var(--lv-btn-size)); font-size: calc(0.84rem * var(--lv-btn-size)); }
+@media (max-width: 599px) { .cats--cta .cat__cta { padding-inline: 12px; font-size: 0.76rem; } }

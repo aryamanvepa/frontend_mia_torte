@@ -255,15 +255,15 @@ export function Panel({ initial }: { initial: Design }) {
             <Range label="Contrast" k="photoContrast" d={d} set={set} min={0.7} max={1.4} step={0.01} fmt={(n) => pct(n * 100)} />
           </Group>
 
-          <Group title="Colour" d={d} keys={['accent', 'accent2', 'surface', 'surfaceCustom', 'text']}
+          <Group title="Colour" d={d} keys={['accent', 'accent2', 'cta', 'surface', 'surfaceCustom', 'text']}
             badge={failing.length > 0 && <span className="pg-warn-badge">{failing.length} below AA</span>}>
             <div className="pg-palettes" role="group" aria-label="Brand palettes">
               {Object.entries(PALETTES).map(([k, p]) => {
                 const bg = surfaceColours({ ...d, surface: p.surface, surfaceCustom: p.surfaceCustom ?? d.surfaceCustom }).bg;
                 return (
-                  <button key={k} type="button" className="pg-palette" onClick={() => setMany({ accent: p.accent, accent2: p.accent2, surface: p.surface, text: p.text, ...(p.surfaceCustom ? { surfaceCustom: p.surfaceCustom } : {}) })}>
+                  <button key={k} type="button" className="pg-palette" onClick={() => setMany({ accent: p.accent, accent2: p.accent2, cta: p.cta, surface: p.surface, text: p.text, ...(p.surfaceCustom ? { surfaceCustom: p.surfaceCustom } : {}) })}>
                     <span className="pg-swatches" aria-hidden="true">
-                      {[bg, p.accent, p.accent2, p.text].map((c, i) => <span key={i} style={{ background: c }} />)}
+                      {[bg, p.accent, p.cta, p.accent2, p.text].map((c, i) => <span key={i} style={{ background: c }} />)}
                     </span>
                     {p.label}
                   </button>
@@ -272,6 +272,7 @@ export function Panel({ initial }: { initial: Design }) {
             </div>
             <Colour label="Accent (buttons, links, badges)" k="accent" d={d} set={set} />
             <Colour label="Secondary accent (labels, highlights)" k="accent2" d={d} set={set} />
+            <Colour label="Call to action (Shop now buttons)" k="cta" d={d} set={set} />
             <Choice label="Page background" k="surface" d={d} set={set} options={[['cream', 'Cream'], ['white', 'White'], ['sand', 'Warm sand'], ['custom', 'Custom']]} />
             {d.surface === 'custom' && <Colour label="Custom background" k="surfaceCustom" d={d} set={set} />}
             <Colour label="Text colour" k="text" d={d} set={set} />
