@@ -171,7 +171,8 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 
 /* ---------------------------------------------------------------- 4. colour */
 /* Inside controls, "cocoa" means the accent: filled buttons, Add, sizes, steppers, counts, badges. */
-.btn, .add-btn, .seg__btn, .size, .chip, .card__notify, .bag-btn, .stepper, .bagstep, .sline__qty, .bag-btn__count,
+/* (Header icons, the bag included, stay in the text colour, like the search and account icons.) */
+.btn, .add-btn, .seg__btn, .size, .chip, .card__notify, .stepper, .bagstep, .sline__qty, .bag-btn__count,
 .add-btn__count, .size__count, .timeline, .confirm__check, .cod {
   --cocoa: var(--lv-accent); --espresso: var(--lv-accent-deep); --cream: var(--lv-on-accent);
 }
@@ -228,7 +229,7 @@ body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-
 .brand-card, .type-link, .related-cat, .closing__inner, .soon, .facts, .glance, .delivery, .notify, .checkout__aside,
 .checkout__mobile-summary, .track__result, .track__ship, .contact__card, .legal-details, .account__card, .store-hero__card,
 .quickadd__menu, .searchbox__suggest, .range, .banner, .consent-bar, .hero__chip, .pdp__status, .freebar, .delivery-eta,
-.cod, .confirm__code, .totals__free, .snack-feature__shot { --radius: var(--lv-r-card); }
+.cod, .confirm__code, .totals__free, .snack-feature__shot, .account-tile { --radius: var(--lv-r-card); }
 
 /* Button size, then the main (filled) button's style: filled / outline / underlined text. */
 .btn { min-height: calc(var(--h) * var(--lv-btn-size)); padding-inline: calc(28px * var(--lv-btn-size)); font-size: calc(0.95rem * var(--lv-btn-size)); }

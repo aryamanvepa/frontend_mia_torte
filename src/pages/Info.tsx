@@ -7,7 +7,7 @@ import { Icon, Img, Reveal, Text } from '../components/ui';
 import { brandList, miaTorte, nutriSampoorn, type Brand } from '../content/brands';
 import { images } from '../content/images';
 import { HIDE_TEST_DATA, isTestImage } from '../content/test-labels';
-import { founder, grievanceOfficer, house, isMissing, mailHref, pages, site, telHref } from '../content/site';
+import { HAS_CONTACT, POLICY_LIVE, founder, grievanceOfficer, house, isMissing, mailHref, pages, site, telHref } from '../content/site';
 import { oneCardPerProduct, paths } from '../lib/brand';
 import { breadcrumbLd, snippet, useSeo } from '../lib/seo';
 import { copyText, type Copy } from '../content/site';
@@ -195,6 +195,49 @@ export function InfoPage({ slug }: { slug: keyof typeof pages }) {
             {/* COMMITMENT (not confirmed): response times, set to the Consumer Protection (E-Commerce) Rules 2020. */}
             <p>We acknowledge complaints within 48 hours and aim to resolve them within one month.</p>
           </section>
+        )}
+      </div>
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------- account (no sign-in yet)
+/**
+ * Where the header's person icon goes. There are no customer logins yet: this page only points to
+ * order tracking and help. Sign-in (order history, saved addresses, reorder, back-in-stock list) comes
+ * later with backend task B8; src/pages/Account.tsx stays unwired until then.
+ */
+export function AccountHome() {
+  useSeo({ title: `Account · ${site.name}`, description: 'Track an order or get help with an order from Torte Living.', noindex: true });
+  return (
+    <article className="info account-home">
+      <header className="page-head page-head--narrow wrap">
+        <p className="eyebrow">Account</p>
+        <h1 className="display display--lg">Your account</h1>
+        <p className="lede">Customer accounts are coming soon. You don’t need one to order: everything works without signing in.</p>
+      </header>
+      <div className="wrap account-home__grid">
+        <Link to="/track" className="account-tile">
+          <Icon name="truck" size={24} />
+          <span className="account-tile__title">Track your order</span>
+          <span className="account-tile__text">With your order code and the phone number you ordered with. You can also ask to cancel there before dispatch.</span>
+          <span className="arrow-link">Track an order <Icon name="arrow" size={16} /></span>
+        </Link>
+        {HAS_CONTACT && (
+          <Link to="/contact" className="account-tile">
+            <Icon name="mail" size={24} />
+            <span className="account-tile__title">Help &amp; contact</span>
+            <span className="account-tile__text">Questions about an order, a product or an allergy: write or call us.</span>
+            <span className="arrow-link">Contact us <Icon name="arrow" size={16} /></span>
+          </Link>
+        )}
+        {POLICY_LIVE.shipping && (
+          <Link to="/shipping" className="account-tile">
+            <Icon name="info" size={24} />
+            <span className="account-tile__title">Shipping &amp; returns</span>
+            <span className="account-tile__text">Delivery charges and areas, cancellations, and what to do if something isn’t right.</span>
+            <span className="arrow-link">Read more <Icon name="arrow" size={16} /></span>
+          </Link>
         )}
       </div>
     </article>

@@ -66,8 +66,11 @@ export function Header() {
   const { shipping } = useCatalogue();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [pulse, setPulse] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const searchBtn = useRef<HTMLButtonElement>(null);
+  const closeSearch = (refocus = false) => { setSearchOpen(false); if (refocus) searchBtn.current?.focus(); };
 
   // Sticky bars below the header offset by its real height, whatever the screen size.
   useEffect(() => {
@@ -81,7 +84,14 @@ export function Header() {
     return () => { ro?.disconnect(); window.removeEventListener('resize', set); };
   }, []);
 
-  useEffect(() => { setMenu(false); }, [pathname]);
+  useEffect(() => { setMenu(false); setSearchOpen(false); }, [pathname]);
+  // Search panel: Escape closes it and puts focus back on the search icon.
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSearch(true); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [searchOpen]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!bump) return;
     setPulse(true);
@@ -115,21 +125,28 @@ export function Header() {
               aria-label={menu ? 'Close menu' : 'Open menu'}>
               <Icon name={menu ? 'close' : 'menu'} size={24} />
             </button>
-            <div className="header__search-inline"><SearchBox /></div>
           </div>
           {/* The emblem alone, centred, as luxury houses do: no wordmark beside it. */}
           <Link to="/" className="header__mark" aria-label={`${miaTorte.name} · ${site.name}, home`}><BrandLogo brand={miaTorte} width={104} eager className="header__logo" /></Link>
-          <div className="header__right">
-            {/* Account icon hidden until customer accounts (backend B8) are approved. */}
-            <button className={`bag-btn ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
-              <Icon name="bag" size={24} />
-              <span className="bag-btn__label" aria-hidden="true">Bag</span>
+          {/* Top right, evenly spaced line icons: search, account, bag. */}
+          <div className="header__right header__icons">
+            <button ref={searchBtn} type="button" className={`icon-btn header__icon ${searchOpen ? 'is-active' : ''}`} onClick={() => setSearchOpen((o) => !o)}
+              aria-expanded={searchOpen} aria-controls="header-search" aria-label={searchOpen ? 'Close search' : 'Search the shop'}>
+              <Icon name={searchOpen ? 'close' : 'search'} size={22} />
+            </button>
+            {/* No customer logins yet: the account page offers order tracking and help. */}
+            <Link to="/account" className="icon-btn header__icon" aria-label="Account">
+              <Icon name="user" size={22} />
+            </Link>
+            <button className={`bag-btn header__icon ${pulse ? 'is-pulse' : ''}`} onClick={openDrawer} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
+              <Icon name="bag" size={22} />
               <span className={`bag-btn__count ${count ? '' : 'is-empty'}`} aria-hidden="true">{count}</span>
             </button>
           </div>
         </div>
-        {/* Phones and tablets: search is always on screen, under the logo. */}
-        <div className="search-row wrap"><SearchBox /></div>
+        <div id="header-search" className="search-panel wrap" hidden={!searchOpen}>
+          {searchOpen && <SearchBox autoFocus onDone={() => closeSearch()} />}
+        </div>
         <nav className="header__nav" aria-label="Shop">
           <ul className="wrap">
             {NAV.map((l) => <li key={l.to}><NavLink to={l.to} end className="navlink">{l.label}</NavLink></li>)}
@@ -139,6 +156,7 @@ export function Header() {
           <nav aria-label="Shop (menu)">
             <ul>{NAV.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}</ul>
             <ul className="mobile-menu__minor">
+              <li><Link to="/account">Account</Link></li>
               <li><Link to="/track">Track an order</Link></li>
               {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>About {b.name}</Link></li>)}
               {HAS_CONTACT && <li><Link to="/contact">Contact</Link></li>}

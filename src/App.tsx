@@ -11,12 +11,13 @@ import { StoreHome } from './pages/Home';
 import Listing from './pages/Shop';
 import Product from './pages/Product';
 import SearchPage from './pages/Search';
-import { About, BrandPage, Contact, Credits, Founder, InfoPage, NotFound } from './pages/Info';
+import { About, AccountHome, BrandPage, Contact, Credits, Founder, InfoPage, NotFound } from './pages/Info';
 import { OrderConfirmed, Track } from './pages/Order';
 
 const Checkout = lazy(() => import('./pages/Checkout'));
 // Customer accounts (src/pages/Account.tsx, src/lib/auth.ts) wait on backend task B8, which is not approved yet.
-// They stay in the repo but unwired, so supabase-js stays out of the bundle. /account falls through to Not found.
+// They stay in the repo but unwired, so supabase-js stays out of the bundle. /account is a simple page
+// (AccountHome in pages/Info.tsx) with order tracking and help; no sign-in.
 
 /** Scroll to top on navigation; one visual theme for the whole store; analytics page views. */
 function RouteEffects() {
@@ -82,6 +83,7 @@ export default function App() {
             {POLICY_LIVE.privacy && <Route path="/privacy" element={<InfoPage slug="privacy" />} />}
             {POLICY_LIVE.terms && <Route path="/terms" element={<InfoPage slug="terms" />} />}
             <Route path="/about/founder" element={<Founder />} />
+            <Route path="/account" element={<AccountHome />} />
             <Route path="/credits" element={<Credits />} />
             <Route path="/:slug/*" element={<OldBrandPath />} />
             <Route path="*" element={<NotFound />} />
