@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
 import { Icon, Img, Reveal } from '../components/ui';
 import { brands, type BrandCode } from '../content/brands';
-import { bestsellersPage, shopAllPage, storeCategories, typeLabel, type StoreCategory } from '../content/store';
+import { bestsellerOrder, bestsellersPage, shopAllPage, storeCategories, typeLabel, type StoreCategory } from '../content/store';
 import type { CatalogueItem } from '../lib/api';
 import { trackViewItemList } from '../lib/analytics';
 import { bestsellers, inStoreCategory, itemContent, newFlagMeaningful, oneCardPerProduct, paths } from '../lib/brand';
@@ -96,8 +96,10 @@ export default function Listing({ mode, category }: { mode: Mode; category?: Sto
       return true;
     }).flatMap(([, ps]) => ps);
     const cards = oneCardPerProduct(keep);
-    const rankOf = (i: CatalogueItem) => i.bestseller_rank ?? (itemContent(i).featured ? 1000 : 2000);
-    const sold = (i: CatalogueItem) => (statusOf(i) === 'available' ? 0 : 1);
+    // Bestsellers keep Torte Living's curated order exactly (content/store.ts bestsellerOrder).
+    const curated = (i: CatalogueItem) => (mode === 'bestsellers' ? bestsellerOrder.indexOf(i.product) : -1);
+    const rankOf = (i: CatalogueItem) => (curated(i) >= 0 ? curated(i) : i.bestseller_rank ?? (itemContent(i).featured ? 1000 : 2000));
+    const sold = (i: CatalogueItem) => (mode === 'bestsellers' && sort === 'featured' ? 0 : statusOf(i) === 'available' ? 0 : 1);
     return cards.sort((a, b) => sold(a) - sold(b) || (
       sort === 'price-asc' ? a.price - b.price
       : sort === 'price-desc' ? b.price - a.price

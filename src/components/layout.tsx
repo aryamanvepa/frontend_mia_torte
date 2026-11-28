@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { brandList, miaTorte } from '../content/brands';
 import { BrandLogo } from './BrandLogo';
-import { HAS_CONTACT, POLICY_LIVE, copyText, mailHref, site, telHref } from '../content/site';
+import { HAS_CONTACT, POLICY_LIVE, copyText, mailHref, site, social, telHref } from '../content/site';
 import { pairings, storeCategories } from '../content/store';
 import { openConsentSettings, analyticsConfigured } from '../lib/analytics';
 import type { CatalogueItem } from '../lib/api';
@@ -61,16 +61,68 @@ function SearchBox({ onDone, autoFocus }: { onDone?: () => void; autoFocus?: boo
 }
 
 // ---------------------------------------------------------------- header
+/** The Nutri Sampoorn logo (client artwork, transparent WebP), for the header link to its section. */
+export function NsLogo({ height = 46, className = '' }: { height?: number; className?: string }) {
+  const src = (w: number) => `${import.meta.env.BASE_URL}brand/nutri-sampoorn-logo-${w}.webp`;
+  const width = Math.round(height * (640 / 230));
+  return <img className={`ns-logo ${className}`} src={src(640)} srcSet={`${src(320)} 320w, ${src(640)} 640w, ${src(947)} 947w`} sizes={`${width}px`} width={width} height={height} alt="Nutri Sampoorn" loading="eager" decoding="async" />;
+}
+
+/** WhatsApp and the two Instagram accounts: compact icon links (info bar) or labelled (footer). */
+export function SocialLinks({ labels = false, className = '' }: { labels?: boolean; className?: string }) {
+  const items = [
+    { href: social.whatsapp, icon: 'whatsapp', label: 'WhatsApp', aria: 'Chat with us on WhatsApp (opens in a new tab)' },
+    { href: social.instagramMT, icon: 'instagram', label: 'La Mia Torte', aria: 'La Mia Torte on Instagram (opens in a new tab)' },
+    { href: social.instagramNS, icon: 'instagram', label: 'Nutri Sampoorn', aria: 'Nutri Sampoorn on Instagram (opens in a new tab)' },
+  ];
+  return (
+    <ul className={`social ${labels ? 'social--labels' : ''} ${className}`}>
+      {items.map((i) => (
+        <li key={i.href}>
+          <a href={i.href} target="_blank" rel="noopener noreferrer" aria-label={i.aria} title={i.aria.replace(' (opens in a new tab)', '')}>
+            <Icon name={i.icon} size={labels ? 18 : 16} />
+            <span className={labels ? '' : 'social__short'}>{i.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Products of each store category for the Shop menu, one entry per product, in shop order. */
+function useShopMenu() {
+  const { items } = useCatalogue();
+  return useMemo(() => {
+    const cards = oneCardPerProduct(items);
+    return storeCategories.map((c) => ({
+      cat: c,
+      products: cards.filter((i) => primaryCategoryOf(i)?.slug === c.slug).sort((a, b) => a.product.localeCompare(b.product)),
+    }));
+  }, [items]);
+}
+
 export function Header() {
   const { count, openDrawer, bump } = useCart();
   const { shipping } = useCatalogue();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [pulse, setPulse] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const searchBtn = useRef<HTMLButtonElement>(null);
+  const shopBtn = useRef<HTMLButtonElement>(null);
+  const shopTimer = useRef<number>();
+  const shopMenu = useShopMenu();
+  const nsCat = storeCategories.find((c) => c.slug === 'everyday-nourishment')!;
   const closeSearch = (refocus = false) => { setSearchOpen(false); if (refocus) searchBtn.current?.focus(); };
+  // Shop menu: opens on hover (with a short grace period so the pointer can travel into it) or click.
+  const hoverShop = (open: boolean) => {
+    window.clearTimeout(shopTimer.current);
+    if (!matchMedia('(hover: hover) and (min-width: 900px)').matches) return;
+    if (open) setShopOpen(true);
+    else shopTimer.current = window.setTimeout(() => setShopOpen(false), 180);
+  };
 
   // Sticky bars below the header offset by its real height, whatever the screen size.
   useEffect(() => {
@@ -84,14 +136,25 @@ export function Header() {
     return () => { ro?.disconnect(); window.removeEventListener('resize', set); };
   }, []);
 
-  useEffect(() => { setMenu(false); setSearchOpen(false); }, [pathname]);
-  // Search panel: Escape closes it and puts focus back on the search icon.
+  useEffect(() => { setMenu(false); setSearchOpen(false); setShopOpen(false); }, [pathname]);
+  // Search panel and Shop menu: Escape closes them and puts focus back on their button.
   useEffect(() => {
-    if (!searchOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeSearch(true); };
+    if (!searchOpen && !shopOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (searchOpen) closeSearch(true);
+      if (shopOpen) { setShopOpen(false); shopBtn.current?.focus(); }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [searchOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchOpen, shopOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Clicking outside the Shop menu closes it.
+  useEffect(() => {
+    if (!shopOpen) return;
+    const onDown = (e: PointerEvent) => { if (!headerRef.current?.contains(e.target as Node)) setShopOpen(false); };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [shopOpen]);
   useEffect(() => {
     if (!bump) return;
     setPulse(true);
@@ -111,10 +174,13 @@ export function Header() {
       <div className="topbar">
         <div className="wrap topbar__inner">
           {/* Service promise, not payment: payment options are shown at checkout and in the footer. */}
-          <p className="topbar__note"><Icon name="truck" size={15} /> {shipping ? `Free delivery on orders over ${rupees(shipping.free_above)}` : 'Delivering across India'}<span className="topbar__extra"> · One basket for the whole store</span></p>
-          <div className="topbar__right">
-            <NavLink to="/track" className="topbar__link">Track an order</NavLink>
-            {HAS_CONTACT && <NavLink to="/contact" className="topbar__link">Help</NavLink>}
+          <p className="topbar__note"><Icon name="truck" size={15} /> {shipping ? <>Free delivery<span className="topbar__extra"> on orders</span> over {rupees(shipping.free_above)}</> : 'Delivering across India'}</p>
+          <div className="topbar__end">
+            <div className="topbar__right">
+              <NavLink to="/track" className="topbar__link">Track an order</NavLink>
+              {HAS_CONTACT && <NavLink to="/contact" className="topbar__link">Help</NavLink>}
+            </div>
+            <SocialLinks className="topbar__social" />
           </div>
         </div>
       </div>
@@ -125,6 +191,17 @@ export function Header() {
               aria-label={menu ? 'Close menu' : 'Open menu'}>
               <Icon name={menu ? 'close' : 'menu'} size={24} />
             </button>
+            {/* Wide screens: Home, Shop (menu of categories and their products) and Nutri Sampoorn. */}
+            <nav className="primary-nav" aria-label="Main">
+              <NavLink to="/" end className="primary-nav__link">Home</NavLink>
+              <span className="primary-nav__shop" onMouseEnter={() => hoverShop(true)} onMouseLeave={() => hoverShop(false)}>
+                <button ref={shopBtn} type="button" className={`primary-nav__link ${shopOpen ? 'is-open' : ''}`} aria-expanded={shopOpen} aria-controls="shop-menu"
+                  onClick={() => setShopOpen((o) => !o)}>
+                  Shop <Icon name="chevron" size={14} />
+                </button>
+              </span>
+              <Link to={paths.category(nsCat)} className="primary-nav__ns"><NsLogo height={46} /></Link>
+            </nav>
           </div>
           {/* The emblem alone, centred, as luxury houses do: no wordmark beside it. */}
           <Link to="/" className="header__mark" aria-label={`${miaTorte.name} · ${site.name}, home`}><BrandLogo brand={miaTorte} width={104} eager className="header__logo" /></Link>
@@ -144,23 +221,59 @@ export function Header() {
             </button>
           </div>
         </div>
+        <div id="shop-menu" className="megamenu" hidden={!shopOpen} onMouseEnter={() => hoverShop(true)} onMouseLeave={() => hoverShop(false)}>
+          <div className="wrap megamenu__grid">
+            {shopMenu.map(({ cat: c, products }) => (
+              <div key={c.slug} className="megamenu__col">
+                <Link to={paths.category(c)} className="megamenu__cat">{c.title}</Link>
+                <ul>
+                  {products.map((i) => <li key={i.code}><Link to={paths.product(i)}>{titleOf(i)}</Link></li>)}
+                  {!products.length && <li><Link to={paths.category(c)}>See this season’s hampers</Link></li>}
+                </ul>
+              </div>
+            ))}
+            <div className="megamenu__col megamenu__more">
+              <Link to={paths.shop()} className="megamenu__cat">Shop all</Link>
+              <Link to={paths.bestsellers()} className="megamenu__cat">Bestsellers</Link>
+            </div>
+          </div>
+        </div>
         <div id="header-search" className="search-panel wrap" hidden={!searchOpen}>
           {searchOpen && <SearchBox autoFocus onDone={() => closeSearch()} />}
         </div>
-        <nav className="header__nav" aria-label="Shop">
-          <ul className="wrap">
-            {NAV.map((l) => <li key={l.to}><NavLink to={l.to} end className="navlink">{l.label}</NavLink></li>)}
-          </ul>
-        </nav>
         <div id="mobile-menu" className={`mobile-menu ${menu ? 'is-open' : ''}`} hidden={!menu}>
-          <nav aria-label="Shop (menu)">
-            <ul>{NAV.map((l) => <li key={l.to}><Link to={l.to}>{l.label}</Link></li>)}</ul>
+          <nav aria-label="Main (menu)">
+            <ul className="mobile-menu__main">
+              <li><Link to="/">Home</Link></li>
+              <li>
+                <details className="mm-acc">
+                  <summary>Shop <Icon name="chevron" size={18} /></summary>
+                  <ul>
+                    <li><Link to={paths.shop()}>Shop all</Link></li>
+                    <li><Link to={paths.bestsellers()}>Bestsellers</Link></li>
+                    {shopMenu.map(({ cat: c, products }) => (
+                      <li key={c.slug}>
+                        <details className="mm-acc mm-acc--sub">
+                          <summary>{c.title} <Icon name="chevron" size={16} /></summary>
+                          <ul>
+                            <li><Link to={paths.category(c)}>All {c.title}</Link></li>
+                            {products.map((i) => <li key={i.code}><Link to={paths.product(i)}>{titleOf(i)}</Link></li>)}
+                          </ul>
+                        </details>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              </li>
+              <li><Link to={paths.category(nsCat)} className="mobile-menu__ns"><NsLogo height={40} /></Link></li>
+            </ul>
             <ul className="mobile-menu__minor">
               <li><Link to="/account">Account</Link></li>
               <li><Link to="/track">Track an order</Link></li>
               {brandList.map((b) => <li key={b.code}><Link to={paths.brand(b)}>About {b.name}</Link></li>)}
               {HAS_CONTACT && <li><Link to="/contact">Contact</Link></li>}
             </ul>
+            <SocialLinks labels className="mobile-menu__social" />
           </nav>
         </div>
       </header>
@@ -184,6 +297,7 @@ export function Footer() {
               </Link>
             ))}
           </p>
+          <SocialLinks labels className="footer__social" />
           {HAS_CONTACT && (
             <ul className="footer__contact">
               {site.email && <li><a href={mailHref!}>{copyText(site.email)}</a></li>}

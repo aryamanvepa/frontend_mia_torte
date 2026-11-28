@@ -60,6 +60,13 @@ export const site: {
   instagram: 'https://www.instagram.com/miatortebakery',
 };
 
+/** WhatsApp and Instagram (info bar and footer). Approved 2026-11-28. */
+export const social = {
+  whatsapp: `https://wa.me/917330616222?text=${encodeURIComponent('Hi! I have a question about La Mia Torte / Nutri Sampoorn')}`,
+  instagramMT: 'https://www.instagram.com/miatortebakery',
+  instagramNS: 'https://www.instagram.com/nutrisampoorn/',
+};
+
 /** mailto: / tel: links for the published email and phone. */
 export const mailHref = site.email ? `mailto:${copyText(site.email)}` : null;
 export const telHref = site.phone ? `tel:${copyText(site.phone).replace(/[^\d+]/g, '')}` : null;

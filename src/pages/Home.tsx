@@ -1,99 +1,57 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/layout';
-import { PackArt } from '../components/PackArt';
-import { BrandLogo } from '../components/BrandLogo';
-import { Icon, Img, PlaceholderTag, Reveal } from '../components/ui';
-import { brandList } from '../content/brands';
-import { nourishmentSections, storeCategories, storeHome } from '../content/store';
-import { bestsellers, inStoreCategory, newProducts, oneCardPerProduct, paths } from '../lib/brand';
+import { Icon, Img, Reveal } from '../components/ui';
+import { storeCategories, storeHome } from '../content/store';
+import { publishedTestimonials } from '../content/testimonials';
+import { bestsellers, paths } from '../lib/brand';
+import { rupees } from '../lib/format';
 import { organisationLd, snippet, useSeo } from '../lib/seo';
-import type { CatalogueItem } from '../lib/api';
 import { useCatalogue } from '../state/store';
 import { CatalogueStatus, GridSkeleton } from './Shop';
-import { SHOW_PLACEHOLDER_FLAGS } from '../content/site';
 
-const cat = (slug: string) => storeCategories.find((c) => c.slug === slug)!;
 const lines = (t: string) => t.split('\n').map((l, i) => <span key={i} className="hero__line">{l}</span>);
 
-function Grid({ items, n = 4 }: { items: CatalogueItem[]; n?: number }) {
-  const { status } = useCatalogue();
-  if (status === 'loading') return <GridSkeleton n={n} />;
-  if (status === 'error') return <CatalogueStatus />;
-  return (
-    <div className="grid grid--feature">
-      {items.slice(0, n).map((i, k) => <Reveal key={i.code} delay={k * 70}><ProductCard code={i.code} /></Reveal>)}
-    </div>
-  );
-}
-
-function SectionHead({ eyebrow, title, to, cta }: { eyebrow?: string; title: string; to: string; cta: string }) {
-  return (
-    <Reveal className="section__head">
-      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-      <h2 className="display display--md">{lines(title)}</h2>
-      <Link to={to} className="arrow-link">{cta} <Icon name="arrow" size={18} /></Link>
-    </Reveal>
-  );
-}
-
 /**
- * The store's home page (Website Design Brief §5, iteration 2): banner → craving → bestsellers → a lead
- * Better Snacking feature → treats → everyday nourishment → new & seasonal → gifting → about. Products and
- * Quick Add in every section, so shoppers move from the home page straight into the basket.
+ * The store's home page (2026-11-28): a bright full-width hero, the four collections (each with
+ * "Shop now"), the curated bestsellers in a scrolling row, then customer testimonials (only once
+ * real, permitted ones exist: content/testimonials.ts). Nothing else, then the footer.
  */
 export function StoreHome() {
-  const { items, statusOf } = useCatalogue();
+  const { items, shipping } = useCatalogue();
   useSeo({
     title: 'Torte Living · Cookies, better snacks and everyday staples',
     description: snippet(`${storeHome.heroTitle.replace('\n', ' ')} ${storeHome.heroText}`),
     // No image: shares use the brand card (La Mia Torte logo + Torte Living), see SHARE_CARD in lib/seo.
     jsonLd: organisationLd,
   });
-
-  const best = useMemo(() => bestsellers(items, 8), [items]);
-  const cards = useMemo(() => oneCardPerProduct(items), [items]);
-  // Within a section, products you can buy now come first.
-  const byStatus = (list: CatalogueItem[]) => [...list].sort((a, b) => Number(statusOf(a) !== 'available') - Number(statusOf(b) !== 'available'));
-  const inCat = (slug: string) => byStatus(cards.filter((i) => inStoreCategory(i, cat(slug))));
-  const snacking = useMemo(() => inCat('better-snacking').filter((i) => cat('better-snacking').categories.some((c) => c.toLowerCase() === (i.category ?? '').toLowerCase())), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
-  const treats = useMemo(() => inCat('indulgence-treats'), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Nutri Sampoorn, in the order of its sub-sections (atta blends, single grain flours, dosa mixes & chutneys).
-  const nsOrder = nourishmentSections.flatMap((s) => s.products);
-  const nourishing = useMemo(() => byStatus(inCat('everyday-nourishment').sort((a, b) => (nsOrder.indexOf(a.product) + 1 || 99) - (nsOrder.indexOf(b.product) + 1 || 99))), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
-  const gifting = useMemo(() => inCat('gifting-discovery'), [cards]); // eslint-disable-line react-hooks/exhaustive-deps
-  // New & seasonal: the backend's "new" flag; until it means something, products not already shown above.
-  const discoveries = useMemo(() => {
-    const flagged = newProducts(items);
-    if (flagged.length) return flagged;
-    const shown = new Set([...best.slice(0, 4), ...snacking.slice(0, 4), ...treats.slice(0, 4), ...nourishing.slice(0, 4)].map((i) => i.product));
-    return cards.filter((i) => !shown.has(i.product));
-  }, [items, cards, best, snacking, treats, nourishing]);
-  const nourishCounts = (names: string[]) => new Set(items.filter((i) => names.includes(i.product)).map((i) => i.product)).size;
-  const sn = storeHome.snacking;
-  const hero = snacking.find((i) => i.product === 'Peri Peri Trail Mix') ?? snacking[0];
+  const best = useMemo(() => bestsellers(items, 10), [items]);
 
   return (
     <>
-      {/* 1 · Main banner */}
-      <section className="store-hero">
-        <div className="store-hero__media"><Img id="mt-cookie-box-1" eager sizes="(min-width: 900px) 60vw, 100vw" className="store-hero__img" /></div>
-        <div className="wrap store-hero__inner">
-          <div className="store-hero__card hero__in">
-            <h1 className="display store-hero__title">{lines(storeHome.heroTitle)}</h1>
-            <p className="lede">{storeHome.heroText}</p>
+      {/* 1 · Hero: the photo across the top half of the screen, the message in a frosted cream box */}
+      <section className="home-hero" aria-labelledby="home-hero-h">
+        <Img id="mt-cookie-box-1" eager sizes="100vw" className="home-hero__img" />
+        <div className="wrap home-hero__inner">
+          <div className="home-hero__box hero__in">
+            <h1 id="home-hero-h" className="display home-hero__title">{lines(storeHome.heroTitle)}</h1>
+            <p className="home-hero__text">{storeHome.heroText}</p>
             <div className="hero__cta">
-              <Link to={paths.shop()} className="btn btn--dark">Shop now</Link>
+              <Link to={paths.shop()} className="btn btn--terracotta">Shop now</Link>
               <Link to={paths.bestsellers()} className="btn btn--line">Bestsellers</Link>
             </div>
+            {/* Trust line: facts only (the shop's own delivery and payment rules), never review counts. */}
+            <p className="home-hero__trust">
+              Cash on delivery{shipping ? <> · Free delivery over {rupees(shipping.free_above)}</> : null}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* 2 · Shop by craving */}
-      <section className="section section--tight wrap" aria-labelledby="craving-h">
-        <Reveal className="section__head"><h2 id="craving-h" className="display display--md">{storeHome.cravingTitle}</h2></Reveal>
-        <ul className="cats cats--4">
+      {/* 2 · Collections, each with its own Shop now */}
+      <section className="section section--tight wrap" aria-labelledby="collections-h">
+        <Reveal className="section__head"><h2 id="collections-h" className="display display--md">{storeHome.cravingTitle}</h2></Reveal>
+        <ul className="cats cats--4 cats--cta">
           {storeCategories.map((c, n) => (
             <Reveal as="li" key={c.slug} delay={n * 70} className="cat">
               <Link to={paths.category(c)} className="cat__link">
@@ -101,6 +59,7 @@ export function StoreHome() {
                 <span className="cat__body">
                   <span className="cat__brand">{c.title}</span>
                   <span className="cat__name">{c.craving}</span>
+                  <span className="btn btn--terracotta btn--sm cat__cta" aria-hidden="true">Shop now</span>
                 </span>
               </Link>
             </Reveal>
@@ -108,133 +67,68 @@ export function StoreHome() {
         </ul>
       </section>
 
-      {/* 3 · Bestsellers */}
-      <section className="section section--tight wrap" aria-label="Bestsellers">
-        <SectionHead title={storeHome.bestsellersTitle} to={paths.bestsellers()} cta="See all bestsellers" />
-        <Grid items={best} />
-      </section>
-
-      {/* 4 · Better Snacking: the lead category feature */}
-      <section className="snack-feature" aria-labelledby="snack-h">
-        <div className="wrap snack-feature__top">
-          <Reveal className="snack-feature__media">
-            {sn.image
-              ? <Img id={sn.image} sizes="(min-width: 900px) 50vw, 100vw" alt="" />
-              : <>
-                  {hero && <PackArt variant="hero" product={hero.product} category={hero.category} brandCode={hero.brand_code} />}
-                  {SHOW_PLACEHOLDER_FLAGS && <p className="snack-feature__shot">{sn.shot} <PlaceholderTag label="Photo needed" /></p>}
-                </>}
-          </Reveal>
-          <Reveal className="snack-feature__text" delay={80}>
-            <p className="eyebrow eyebrow--light">{sn.eyebrow}</p>
-            <h2 id="snack-h" className="display snack-feature__title">{lines(sn.title)}</h2>
-            <p className="lede">{sn.text}</p>
-            <ul className="snack-feature__pillars">
-              {sn.pillars.map((p, n) => (
-                <li key={p.title}><span className="snack-feature__n" aria-hidden="true">0{n + 1}</span><strong>{p.title}</strong><span>{p.text}</span></li>
-              ))}
-            </ul>
-            <Link to={paths.category(cat('better-snacking'))} className="btn btn--cream">Shop Better Snacking <Icon name="arrow" size={18} /></Link>
-          </Reveal>
-        </div>
-        <div className="wrap snack-feature__products">
-          <Rail items={snacking} label="Better Snacking products" />
-        </div>
-      </section>
-
-      {/* 5 · Indulgence & Treats */}
-      <section className="section section--tight wrap" aria-label="Indulgence & Treats">
-        <SectionHead eyebrow={storeHome.treats.eyebrow} title={storeHome.treats.title} to={paths.category(cat('indulgence-treats'))} cta={storeHome.treats.cta} />
-        <Grid items={treats} />
-      </section>
-
-      {/* 6 · Everyday Nourishment */}
-      <section className="section section--tight wrap nourish" aria-labelledby="nourish-h">
+      {/* 3 · Bestsellers: Torte Living's curated order, in a row that scrolls */}
+      <section className="section section--tight wrap" aria-labelledby="best-h">
         <Reveal className="section__head">
-          <p className="eyebrow">{storeHome.nourishment.eyebrow}</p>
-          <h2 id="nourish-h" className="display display--md">{storeHome.nourishment.title}</h2>
-          <p className="lede">{storeHome.nourishment.text}</p>
+          <h2 id="best-h" className="display display--md">{storeHome.bestsellersTitle}</h2>
+          <Link to={paths.bestsellers()} className="arrow-link">See all bestsellers <Icon name="arrow" size={18} /></Link>
         </Reveal>
-        <ul className="type-links">
-          {nourishmentSections.map((s) => {
-            const n = nourishCounts(s.products);
-            return (
-              <li key={s.id}>
-                <Link to={`${paths.category(cat('everyday-nourishment'))}#${s.id}`} className="type-link">
-                  <span>{s.title}</span><small>{n ? `${n} ${n === 1 ? 'product' : 'products'}` : ''}</small>
-                  <Icon name="arrow" size={18} />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-        <Grid items={nourishing} />
+        <ScrollRow items={best} label="Bestsellers" />
       </section>
 
-      {/* 7 · New & seasonal */}
-      {discoveries.length > 0 && (
-        <section className="section section--tight wrap" aria-label="New and seasonal">
-          <SectionHead eyebrow={storeHome.discoveries.eyebrow} title={storeHome.discoveries.title} to={paths.shop()} cta="Shop all" />
-          <Grid items={discoveries} />
+      {/* 4 · Testimonials: social proof right before the decision. Hidden until real, permitted entries exist. */}
+      {publishedTestimonials.length > 0 && (
+        <section className="section section--tight wrap testimonials" aria-labelledby="testimonials-h">
+          <Reveal className="section__head"><h2 id="testimonials-h" className="display display--md">What our customers say</h2></Reveal>
+          <ul className="testimonials__list">
+            {publishedTestimonials.map((t) => (
+              <li key={`${t.firstName}-${t.date}`} className="testimonial">
+                <blockquote><p>“{t.quote}”</p></blockquote>
+                <p className="testimonial__by">{t.firstName}, {t.city}</p>
+                <p className="testimonial__meta">{t.product} · via {t.source}</p>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
-
-      {/* 8 · Gifting & bundles */}
-      <section className="gifting" aria-labelledby="gift-h">
-        <div className="wrap gifting__grid">
-          <Reveal className="gifting__media gifting__collage">
-            <Img id="gift-hamper-6" sizes="(min-width: 900px) 30vw, 66vw" />
-            <Img id="gift-hamper-1" sizes="(min-width: 900px) 15vw, 33vw" />
-            <Img id="gift-hamper-4" sizes="(min-width: 900px) 15vw, 33vw" />
-          </Reveal>
-          <Reveal className="gifting__text" delay={80}>
-            <p className="eyebrow">{storeHome.gifting.eyebrow}</p>
-            <h2 id="gift-h" className="display display--md">{storeHome.gifting.title}</h2>
-            <p className="lede">{storeHome.gifting.text}</p>
-            {gifting.length > 0
-              ? <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">Shop gifting</Link>
-              : <Link to={paths.category(cat('gifting-discovery'))} className="btn btn--dark">See this season’s hampers</Link>}
-          </Reveal>
-        </div>
-        {gifting.length > 0 && <div className="wrap"><Grid items={gifting} /></div>}
-      </section>
-
-      {/* 9 · About Torte Living: the food and the range; brand stories live on their own pages */}
-      <section className="section wrap company company--single" aria-labelledby="company-h">
-        <Reveal className="company__intro">
-          <p className="eyebrow">{storeHome.company.eyebrow}</p>
-          <h2 id="company-h" className="display display--md">{storeHome.company.title}</h2>
-          <p className="lede">{storeHome.company.text}</p>
-          <p className="company__links">
-            <Link to="/about" className="arrow-link">Our story <Icon name="arrow" size={18} /></Link>
-          </p>
-          <div className="company__ranges">
-            <p className="company__brands-note">Our ranges</p>
-            <ul>
-              {brandList.map((b) => (
-                <li key={b.code}>
-                  <Link to={paths.brand(b)} className={`range ${b.logo ? 'range--logo' : ''}`}>
-                    {b.logo ? <BrandLogo brand={b} width={132} /> : <span className="range__name">{b.name}</span>}
-                    <span className={b.logo ? 'sr-only' : 'range__tag'}>{b.logo ? b.name : b.tagline}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Reveal>
-      </section>
     </>
   );
 }
 
-/** A horizontal row of product cards: swipe on phones, a grid on wide screens. */
-function Rail({ items, label }: { items: CatalogueItem[]; label: string }) {
+/** A horizontal row of product cards that scrolls on every screen: swipe, trackpad, the arrow buttons, or the keyboard. */
+function ScrollRow({ items, label }: { items: ReturnType<typeof bestsellers>; label: string }) {
   const { status } = useCatalogue();
+  const ref = useRef<HTMLUListElement>(null);
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    setEdge({ start: el.scrollLeft < 8, end: el.scrollLeft + el.clientWidth > el.scrollWidth - 8 });
+  };
+  useEffect(() => {
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [items.length]);
+  const page = (dir: 1 | -1) => {
+    const el = ref.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
   if (status === 'loading') return <GridSkeleton n={4} />;
   if (status === 'error') return <CatalogueStatus />;
   return (
-    <ul className="rail" aria-label={label}>
-      {items.map((i, k) => <li key={i.code}><Reveal delay={(k % 4) * 60}><ProductCard code={i.code} /></Reveal></li>)}
-    </ul>
+    <div className="scrollrow">
+      <button type="button" className="scrollrow__btn scrollrow__btn--prev" onClick={() => page(-1)} disabled={edge.start} aria-label={`Previous ${label.toLowerCase()}`}>
+        <Icon name="back" size={20} />
+      </button>
+      {/* Focusable so arrow keys scroll it; each card's links are reachable with Tab as usual. */}
+      <ul ref={ref} className="rail rail--scroll" aria-label={label} tabIndex={0} onScroll={update}>
+        {items.map((i) => <li key={i.code}><ProductCard code={i.code} /></li>)}
+      </ul>
+      <button type="button" className="scrollrow__btn scrollrow__btn--next" onClick={() => page(1)} disabled={edge.end} aria-label={`Next ${label.toLowerCase()}`}>
+        <Icon name="arrow" size={20} />
+      </button>
+    </div>
   );
 }
