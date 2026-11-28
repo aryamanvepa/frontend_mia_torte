@@ -85,7 +85,8 @@ export function useSeo(seo: Seo | null) {
     const img = seo.image ? imageUrl(seo.image) : SHARE_CARD;
     document.title = seo.title;
     setMeta('name', 'description', seo.description);
-    setMeta('name', 'robots', seo.noindex ? 'noindex, follow' : undefined);
+    // Design playground: every page noindex (canonicals still point at the main site).
+    setMeta('name', 'robots', __PLAYGROUND__ ? 'noindex, nofollow' : seo.noindex ? 'noindex, follow' : undefined);
     setLink('canonical', seo.noindex ? undefined : url);
     setMeta('property', 'og:site_name', SITE_NAME);
     setMeta('property', 'og:title', seo.title);

@@ -14,6 +14,11 @@
 //
 // Needs Chrome: set CHROME_PATH, or it looks in the usual places. With no
 // Chrome (or PRERENDER=0) it skips, leaving the plain single-page build.
+//
+// Design playground (VITE_PLAYGROUND=1): every page is noindex there, so the
+// pages to save are the ones with a canonical address; the panel's own nodes
+// ([data-pg]) are left out, and no sitemap or robots.txt is written (the
+// build writes a disallow-all robots.txt itself, see vite.config.ts).
 // =====================================================================
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -22,6 +27,7 @@ import { dirname, extname, join, normalize } from 'node:path';
 const DIST = 'dist';
 const BASE = (process.env.BASE_PATH || '/').replace(/\/?$/, '/');
 const SITE_URL = (process.env.VITE_SITE_URL || 'https://lamiatorte.com').replace(/\/$/, '');
+const PLAYGROUND = process.env.VITE_PLAYGROUND === '1';
 // Pages that are never indexed, so not worth pre-rendering.
 const SKIP = [/^\/checkout/, /^\/order\//, /^\/track/];
 const MAX_PAGES = 400;
@@ -95,6 +101,7 @@ while (queue.length && pages.length < MAX_PAGES) {
     const data = await page.evaluate(() => {
       document.querySelectorAll('.reveal').forEach((e) => e.classList.add('is-in'));
       document.documentElement.removeAttribute('style'); // runtime-only (--header-total)
+      document.querySelectorAll('[data-pg]').forEach((e) => e.remove()); // design playground panel (runtime-only)
       const robots = document.querySelector('meta[name="robots"]')?.getAttribute('content') || '';
       return {
         html: `<!doctype html>\n${document.documentElement.outerHTML}`,
@@ -124,11 +131,16 @@ if (!pages.length) { console.warn('prerender: nothing rendered; leaving the plai
 // ---------------------------------------------------------------- write pages
 let written = 0;
 for (const p of pages) {
-  if (p.noindex) continue; // 404s and private pages fall back to the plain app
+  if (PLAYGROUND ? !p.canonical : p.noindex) continue; // 404s and private pages fall back to the plain app
   const out = p.path === '/' ? join(DIST, 'index.html') : join(DIST, p.path.slice(1), 'index.html');
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, p.html);
   written++;
+}
+
+if (PLAYGROUND) {
+  console.log(`prerender: ${written} pages written (design playground: no sitemap)${failed ? `, ${failed} failed` : ''}`);
+  process.exit(0);
 }
 
 // ---------------------------------------------------------------- sitemap & robots

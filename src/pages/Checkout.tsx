@@ -139,6 +139,7 @@ export default function Checkout() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (__PLAYGROUND__) return; // design playground: ordering is off
     if (submitting) return;
     const v = validate(form);
     setErrors(v);
@@ -389,9 +390,17 @@ export default function Checkout() {
           </label>
 
           <div className="place">
-            <button type="submit" className="btn btn--dark btn--block btn--lg" disabled={submitting || blocked} aria-busy={submitting}>
-              {submitting ? <><Spinner /> Placing your order…</> : <>Place order{quote ? ` · ${rupees(quote.total)}` : ''}</>}
-            </button>
+            {__PLAYGROUND__ ? (
+              // Design playground: the button keeps its look but can't place an order.
+              <>
+                <button type="button" className="btn btn--dark btn--block btn--lg" disabled>Place order{quote ? ` · ${rupees(quote.total)}` : ''}</button>
+                <p className="pg-off" role="note">Playground — ordering is off</p>
+              </>
+            ) : (
+              <button type="submit" className="btn btn--dark btn--block btn--lg" disabled={submitting || blocked} aria-busy={submitting}>
+                {submitting ? <><Spinner /> Placing your order…</> : <>Place order{quote ? ` · ${rupees(quote.total)}` : ''}</>}
+              </button>
+            )}
             {unserviceable && <p className="field__error">We don’t deliver to this PIN code yet.</p>}
             {problems.length > 0 && <p className="field__error">Please update the items marked in your order summary.</p>}
             {POLICY_LIVE.terms && POLICY_LIVE.privacy && <p className="place__terms">By placing this order you agree to our <Link to="/terms">terms of use and sale</Link> and <Link to="/privacy">privacy policy</Link>.</p>}

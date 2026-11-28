@@ -193,5 +193,51 @@ secret (default: `https://aryamanvepa.github.io`, `http://localhost:5173`, `http
 ## Deploy
 
 Every push to `main` builds and publishes to GitHub Pages (`.github/workflows/deploy-pages.yml`).
+The design playground deploys separately; see [Design playground](#design-playground).
 Repository variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
 **Never** put the Supabase service_role key in this repository.
+
+## Design playground
+
+**https://playground.lamiatorte.pages.dev** is a copy of the shop with a live design panel, for trying
+looks before they go live. It is a Cloudflare Pages *branch* deployment (`--branch=playground`) of the
+same `lamiatorte` project, built by `.github/workflows/deploy-playground.yml` on every push to the
+`playground` branch (or run it by hand). It never touches lamiatorte.com or the github.io copy.
+
+* **Build flag.** `VITE_PLAYGROUND=1` adds `src/playground/` as a second entry (vite.config.ts) and turns
+  on the `__PLAYGROUND__` guards. With the flag off (production) the guards are compile-time `false`
+  and are removed: the production `dist/` is byte-identical to a build without any of this code.
+* **Safety.** Every page is `noindex, nofollow` (meta tag and an `X-Robots-Tag` header in `_headers`),
+  robots.txt is `Disallow: /`, there is no sitemap, and canonicals still point at https://lamiatorte.com.
+  Place order, notify-me and order cancellation are shown but switched off ("Playground — ordering is
+  off"), and `placeOrder` / `notifyMe` / `requestCancellation` send nothing. The order function's
+  CORS allow-list doesn't include the playground origin either. Catalogue reads are live (read-only).
+  `npm run check:playground` checks all of this on the built pages.
+* **The panel.** A floating "Design" button (an edge tab on phones) opens the panel: typography, font
+  sizes, pictures (radius, border, shadow, frame, photo brightness / warmth / saturation / contrast),
+  colour (accents, background, text, one-click palettes, a live WCAG AA contrast check), density,
+  shape and buttons, product cards and grid. Reset to production, presets A/B/C to compare, Copy
+  settings (JSON), Share link (`?design=…` reproduces the look), and the browser remembers your settings.
+* **How it works.** `src/playground/design.ts` maps each setting to CSS custom properties
+  (`designToVars`); `src/playground/levers.css` re-states the shop's styles in terms of those tokens.
+  Its `:root` block holds today's values (generated from `src/playground/production.json`), so with
+  nothing changed the playground renders exactly like the live site.
+
+Bring the playground up to date with the live shop: `git push origin main:playground`.
+Run it locally: `VITE_PLAYGROUND=1 npm run dev`.
+
+### Making a chosen design the live look
+
+When the owner sends settings from the panel ("Copy settings" JSON, or a "Share link"):
+
+```bash
+node scripts/apply-design.mjs design.json          # or: node scripts/apply-design.mjs "<share link>"
+git diff                                            # production.json, the levers.css token block, src/main.tsx
+```
+
+The script merges the settings into `src/playground/production.json`, regenerates the token block in
+`levers.css` from it, and (the first time) makes `src/main.tsx` import `levers.css` after `styles.css`,
+so the live site uses the tokens. It prints the two things it can't do itself: self-hosting a new font
+(`npm i @fontsource…` plus one import line; the token already names the font) and baking photo warmth
+into the image files (CSS can't warm a photo without the playground's SVG filter). Then build and check
+both: `npm run build && npm run check`, and `VITE_PLAYGROUND=1 npm run build && npm run check:playground`.

@@ -208,6 +208,7 @@ function CancelRequest({ code, phone, status }: { code: string; phone: string; s
     if (r.ok) { setState(r.result); return; }
     setState('error'); setMsg(MESSAGES[r.error] ?? MESSAGES.try_later);
   }
+  if (__PLAYGROUND__) return <p className="pg-off" role="note">Playground — ordering is off (cancellation too)</p>;
   if (state === 'cancelled') return <p className="banner banner--info" role="status">Your order has been cancelled. If you paid online, the refund will follow.</p>;
   if (state === 'requested') return <p className="banner banner--info" role="status">We’ve received your cancellation request and will confirm shortly.</p>;
   if (!open) return <button type="button" className="linkbtn track__cancel" onClick={() => setOpen(true)}>Request cancellation</button>;

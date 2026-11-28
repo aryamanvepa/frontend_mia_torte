@@ -43,6 +43,8 @@ env:
 jobs:
   # ------------------------------------------------------------------ Cloudflare Pages (lamiatorte.com)
   cloudflare:
+    # Production deploys only ever build main (the design playground has its own workflow).
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       BASE_PATH: /
@@ -73,6 +75,7 @@ jobs:
 
   # ------------------------------------------------------------------ GitHub Pages (github.io copy)
   github-pages:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1,0 +1,242 @@
+/* =====================================================================
+   DESIGN LEVERS — the shop's styles re-stated in terms of design tokens.
+
+   Loaded after src/styles.css, only in the playground build today. Every
+   token below defaults to the live look, so with no settings changed the
+   page renders exactly as lamiatorte.com. The design panel changes the
+   tokens on <html> (src/playground/design.ts → designToVars).
+
+   The :root block between the markers is generated from production.json
+   (scripts/apply-design.mjs); `npm run check:playground` fails if it drifts.
+   ===================================================================== */
+/* design-tokens:start */
+html:root {
+  --serif: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sans: 'DM Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lv-base: 1;
+  --lv-h1: 1;
+  --lv-h2: 1;
+  --lv-h3: 1;
+  --lv-body: 1;
+  --lv-small: 1;
+  --lv-price: 1;
+  --lv-lh: 1;
+  --lv-h-track: -0.015em;
+  --lv-h-weight: 360;
+  --lv-pic-radius: 4px;
+  --lv-pic-radius-top: 4px;
+  --lv-pic-border: 0 none;
+  --lv-pic-shadow: none;
+  --lv-pic-shadow-collage: 0 18px 40px -24px rgba(110, 70, 20, 0.45);
+  --lv-frame-line: none;
+  --lv-frame-pad: 0px;
+  --lv-frame-pad-b: 0px;
+  --lv-frame-bg: var(--linen);
+  --lv-frame-fill: transparent;
+  --lv-photo-filter: none;
+  --cream: #f6efe5;
+  --paper: #fbf7f1;
+  --linen: #efe5d6;
+  --cocoa: #3a2419;
+  --muted: #6b5244;
+  --line: rgba(58, 36, 25, 0.13);
+  --line-strong: rgba(58, 36, 25, 0.28);
+  --lv-accent: #3a2419;
+  --lv-link: initial;
+  --lv-accent-deep: #24150e;
+  --lv-on-accent: var(--cream);
+  --gold-ink: #87622a;
+  --gold: #b38b4d;
+  --gold-soft: #e9d3a6;
+  --lv-space: 1;
+  --lv-measure: 1;
+  --lv-r-btn: 999px;
+  --lv-r-card: 4px;
+  --lv-r-input: 4px;
+  --lv-r-input-pill: 999px;
+  --lv-r-textarea: 4px;
+  --lv-btn-bg: var(--lv-accent);
+  --lv-btn-fg: var(--lv-on-accent);
+  --lv-btn-fg-hover: var(--lv-on-accent);
+  --lv-btn-border: var(--lv-accent);
+  --lv-btn-sweep: var(--lv-accent-deep);
+  --lv-btn-deco: none;
+  --lv-btn-size: 1;
+  --lv-btn-px: 28px;
+  --lv-cols-m: 2;
+  --lv-cols-t: 3;
+  --lv-cols-d: 4;
+  --lv-rail-m: minmax(170px, 46%);
+  --lv-rail-t: minmax(200px, 31%);
+  --lv-rail-d: auto-fill, minmax(220px, 1fr);
+  --lv-card-aspect: 4 / 5;
+  --lv-card-desc: -webkit-box;
+  --lv-card-size: block;
+  --lv-card-size-single: flex;
+  --lv-price-weight: 600;
+  --lv-price-color: inherit;
+}
+/* design-tokens:end */
+
+/* ---------------------------------------------------------------- 1–2. typography & sizes */
+html { font-size: calc(100% * var(--lv-base)); }
+@media (min-width: 1680px) { html { font-size: calc(106.25% * var(--lv-base)); } }
+@media (min-width: 2200px) { html { font-size: calc(118.75% * var(--lv-base)); } }
+body { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.6 * var(--lv-lh)); }
+
+.display { font-weight: var(--lv-h-weight); letter-spacing: var(--lv-h-track); }
+.display em { font-weight: calc(var(--lv-h-weight) - 30); }
+.display--lg { font-size: calc(clamp(2.3rem, 5vw, 4rem) * var(--lv-h1)); }
+.display--md { font-size: calc(clamp(1.85rem, 3.4vw, 2.9rem) * var(--lv-h2)); }
+.display--sm { font-size: calc(clamp(1.45rem, 2.4vw, 1.95rem) * var(--lv-h3)); }
+.hero__title { font-size: calc(clamp(2.6rem, 6.4vw, 5.4rem) * var(--lv-h1)); }
+.ns-hero__title { font-size: calc(clamp(2.7rem, 7vw, 6.2rem) * var(--lv-h1)); }
+.store-hero__title { font-size: calc(clamp(2.3rem, 5.6vw, 4.6rem) * var(--lv-h1)); }
+.snack-feature__title { font-size: calc(clamp(2.2rem, 5.2vw, 4.2rem) * var(--lv-h1)); letter-spacing: calc(var(--lv-h-track) - 0.005em); }
+.card__title { font-size: calc(clamp(1.08rem, 1.6vw, 1.32rem) * var(--lv-h3)); letter-spacing: calc(var(--lv-h-track) + 0.01em); }
+
+/* body copy: size follows "body", line height keeps each style's proportion, line length follows "measure" */
+.lede { font-size: calc(clamp(1.02rem, 1.3vw, 1.14rem) * var(--lv-body)); line-height: calc(1.7 * var(--lv-lh)); max-width: calc(38em * var(--lv-measure)); }
+.card__summary { font-size: calc(0.88rem * var(--lv-body)); line-height: calc(1.45 * var(--lv-lh)); }
+.pdp__summary { font-size: calc(1.08rem * var(--lv-body)); line-height: calc(1.55 * var(--lv-lh)); max-width: calc(52ch * var(--lv-measure)); }
+.pdp__intro { line-height: calc(1.7 * var(--lv-lh)); max-width: calc(34em * var(--lv-measure)); }
+.pdp-block p { line-height: calc(1.75 * var(--lv-lh)); max-width: calc(38em * var(--lv-measure)); }
+.info__section p { max-width: calc(40em * var(--lv-measure)); }
+.info--story .info__section p { font-size: calc(1.05rem * var(--lv-body)); line-height: calc(1.8 * var(--lv-lh)); }
+.shop__group-head p { font-size: calc(1rem * var(--lv-body)); line-height: calc(1.5 * var(--lv-lh)); }
+.snack-feature .lede { max-width: calc(46ch * var(--lv-measure)); }
+@media (max-width: 520px) { .card__summary { font-size: calc(0.82rem * var(--lv-body)); } }
+
+/* small text: labels, brand lines, pack sizes, crumbs, hints */
+.eyebrow { font-size: calc(0.72rem * var(--lv-small)); }
+.topbar { font-size: calc(0.66rem * var(--lv-small)); }
+.card__brand { font-size: calc(0.74rem * var(--lv-small)); }
+.card__brand--inline { font-size: inherit; }
+.card__pack { font-size: calc(0.85rem * var(--lv-small)); }
+.card__badge { font-size: calc(0.66rem * var(--lv-small)); }
+.crumbs { font-size: calc(0.82rem * var(--lv-small)); }
+.shop__count { font-size: calc(0.85rem * var(--lv-small)); }
+.pdp__tax { font-size: calc(0.82rem * var(--lv-small)); }
+.pdp__by { font-size: calc(0.84rem * var(--lv-small)); }
+.field__hint { font-size: calc(0.8rem * var(--lv-small)); }
+.line__meta { font-size: calc(0.82rem * var(--lv-small)); }
+.line__brand { font-size: calc(0.74rem * var(--lv-small)); }
+.footer__legal { font-size: calc(0.8rem * var(--lv-small)); }
+.header__nav .navlink { font-size: calc(0.72rem * var(--lv-small)); }
+
+/* prices */
+.card__price { font-size: calc(1.02rem * var(--lv-price)); font-weight: var(--lv-price-weight); color: var(--lv-price-color); }
+.price__now { font-weight: var(--lv-price-weight); color: var(--lv-price-color); }
+.price--lg .price__now { font-size: calc(2rem * var(--lv-price)); font-weight: 400; }
+.hero__chip-price { font-size: calc(0.9rem * var(--lv-price)); }
+.line__total { font-size: calc(0.95rem * var(--lv-price)); }
+.sline__price { font-size: calc(0.92rem * var(--lv-price)); }
+.drawer__sum { font-size: calc(1.25rem * var(--lv-price)); }
+.totals__grand dd { font-size: calc(1.6rem * var(--lv-price)); }
+
+/* ---------------------------------------------------------------- 3. pictures */
+/* Framed pictures: product cards, craving tiles, collection/feature photos, hampers, gifting, founder. */
+.card__media, .cat__link, .snack-feature__media, .coll-head__media, .bespoke__media,
+.info__hero .img, .hamper-gallery .img, .gifting__media .img, .gifting__collage .img, .founder__photo .img {
+  border-radius: var(--lv-pic-radius-top) var(--lv-pic-radius-top) var(--lv-pic-radius) var(--lv-pic-radius);
+  border: var(--lv-pic-border);
+  box-shadow: var(--lv-pic-shadow);
+}
+.gifting__collage .img { box-shadow: var(--lv-pic-shadow-collage); }
+/* thin line: a hairline inside the picture (never replaces a keyboard focus ring) */
+:is(.card__media, .cat__link, .snack-feature__media, .coll-head__media, .bespoke__media,
+.info__hero .img, .hamper-gallery .img, .gifting__media .img, .gifting__collage .img, .founder__photo .img):not(:focus-visible) {
+  outline: var(--lv-frame-line); outline-offset: -10px;
+}
+/* polaroid: a white mount with a deeper bottom edge */
+.card__media { --radius: var(--lv-pic-radius); background: var(--lv-frame-bg); }
+.card__media > .img, .card__media > .pack, .cat__img, .cat__link::after {
+  inset: var(--lv-frame-pad) var(--lv-frame-pad) var(--lv-frame-pad-b);
+}
+.cat__link { background-color: var(--lv-frame-fill); }
+.coll-head__media, .bespoke__media { padding: var(--lv-frame-pad) var(--lv-frame-pad) var(--lv-frame-pad-b); background-color: var(--lv-frame-fill); }
+.info__hero .img, .hamper-gallery .img, .gifting__media .img, .founder__photo .img {
+  padding: var(--lv-frame-pad) var(--lv-frame-pad) var(--lv-frame-pad-b); background-color: var(--lv-frame-bg);
+}
+.gallery__slide { padding: var(--lv-frame-pad) var(--lv-frame-pad) var(--lv-frame-pad-b); }
+.gallery__slide { background-color: var(--lv-frame-fill); }
+@media (min-width: 720px) {
+  .gallery__track {
+    border-radius: var(--lv-pic-radius-top) var(--lv-pic-radius-top) var(--lv-pic-radius) var(--lv-pic-radius);
+    border: var(--lv-pic-border); box-shadow: var(--lv-pic-shadow);
+  }
+}
+/* photo treatment (brightness, warmth, saturation, contrast) on every photograph */
+.img img { filter: var(--lv-photo-filter); }
+
+/* ---------------------------------------------------------------- 4. colour */
+/* Inside controls, "cocoa" means the accent: filled buttons, Add, sizes, steppers, counts, badges. */
+.btn, .add-btn, .seg__btn, .size, .chip, .card__notify, .bag-btn, .stepper, .bagstep, .sline__qty, .bag-btn__count,
+.add-btn__count, .size__count, .timeline, .confirm__check, .cod {
+  --cocoa: var(--lv-accent); --espresso: var(--lv-accent-deep); --cream: var(--lv-on-accent);
+}
+.card__badge:not([class*='card__badge--']) { background: color-mix(in srgb, var(--lv-accent-deep) 82%, transparent); color: var(--lv-on-accent); }
+/* --lv-link is `initial` (so: inherit, as today) until the accent changes */
+.arrow-link { color: var(--lv-link); }
+.arrow-link--light { color: var(--gold-soft); }
+.snack-feature .arrow-link:not(.arrow-link--light), .feature-band .arrow-link:not(.arrow-link--light), .story .arrow-link:not(.arrow-link--light), .footer .arrow-link:not(.arrow-link--light) { color: inherit; }
+
+/* ---------------------------------------------------------------- 5. density & spacing */
+.section { padding-block: calc(clamp(64px, 9vw, 128px) * var(--lv-space)); }
+.section--tight { padding-block: calc(clamp(40px, 6vw, 80px) * var(--lv-space)); }
+.section__head { margin-bottom: calc(clamp(28px, 4vw, 52px) * var(--lv-space)); }
+.closing { padding-block: calc(clamp(64px, 9vw, 120px) * var(--lv-space)); }
+.feature-band { padding-block: calc(clamp(56px, 8vw, 112px) * var(--lv-space)); }
+.snack-feature { padding-block: calc(clamp(56px, 8vw, 120px) * var(--lv-space)) calc(clamp(48px, 6vw, 96px) * var(--lv-space)); }
+.gifting { padding-block: calc(clamp(56px, 8vw, 112px) * var(--lv-space)); gap: calc(clamp(32px, 5vw, 56px) * var(--lv-space)); }
+.library, .bespoke { padding-block: calc(clamp(64px, 9vw, 120px) * var(--lv-space)); }
+.page-head { padding-top: calc(clamp(40px, 7vw, 96px) * var(--lv-space)); padding-bottom: calc(clamp(24px, 3vw, 40px) * var(--lv-space)); }
+.coll-head { padding-top: calc(clamp(28px, 5vw, 64px) * var(--lv-space)); padding-bottom: calc(clamp(24px, 3vw, 40px) * var(--lv-space)); gap: calc(28px * var(--lv-space)); }
+@media (min-width: 900px) { .coll-head--media { gap: calc(clamp(40px, 6vw, 96px) * var(--lv-space)); } }
+.shop__results { padding-top: calc(24px * var(--lv-space)); padding-bottom: calc(clamp(64px, 9vw, 120px) * var(--lv-space)); }
+.card__body { padding-top: calc(14px * var(--lv-space)); }
+
+/* ---------------------------------------------------------------- 7. product grid (columns × density) */
+.grid { --lv-gx: calc(14px * var(--lv-space)); grid-template-columns: repeat(var(--lv-cols-m), minmax(0, 1fr)); gap: calc(36px * var(--lv-space)) var(--lv-gx); }
+.grid--feature > *, .grid--pantry > * { flex-basis: calc((100% - (var(--lv-cols-m) - 1) * var(--lv-gx)) / var(--lv-cols-m)); }
+@media (min-width: 700px) {
+  .grid { --lv-gx: calc(24px * var(--lv-space)); grid-template-columns: repeat(var(--lv-cols-t), minmax(0, 1fr)); gap: calc(48px * var(--lv-space)) var(--lv-gx); }
+  .grid--feature > *, .grid--pantry > * { flex-basis: calc((100% - (var(--lv-cols-t) - 1) * var(--lv-gx)) / var(--lv-cols-t)); }
+}
+@media (min-width: 1100px) {
+  .grid { --lv-gx: calc(28px * var(--lv-space)); grid-template-columns: repeat(var(--lv-cols-d), minmax(0, 1fr)); gap: calc(56px * var(--lv-space)) var(--lv-gx); }
+  .grid--feature > * { flex-basis: calc((100% - (var(--lv-cols-d) - 1) * var(--lv-gx)) / var(--lv-cols-d)); }
+  .grid--pantry > * { flex-basis: calc((100% - (var(--lv-cols-t) - 1) * 24px * var(--lv-space)) / var(--lv-cols-t)); }
+}
+.rail { grid-auto-columns: var(--lv-rail-m); gap: calc(14px * var(--lv-space)); }
+@media (min-width: 700px) { .rail { grid-auto-columns: var(--lv-rail-t); gap: calc(20px * var(--lv-space)); } }
+@media (min-width: 1100px) { .rail { grid-template-columns: repeat(var(--lv-rail-d)); gap: calc(36px * var(--lv-space)) calc(24px * var(--lv-space)); } }
+
+.card__media, .sk--media { aspect-ratio: var(--lv-card-aspect); }
+.card__summary { display: var(--lv-card-desc); }
+.card__size { display: var(--lv-card-size); }
+.card__size--single { display: var(--lv-card-size-single); }
+
+/* ---------------------------------------------------------------- 6. shape & buttons */
+/* Buttons and button-like controls (all pills today). */
+.btn, .seg, .seg__btn, .chip, .size, .stepper, .add-btn, .bagstep, .card__notify, .coll-head__jump a, .notes li, .bag-btn { --pill: var(--lv-r-btn); }
+/* Inputs: boxed fields (soft today) and the search / PIN / promo / filter pills. */
+.field, .card__size, .notify__field { --radius: var(--lv-r-input); }
+.field textarea { border-radius: var(--lv-r-textarea); }
+.searchbox, .delivery__form, .promo__row, .search-page__form, .sort, .filter { --pill: var(--lv-r-input-pill); }
+/* Cards and panels (soft today). */
+.brand-card, .type-link, .related-cat, .closing__inner, .soon, .facts, .glance, .delivery, .notify, .checkout__aside,
+.checkout__mobile-summary, .track__result, .track__ship, .contact__card, .legal-details, .account__card, .store-hero__card,
+.quickadd__menu, .searchbox__suggest, .range, .banner, .consent-bar, .hero__chip, .pdp__status, .freebar, .delivery-eta,
+.cod, .confirm__code, .totals__free, .snack-feature__shot { --radius: var(--lv-r-card); }
+
+/* Button size, then the main (filled) button's style: filled / outline / underlined text. */
+.btn { min-height: calc(var(--h) * var(--lv-btn-size)); padding-inline: calc(28px * var(--lv-btn-size)); font-size: calc(0.95rem * var(--lv-btn-size)); }
+.btn--lg { font-size: calc(1rem * var(--lv-btn-size)); }
+.btn--dark {
+  background: var(--lv-btn-bg); color: var(--lv-btn-fg); border-color: var(--lv-btn-border);
+  text-decoration-line: var(--lv-btn-deco); text-underline-offset: 4px; padding-inline: var(--lv-btn-px);
+}
+.btn--dark::before { background: var(--lv-btn-sweep); }
+.btn--dark:hover { color: var(--lv-btn-fg-hover); }
+.btn--dark.is-adding { background: var(--ok); border-color: var(--ok); }

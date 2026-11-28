@@ -40,6 +40,22 @@ export function NotifyMe({ code, what, pack, soon }: { code: string; what: strin
     setError(MESSAGES[res.error] ?? FALLBACK);
   };
 
+  if (__PLAYGROUND__) {
+    // Design playground: the same form, switched off, so its look can still be designed.
+    return (
+      <form className="notify" onSubmit={(e) => e.preventDefault()} aria-labelledby={`${id}-h`}>
+        <p className="notify__h" id={`${id}-h`}><Icon name="mail" size={18} /> {soon ? 'Tell me when it’s available' : 'Tell me when it’s back'}</p>
+        <p className="notify__sub">For the {pack}. One email, nothing else.</p>
+        <fieldset disabled className="notify__fields" style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+          <label className="notify__field"><span className="sr-only">Email address</span><input type="email" placeholder="Email address" /></label>
+          <label className="notify__field notify__field--name"><span className="sr-only">First name (optional)</span><input type="text" placeholder="First name (optional)" /></label>
+        </fieldset>
+        <button type="button" className="btn btn--dark notify__btn" disabled>Notify me</button>
+        <p className="pg-off" role="note">Playground — ordering is off</p>
+      </form>
+    );
+  }
+
   if (state === 'done') {
     return (
       <div className="notify notify--done" role="status">

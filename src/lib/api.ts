@@ -109,6 +109,7 @@ export type CancelResult = { ok: true; result: 'cancelled' | 'requested' } | { o
 
 /** Ask to cancel an order (backend task B7). "unavailable" until the backend function exists. */
 export async function requestCancellation(code: string, phone: string, reason: string): Promise<CancelResult> {
+  if (__PLAYGROUND__) return { ok: false, error: 'unavailable' }; // design playground: ordering is off
   try {
     const res = await fetch(`${URL_}/rest/v1/rpc/storefront_request_cancellation`, {
       method: 'POST',
@@ -149,6 +150,7 @@ export type NotifyResult = { ok: true } | { ok: false; error: 'consent_required'
 
 /** "Email me when this pack is available". The list can't be read back from the website. */
 export async function notifyMe(args: { sku: string; email: string; name: string; consent: boolean }): Promise<NotifyResult> {
+  if (__PLAYGROUND__) return { ok: false, error: 'try_later' }; // design playground: ordering is off
   try {
     return await rpc<NotifyResult>('storefront_notify_me', {
       p_sku_code: args.sku, p_email: args.email.trim(), p_consent: args.consent, p_name: args.name.trim() || null,
@@ -192,6 +194,7 @@ export const getQuote = (lines: { sku_code: string; qty: number }[], extras?: Qu
  * same idempotency key, so a retry can never create a second order.
  */
 export async function placeOrder(body: PlaceBody & QuoteExtras): Promise<PlaceResult> {
+  if (__PLAYGROUND__) return { ok: false, error: 'network' } as PlaceResult; // design playground: ordering is off
   const send = () => callOrderFunction<PlaceResult>({ action: 'place', ...body, ...clean({ pincode: body.pincode, promo_code: body.promo_code }), ...testFlag });
   let res = await send();
   for (const wait of [1200, 3000]) {

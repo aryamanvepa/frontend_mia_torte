@@ -1,0 +1,52 @@
+# Design playground → https://playground.lamiatorte.pages.dev
+#
+# A copy of the shop with the design panel (VITE_PLAYGROUND=1), published as a Cloudflare Pages *branch*
+# deployment of the `lamiatorte` project (--branch=playground). Production is the project's `main` branch,
+# so this never touches lamiatorte.com, and it never touches the github.io copy (deploy-pages.yml).
+#
+# Runs on every push to the `playground` branch and on demand. Bring it up to date with production:
+#   git push origin main:playground
+# The build is noindex everywhere, disallows all crawling, writes no sitemap and switches ordering off;
+# `npm run check:playground` fails the run otherwise.
+name: Deploy design playground (Cloudflare Pages branch)
+
+on:
+  push:
+    branches: [playground]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playground
+  cancel-in-progress: true
+
+jobs:
+  playground:
+    runs-on: ubuntu-latest
+    env:
+      BASE_PATH: /
+      VITE_PLAYGROUND: '1'
+      VITE_HIDE_TEST_DATA: '1'
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SITE_URL: ${{ vars.VITE_SITE_URL || 'https://lamiatorte.com' }}
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (playground)
+        run: npm run build
+      - name: Playground checks (noindex everywhere, robots disallow-all, no sitemap, canonicals, ordering off)
+        run: npm run check:playground
+      - name: Deploy to the playground branch of the Pages project
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=lamiatorte --branch=playground
